@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Risk Radar Dashboard - OffboardHQ</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00B383", // Emerald Green
+                        "primary-dark": "#009068",
+                        "deep-void": "#0B1120",
+                        "glass-border": "#273041",
+                        "signal-green": "#2EB887",
+                        "warning": "#F59E0B",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                    },
+                    backgroundImage: {
+                        'radar-glow': 'radial-gradient(circle, rgba(0, 179, 131, 0.15) 0%, rgba(11, 17, 32, 0) 70%)',
+                        'card-gradient': 'linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%)',
+                    },
+                    boxShadow: {
+                        'neon': '0 0 20px rgba(0, 179, 131, 0.3)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0B1120;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Custom Scrollbar for the Zen look */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B1120;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #273041;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00B383;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .text-tracking-tighter {
+            letter-spacing: -0.02em;
+        }
+        
+        .radar-line {
+            stroke-dasharray: 10;
+            animation: dash 30s linear infinite;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: 1000;
+            }
+        }
+    </style>
+</head>
+<body class="bg-deep-void text-white h-screen flex overflow-hidden selection:bg-primary selection:text-white">
+<!-- Sidebar Navigation -->
+<nav class="w-64 border-r border-glass-border flex flex-col justify-between bg-deep-void shrink-0 z-20">
+<div class="p-6">
+<div class="flex items-center gap-3 mb-10">
+<div class="size-8 rounded-lg bg-gradient-to-br from-primary to-emerald-900 flex items-center justify-center text-white shadow-neon">
+<span class="material-symbols-outlined text-[20px]">radar</span>
+</div>
+<h1 class="text-lg font-bold tracking-tight text-white">OffboardHQ</h1>
+</div>
+<div class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 text-primary border border-primary/20" href="#">
+<span class="material-symbols-outlined">security</span>
+<span class="text-sm font-medium">Risk Radar</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">group</span>
+<span class="text-sm font-medium">Employees</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">integration_instructions</span>
+<span class="text-sm font-medium">Integrations</span>
+</a>
+</div>
+</div>
+<div class="p-6 border-t border-glass-border">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+<div class="mt-4 flex items-center gap-3 px-4">
+<div class="size-8 rounded-full bg-cover bg-center ring-2 ring-glass-border" data-alt="Admin user profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD3s-pQtkfBzBezIOOmQBcLo2OPxYz_7s1r5Wi3caINAS5PryQ6K0WPc5t3Q6Z8xqxXFD8Y7s7xB5TYMf4STVuXQKhIzF-Bq2cXPyrkVmy_jK-5RvoPD3ZmOkS-DvRP1pT5l5nUlyM8Ijv2QASAPbxINk2tvabikvjd50MECiNUtCdKfxTwC6gUSKwiIsxUragEN8ph0Bo-JIcPFKc1di52oFIrH9tN6C8AVKbcdmS7t9BofRxR6bPwhNyCOie1969JPSbvtoormWpH');"></div>
+<div class="flex flex-col">
+<span class="text-sm font-medium text-white">Sarah Chen</span>
+<span class="text-xs text-gray-500">Security Admin</span>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col relative overflow-hidden">
+<!-- Background Ambient Glow -->
+<div class="absolute top-[-20%] left-[20%] w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
+<!-- Header -->
+<header class="h-20 border-b border-glass-border flex items-center justify-between px-8 bg-deep-void/80 backdrop-blur-md sticky top-0 z-10">
+<div class="flex items-center gap-4">
+<nav class="flex text-sm text-gray-500">
+<span class="hover:text-gray-300 cursor-pointer">Employees</span>
+<span class="mx-2">/</span>
+<span class="text-white font-medium">Alex Mercer</span>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 material-symbols-outlined text-[20px]">search</span>
+<input class="bg-[#131b2c] border border-glass-border rounded-full py-2 pl-10 pr-4 text-sm text-gray-300 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 w-64 transition-all" placeholder="Search access logs..." type="text"/>
+</div>
+<button class="size-10 rounded-full border border-glass-border bg-[#131b2c] flex items-center justify-center text-gray-400 hover:text-white hover:border-gray-500 transition-colors">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="flex-1 overflow-y-auto p-8">
+<!-- Page Heading & Actions -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+<div>
+<div class="flex items-center gap-3 mb-2">
+<h2 class="text-3xl font-bold text-white tracking-tight">Security Overview</h2>
+<span class="px-2 py-1 rounded text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20">High Risk</span>
+</div>
+<p class="text-gray-400">Employee ID: #OHQ-8291 • Engineering Dept • Offboarding in Progress</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2.5 rounded-lg border border-glass-border bg-[#131b2c] text-white text-sm font-medium hover:bg-white/5 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                        Export Report
+                    </button>
+<button class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-primary to-emerald-600 text-white text-sm font-bold shadow-lg shadow-emerald-900/50 hover:shadow-emerald-900/80 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+                        Initiate Offboarding
+                    </button>
+</div>
+</div>
+<!-- Main Grid Layout -->
+<div class="grid grid-cols-12 gap-6 h-[calc(100%-100px)]">
+<!-- Left Column: Risk Radar (Hero) -->
+<div class="col-span-12 lg:col-span-7 xl:col-span-8 flex flex-col gap-6">
+<div class="glass-panel rounded-2xl p-1 relative flex-1 min-h-[500px] overflow-hidden group">
+<!-- Header inside visualization -->
+<div class="absolute top-6 left-6 z-10">
+<h3 class="text-lg font-semibold text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">hub</span>
+                                Access Topology
+                            </h3>
+<p class="text-xs text-gray-400 mt-1 uppercase tracking-widest">Live Monitoring</p>
+</div>
+<!-- Visualization Canvas -->
+<div class="w-full h-full bg-radar-glow relative flex items-center justify-center">
+<!-- Connecting Lines SVG -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none z-0">
+<!-- Define gradient -->
+<defs>
+<lineargradient id="lineGradient" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" style="stop-color:#00B383;stop-opacity:0.8"></stop>
+<stop offset="100%" style="stop-color:#00B383;stop-opacity:0.1"></stop>
+</lineargradient>
+</defs>
+<!-- Lines from center to items -->
+<!-- Center is roughly 50%, 50%. Coordinates approximate based on absolute positioning below -->
+<line class="radar-line opacity-60" stroke="url(#lineGradient)" stroke-width="1.5" x1="50%" x2="20%" y1="50%" y2="30%"></line>
+<line class="radar-line opacity-60" stroke="url(#lineGradient)" stroke-width="1.5" x1="50%" x2="80%" y1="50%" y2="35%"></line>
+<line class="radar-line opacity-60" stroke="url(#lineGradient)" stroke-width="1.5" x1="50%" x2="70%" y1="50%" y2="75%"></line>
+<line stroke="#273041" stroke-dasharray="4 4" stroke-width="1" x1="50%" x2="25%" y1="50%" y2="70%"></line> <!-- Revoked line style -->
+</svg>
+<!-- Center Node (Employee) -->
+<div class="relative z-10 flex flex-col items-center">
+<div class="size-24 rounded-full p-1 border-2 border-primary/50 shadow-neon bg-[#0B1120] relative">
+<div class="absolute -inset-1 rounded-full border border-primary/30 animate-ping opacity-20"></div>
+<img class="w-full h-full rounded-full object-cover grayscale hover:grayscale-0 transition-all duration-500" data-alt="Employee profile picture center node" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqU8z48cnmS3UGqAZo31M6UX-X6wwGHJpVPyAz7OVDBtvJ34an7vkgWnI5qNQwQOxo7ti-yQ8Jp_Q8JAeMxdEXs1vOha1Y7mhI8OraCXhzKuwfLSbtEdr3vN_fLGhqY_XWk3ugD5ze3MnZg3eqfq3ony-PjiNNixWT1pJdGzfhP6M0PKbPAvW89jzBhCFUQEK6Nc2BTMWBWaAGxUpy_RMCI3dn-GNC8GiSZ3AVIveyFx4FHQoAcxYZwvSLB5OK_3jYi_QH3M6zmInq"/>
+</div>
+<div class="mt-4 text-center bg-[#0B1120]/80 backdrop-blur px-3 py-1 rounded-full border border-glass-border">
+<p class="text-white font-semibold">Alex Mercer</p>
+<p class="text-xs text-primary">4 Active Sessions</p>
+</div>
+</div>
+<!-- Satellite Nodes -->
+<!-- Node 1: Slack (Top Left) -->
+<div class="absolute top-[25%] left-[15%] flex flex-col items-center group/node cursor-pointer">
+<div class="size-14 rounded-xl bg-[#1e2330] border border-glass-border flex items-center justify-center shadow-lg group-hover/node:border-primary transition-colors relative">
+<span class="absolute -top-1 -right-1 size-3 bg-red-500 rounded-full border-2 border-[#0B1120]"></span>
+<img class="size-7 opacity-80 group-hover/node:opacity-100" data-alt="Slack Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_7Df2oBQTEZ9FEh2HK5CcnEikZB7vWCAkHKXhvFcvOeEdA8mdEZblhvy7ScIhD5hmf70B5h2KbIQ5ygFEcy8Lf2XouCHdtsAsVqEDGlqEwN3sAgUUk1NdzO3qfHVL0PnUH9wfcdOpR4OOKKCnpuHcGTAumHrrdyNSon4SdujqRK6yNS4Nt3Iz8frhKZkGZUWiDNDklCoCCpzrnreWGRo4a831zlwIy_1QDuLL8VZGneaTRlTcJCGh_vVEYDih6_kS1NdfEUv5O_yC"/>
+</div>
+<span class="mt-2 text-xs font-medium text-gray-400 group-hover/node:text-white">Slack</span>
+<div class="absolute top-16 opacity-0 group-hover/node:opacity-100 transition-opacity bg-black/90 text-xs p-2 rounded border border-glass-border w-32 text-center pointer-events-none z-20">
+                                    Last active: 2m ago<br/>High privs
+                                </div>
+</div>
+<!-- Node 2: AWS (Top Right) -->
+<div class="absolute top-[30%] right-[15%] flex flex-col items-center group/node cursor-pointer">
+<div class="size-16 rounded-xl bg-[#1e2330] border border-glass-border flex items-center justify-center shadow-lg group-hover/node:border-primary transition-colors relative">
+<span class="absolute -top-1 -right-1 size-3 bg-red-500 rounded-full border-2 border-[#0B1120]"></span>
+<img class="size-8 opacity-80 group-hover/node:opacity-100 filter grayscale brightness-200" data-alt="AWS Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwXBiQ7PlsRHtHR-Bn6Ht6lARBAz4v94PghN5fgOM29Ew5KlfYOdC8zmd4yG7oFw1ZJkZ4SmPRH24Q5acw__aoPOf2pbRdsBi2OmmpHIN2KNfY0oTcII4I2GyBQ8iU44cihQBo46WN22dEHZ2Oow7vwfY2K9WpLS8nmGp1mlA9mlBizAfppxMKFK1nyCNpCMVq7SmU53dbkv1esUdAL2eQBb-KmwF5WYqGXo1B_T0AQFYlwxJrN8LvgkyNMII7MPMofFBJOdpQBr10"/>
+</div>
+<span class="mt-2 text-xs font-medium text-gray-400 group-hover/node:text-white">AWS Prod</span>
+<div class="absolute top-18 opacity-0 group-hover/node:opacity-100 transition-opacity bg-black/90 text-xs p-2 rounded border border-glass-border w-32 text-center pointer-events-none z-20">
+                                    Keys Expired<br/>Root access
+                                </div>
+</div>
+<!-- Node 3: GitHub (Bottom Right) -->
+<div class="absolute bottom-[20%] right-[25%] flex flex-col items-center group/node cursor-pointer">
+<div class="size-14 rounded-xl bg-[#1e2330] border border-glass-border flex items-center justify-center shadow-lg group-hover/node:border-primary transition-colors">
+<img class="size-8 invert opacity-80 group-hover/node:opacity-100" data-alt="GitHub Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCphK8ybrCe18K7X_pkRrwc-5uA_O-N1ePo37lqZfiKX1m0eWNETnGTk3uqvMV9d35lygjPC7m-8WmacvydGr1ddxZpWpH09YTggBKm65JAMoCNuFuWz5TSxTIU5CDrwzDTuqaF9aGKuSCzrzEaBiH9EOcQLFy95-vc25uJZjiKMBuHXOBjIu8f7yRr7Hfojb3btRzoEQWTOlVai-AxwcW9p6s8L23TeYymUvEMytr-YQ2CFWCySgxYKLTl6duWoNSxOGYKuEdgqZJK"/>
+</div>
+<span class="mt-2 text-xs font-medium text-gray-400 group-hover/node:text-white">GitHub</span>
+</div>
+<!-- Node 4: Salesforce (Bottom Left - Revoked) -->
+<div class="absolute bottom-[25%] left-[20%] flex flex-col items-center group/node cursor-pointer opacity-50 hover:opacity-100 transition-opacity">
+<div class="size-12 rounded-xl bg-[#1e2330] border border-glass-border flex items-center justify-center shadow-lg relative">
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-full h-px bg-gray-500 transform rotate-45"></div>
+</div>
+<img class="size-6 grayscale" data-alt="Salesforce Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOGzT1bIgYOf52ULQ9fTHenGAMZb9dWKt88yl2jb8Zep118uVbN5iiqc9YPZ4uWM33DlvnlSwRbXA7Nb3U5xcUwrRy-rGJ3Oh4-vxcfsgVQFBYNniHm-wlolckpmd85MUvIh-YVVAe1noJXNk1KQC1cP9zHZ9jOSFbxjTfJceaSYUav8Qzq69DAGSonxn2UqnGbrSr3Nv9hzV-BUXuu4lTzrw-dI9hVQNbzUnha5PszkZTLgChCA54AXrdDtvyWWFPsaQhdAnHbh5b"/>
+</div>
+<span class="mt-2 text-xs font-medium text-gray-500 line-through">Salesforce</span>
+<span class="text-[10px] text-signal-green mt-0.5">Revoked</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Stats & Audit Trail -->
+<div class="col-span-12 lg:col-span-5 xl:col-span-4 flex flex-col gap-6">
+<!-- Risk Score Card -->
+<div class="glass-panel p-6 rounded-2xl relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-9xl">shield</span>
+</div>
+<div class="relative z-10">
+<h3 class="text-sm font-medium text-gray-400 uppercase tracking-widest mb-4">Risk Score</h3>
+<div class="flex items-end gap-3 mb-2">
+<span class="text-6xl font-bold text-white tracking-tighter">85</span>
+<span class="text-xl text-gray-500 font-light mb-2">/ 100</span>
+</div>
+<div class="w-full bg-gray-800 h-1.5 rounded-full mb-4 overflow-hidden">
+<div class="bg-gradient-to-r from-orange-500 to-red-500 h-full rounded-full w-[85%]"></div>
+</div>
+<div class="flex items-center gap-2 text-red-400 bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/10 w-fit">
+<span class="material-symbols-outlined text-[18px]">trending_up</span>
+<span class="text-xs font-semibold">+12% vs last month</span>
+</div>
+</div>
+</div>
+<!-- Mini Stats -->
+<div class="grid grid-cols-2 gap-4">
+<div class="glass-panel p-4 rounded-xl">
+<div class="flex items-center gap-2 mb-2">
+<span class="size-2 rounded-full bg-red-500 animate-pulse"></span>
+<span class="text-xs text-gray-400 uppercase tracking-wide">Active</span>
+</div>
+<span class="text-2xl font-bold text-white">12</span>
+<span class="text-xs text-gray-500 block">Open sessions</span>
+</div>
+<div class="glass-panel p-4 rounded-xl">
+<div class="flex items-center gap-2 mb-2">
+<span class="size-2 rounded-full bg-signal-green"></span>
+<span class="text-xs text-gray-400 uppercase tracking-wide">Revoked</span>
+</div>
+<span class="text-2xl font-bold text-white">4</span>
+<span class="text-xs text-gray-500 block">Past 24 hours</span>
+</div>
+</div>
+<!-- Audit Trail -->
+<div class="glass-panel rounded-2xl flex-1 flex flex-col overflow-hidden min-h-[300px]">
+<div class="p-5 border-b border-glass-border flex justify-between items-center bg-white/[0.01]">
+<h3 class="text-sm font-bold text-white">Audit Trail</h3>
+<button class="text-primary text-xs hover:text-white transition-colors">View All</button>
+</div>
+<div class="overflow-y-auto p-2">
+<table class="w-full text-left border-separate border-spacing-y-1">
+<tbody class="text-sm">
+<!-- Item 1 -->
+<tr class="group hover:bg-white/5 transition-colors rounded-lg">
+<td class="p-3 rounded-l-lg border-y border-l border-transparent group-hover:border-white/5">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-gray-800 flex items-center justify-center text-gray-400 border border-glass-border">
+<span class="material-symbols-outlined text-[16px]">key</span>
+</div>
+<div>
+<p class="text-white font-medium">AWS Keys Rotated</p>
+<p class="text-xs text-gray-500">Automated by Policy</p>
+</div>
+</div>
+</td>
+<td class="p-3 rounded-r-lg text-right border-y border-r border-transparent group-hover:border-white/5">
+<p class="text-xs text-gray-500">10m ago</p>
+</td>
+</tr>
+<!-- Item 2 (Revoked) -->
+<tr class="group hover:bg-white/5 transition-colors rounded-lg">
+<td class="p-3 rounded-l-lg border-y border-l border-transparent group-hover:border-white/5">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-gray-800 flex items-center justify-center text-gray-400 border border-glass-border">
+<img class="size-4 grayscale opacity-50" data-alt="Salesforce icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADrHOKPu58lFL2aXekh0HX4S90tAkEEzawL7p-Z82hu905LJOtAr1hFT_ElUYr0kwDlNM3IgDRMwHsLwS23Svh0UhQO-oY2RZCrRh4VtGxiLBWMByktLKby7RDbCSBKdN69LqE9lWAZlWUaBgTdugfSK9W9b_rmDqZxbd_1u00ipg5_F0VWzXX8h9NwXUB__kRXt_eqNmPRXL-QZQrWORp6UNA2aXydhaE94VcXyWjR42USrxsLgw7--Ja1z8wmhLihCNc1c0Kj66D"/>
+</div>
+<div>
+<p class="text-gray-500 font-medium line-through decoration-gray-500">Salesforce Access</p>
+<div class="flex items-center gap-1.5 mt-0.5">
+<span class="size-1.5 rounded-full bg-signal-green"></span>
+<span class="text-[10px] text-signal-green uppercase font-bold tracking-wider">Revoked</span>
+</div>
+</div>
+</div>
+</td>
+<td class="p-3 rounded-r-lg text-right border-y border-r border-transparent group-hover:border-white/5">
+<p class="text-xs text-gray-500">2h ago</p>
+</td>
+</tr>
+<!-- Item 3 -->
+<tr class="group hover:bg-white/5 transition-colors rounded-lg">
+<td class="p-3 rounded-l-lg border-y border-l border-transparent group-hover:border-white/5">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-gray-800 flex items-center justify-center text-gray-400 border border-glass-border">
+<span class="material-symbols-outlined text-[16px]">confirmation_number</span>
+</div>
+<div>
+<p class="text-white font-medium">Jira Ticket Created</p>
+<p class="text-xs text-gray-500">Offboarding Request #992</p>
+</div>
+</div>
+</td>
+<td class="p-3 rounded-r-lg text-right border-y border-r border-transparent group-hover:border-white/5">
+<p class="text-xs text-gray-500">4h ago</p>
+</td>
+</tr>
+<!-- Item 4 -->
+<tr class="group hover:bg-white/5 transition-colors rounded-lg">
+<td class="p-3 rounded-l-lg border-y border-l border-transparent group-hover:border-white/5">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-gray-800 flex items-center justify-center text-gray-400 border border-glass-border">
+<span class="material-symbols-outlined text-[16px]">lock</span>
+</div>
+<div>
+<p class="text-white font-medium">1Password Vault</p>
+<p class="text-xs text-gray-500">Export Attempt Blocked</p>
+</div>
+</div>
+</td>
+<td class="p-3 rounded-r-lg text-right border-y border-r border-transparent group-hover:border-white/5">
+<p class="text-xs text-gray-500">1d ago</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

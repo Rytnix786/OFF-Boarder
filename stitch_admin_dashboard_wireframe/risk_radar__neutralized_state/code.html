@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Risk Radar: Neutralized State - OffboardHQ</title>
+<!-- Fonts and Icons -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#265940", // Jade Green
+                        "vapor-purple": "#423D5C",
+                        "background-light": "#f2f3f3",
+                        "background-dark": "#121416", // Deep Charcoal
+                        "glass-border": "rgba(255, 255, 255, 0.08)",
+                        "glass-bg": "rgba(255, 255, 255, 0.03)",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "2xl": "2rem", "full": "9999px"},
+                    backdropBlur: {
+                        "xs": "2px",
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom Utilities */
+        .glass-panel {
+            background: rgba(30, 35, 40, 0.4);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .vapor-glow {
+            background: radial-gradient(circle, rgba(66, 61, 92, 0.6) 0%, rgba(66, 61, 92, 0) 70%);
+            filter: blur(40px);
+        }
+
+        .strikethrough-animated {
+            position: relative;
+            display: inline-block;
+        }
+        .strikethrough-animated::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background-color: currentColor;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display min-h-screen flex flex-col overflow-hidden relative selection:bg-primary selection:text-white">
+<!-- Top Navigation -->
+<header class="w-full z-50 absolute top-0 left-0 px-6 py-4 flex items-center justify-between border-b border-white/5 bg-background-dark/50 backdrop-blur-sm">
+<div class="flex items-center gap-3 text-white/90">
+<div class="size-5 text-primary">
+<span class="material-symbols-outlined text-[20px]">shield_lock</span>
+</div>
+<h2 class="text-base font-bold tracking-tight">OffboardHQ</h2>
+</div>
+<nav class="hidden md:flex items-center gap-1 bg-white/5 rounded-full px-1 py-1 border border-white/5">
+<a class="px-4 py-1.5 text-xs font-medium text-white/50 hover:text-white transition-colors rounded-full" href="#">Dashboard</a>
+<div class="px-4 py-1.5 text-xs font-medium text-white bg-white/10 rounded-full flex items-center gap-2">
+<span class="size-1.5 rounded-full bg-primary animate-pulse"></span>
+                Risk Radar
+            </div>
+<a class="px-4 py-1.5 text-xs font-medium text-white/50 hover:text-white transition-colors rounded-full" href="#">Settings</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="text-white/40 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<div class="size-8 rounded-full bg-gradient-to-tr from-gray-700 to-gray-600 border border-white/10 overflow-hidden" data-alt="User profile avatar gradient"></div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-grow relative flex items-center justify-center w-full h-screen p-4">
+<!-- Background Elements: Scattered Deactivated Apps -->
+<!-- Using absolute positioning to create the "radar" layout remnants -->
+<div aria-hidden="true" class="absolute inset-0 pointer-events-none select-none overflow-hidden">
+<!-- App 1: Top Left -->
+<div class="absolute top-[20%] left-[15%] flex flex-col items-center gap-2 opacity-30 grayscale transition-all duration-1000">
+<div class="size-12 rounded-xl bg-white/10 p-2 flex items-center justify-center border border-white/5">
+<span class="material-symbols-outlined text-[24px]">folder_shared</span> <!-- Dropbox proxy -->
+</div>
+<span class="text-xs font-medium text-white/50 line-through">Dropbox</span>
+</div>
+<!-- App 2: Top Right -->
+<div class="absolute top-[25%] right-[18%] flex flex-col items-center gap-2 opacity-30 grayscale transition-all duration-1000">
+<div class="size-12 rounded-xl bg-white/10 p-2 flex items-center justify-center border border-white/5">
+<span class="material-symbols-outlined text-[24px]">chat</span> <!-- Slack proxy -->
+</div>
+<span class="text-xs font-medium text-white/50 line-through">Slack</span>
+</div>
+<!-- App 3: Bottom Left -->
+<div class="absolute bottom-[25%] left-[20%] flex flex-col items-center gap-2 opacity-30 grayscale transition-all duration-1000">
+<div class="size-12 rounded-xl bg-white/10 p-2 flex items-center justify-center border border-white/5">
+<span class="material-symbols-outlined text-[24px]">cloud_circle</span> <!-- Salesforce proxy -->
+</div>
+<span class="text-xs font-medium text-white/50 line-through">Salesforce</span>
+</div>
+<!-- App 4: Bottom Right -->
+<div class="absolute bottom-[20%] right-[22%] flex flex-col items-center gap-2 opacity-30 grayscale transition-all duration-1000">
+<div class="size-12 rounded-xl bg-white/10 p-2 flex items-center justify-center border border-white/5">
+<span class="material-symbols-outlined text-[24px]">videocam</span> <!-- Zoom proxy -->
+</div>
+<span class="text-xs font-medium text-white/50 line-through">Zoom</span>
+</div>
+<!-- App 5: Far Left Center -->
+<div class="absolute top-[45%] left-[8%] flex flex-col items-center gap-2 opacity-20 grayscale transition-all duration-1000">
+<div class="size-10 rounded-xl bg-white/10 p-2 flex items-center justify-center border border-white/5">
+<span class="material-symbols-outlined text-[20px]">code</span> <!-- Github proxy -->
+</div>
+<span class="text-[10px] font-medium text-white/50 line-through">GitHub</span>
+</div>
+<!-- App 6: Far Right Center -->
+<div class="absolute top-[50%] right-[8%] flex flex-col items-center gap-2 opacity-20 grayscale transition-all duration-1000">
+<div class="size-10 rounded-xl bg-white/10 p-2 flex items-center justify-center border border-white/5">
+<span class="material-symbols-outlined text-[20px]">mail</span> <!-- GSuite proxy -->
+</div>
+<span class="text-[10px] font-medium text-white/50 line-through">GSuite</span>
+</div>
+<!-- Subtle Grid Lines (fading out) -->
+<svg class="absolute inset-0 w-full h-full opacity-10" height="100%" width="100%" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern height="40" id="grid" patternunits="userSpaceOnUse" width="40">
+<path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5"></path>
+</pattern>
+</defs>
+<rect fill="url(#grid)" height="100%" width="100%"></rect>
+</svg>
+</div>
+<!-- Central Glow Effect -->
+<div class="absolute z-10 w-[500px] h-[500px] rounded-full vapor-glow opacity-60 translate-y-4"></div>
+<!-- Central Glass Card -->
+<div class="relative z-20 w-full max-w-lg mx-auto">
+<!-- Animated decorative ring behind -->
+<div class="absolute inset-0 -m-1 border border-primary/20 rounded-2xl animate-pulse-slow"></div>
+<div class="glass-panel rounded-2xl p-1">
+<!-- Inner Container with slightly darker bg -->
+<div class="bg-[#1a1d21]/60 rounded-xl p-8 md:p-10 flex flex-col items-center text-center backdrop-blur-md">
+<!-- Success Node Icon -->
+<div class="mb-8 relative group">
+<!-- Ripple effect rings -->
+<div class="absolute inset-0 bg-primary/20 rounded-full animate-ping opacity-20"></div>
+<div class="size-20 bg-primary rounded-full flex items-center justify-center shadow-[0_0_40px_-10px_rgba(38,89,64,0.6)] relative z-10">
+<span class="material-symbols-outlined text-white text-[40px] font-bold">check</span>
+</div>
+</div>
+<!-- Headlines -->
+<h1 class="text-3xl md:text-4xl font-bold text-white mb-3 tracking-tight">
+                        Access Neutralized
+                    </h1>
+<p class="text-lg text-gray-300 font-light mb-8 max-w-sm mx-auto leading-relaxed">
+                        Evidence Pack Generated. 7 accounts successfully offboarded. No active sessions remain.
+                    </p>
+<!-- Actions -->
+<div class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+<button class="w-full sm:w-auto px-6 py-3 bg-primary/10 hover:bg-primary/20 border border-primary/50 text-primary-50 text-white font-medium rounded-lg transition-all duration-300 flex items-center justify-center gap-2 group shadow-[0_4px_14px_0_rgba(38,89,64,0.1)]">
+<span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">description</span>
+                            View Evidence Pack
+                        </button>
+<button class="w-full sm:w-auto px-6 py-3 text-gray-400 hover:text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 text-sm">
+                            Return to Radar
+                        </button>
+</div>
+<!-- Meta / Footer of Card -->
+<div class="mt-10 pt-6 border-t border-white/5 w-full">
+<div class="flex flex-col sm:flex-row items-center justify-center gap-2 text-xs text-gray-500 font-mono">
+<span class="flex items-center gap-1.5">
+<span class="size-1.5 rounded-full bg-primary/70"></span>
+                                Secure Connection
+                            </span>
+<span class="hidden sm:inline text-gray-700">|</span>
+<span>Audit Log updated at 14:02 PM</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>
