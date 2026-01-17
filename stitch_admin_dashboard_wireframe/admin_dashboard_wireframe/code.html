@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OffboardHQ Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00738a",
+                        "background-light": "#f9fafa",
+                        "background-dark": "#17191c",
+                        "surface-dark": "#212529",
+                        "border-dark": "#2e343b"
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #2e343b; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar / Navigation Rail -->
+<aside class="w-20 lg:w-64 flex-shrink-0 border-r border-slate-200 dark:border-border-dark flex flex-col bg-white dark:bg-background-dark transition-all">
+<div class="p-6 flex items-center gap-3">
+<div class="bg-primary p-2 rounded-lg">
+<span class="material-symbols-outlined text-white">shield_person</span>
+</div>
+<h2 class="hidden lg:block text-xl font-extrabold tracking-tight">OffboardHQ</h2>
+</div>
+<nav class="flex-1 px-4 space-y-2 mt-4">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary border border-primary/20" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="hidden lg:block font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-surface-dark transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="hidden lg:block font-medium">Employees</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-surface-dark transition-colors" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="hidden lg:block font-medium">Workflows</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-surface-dark transition-colors" href="#">
+<span class="material-symbols-outlined">extension</span>
+<span class="hidden lg:block font-medium">Integrations</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-surface-dark transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="hidden lg:block font-medium">Settings</span>
+</a>
+</nav>
+<div class="p-4 mt-auto border-t border-slate-200 dark:border-border-dark">
+<div class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-surface-dark cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-slate-300 dark:bg-slate-700 flex items-center justify-center overflow-hidden">
+<img alt="User Avatar" data-alt="Minimalist geometric user profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDG6qmrUQyMDSLzXs4C9qgZRJpoIPmpxpY_pq9DKtXDHGESIXaBeGReenbPzxStLbdCCib0ORmgLd3S40WCXXkYS9AWbSGcNvK35Y2vANLasj3nf6wvEN5GDENa4638D4BanchD52G-xZyw2qM98PKCD_0OCKBbt_HMP1_vxTTl5xEJwaUBvfdtBm4p2RUq1r5TksJwVfznqhLzmW9yXGmVrf6QgD1JnC705yY9e8QUnyjgXK_3tn4iQ0lPWUqNbnHfCi9Fay-LkmL6"/>
+</div>
+<div class="hidden lg:block overflow-hidden">
+<p class="text-xs font-bold truncate">Admin Console</p>
+<p class="text-[10px] text-slate-400">v1.0.4-beta</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+<!-- Top App Bar -->
+<header class="h-16 flex items-center justify-between px-8 border-b border-slate-200 dark:border-border-dark bg-white/50 dark:bg-background-dark/50 backdrop-blur-md z-10">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="w-full bg-slate-100 dark:bg-surface-dark border-none rounded-lg py-2 pl-10 pr-4 text-sm focus:ring-1 focus:ring-primary" placeholder="Search system logs or users..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-surface-dark rounded-lg relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<button class="bg-primary text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary/90 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">add</span>
+                        Trigger Offboarding
+                    </button>
+</div>
+</header>
+<!-- Dashboard Body -->
+<div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+<!-- Page Heading -->
+<div class="mb-8">
+<h1 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Admin Dashboard</h1>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Real-time employee offboarding oversight &amp; compliance monitoring.</p>
+</div>
+<!-- KPI Metrics Row -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark p-6 rounded-xl flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg">sync</span>
+<span class="text-xs font-bold text-green-500 flex items-center gap-1">+2 <span class="material-symbols-outlined text-[12px]">trending_up</span></span>
+</div>
+<div>
+<p class="text-4xl font-black text-slate-900 dark:text-white">24</p>
+<p class="text-sm font-medium text-slate-500 uppercase tracking-wider mt-1">Active Offboardings</p>
+</div>
+</div>
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark p-6 rounded-xl flex flex-col gap-4 border-l-4 border-l-red-500">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-red-500 bg-red-500/10 p-2 rounded-lg">report_problem</span>
+<span class="text-xs font-bold text-red-400">High Risk</span>
+</div>
+<div>
+<p class="text-4xl font-black text-slate-900 dark:text-white">03</p>
+<p class="text-sm font-medium text-slate-500 uppercase tracking-wider mt-1">Critical Risk Alerts</p>
+</div>
+</div>
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark p-6 rounded-xl flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-amber-500 bg-amber-500/10 p-2 rounded-lg">inventory_2</span>
+<button class="text-[10px] font-bold text-primary hover:underline uppercase">View All</button>
+</div>
+<div>
+<p class="text-4xl font-black text-slate-900 dark:text-white">12</p>
+<p class="text-sm font-medium text-slate-500 uppercase tracking-wider mt-1">Pending Hardware Returns</p>
+</div>
+</div>
+</div>
+<!-- Main Data Grid Section -->
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark rounded-xl overflow-hidden shadow-sm">
+<div class="px-6 py-5 border-b border-slate-200 dark:border-border-dark flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
+<h2 class="text-lg font-bold">Recent Offboarding Events</h2>
+<button class="text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 text-sm font-medium">
+<span class="material-symbols-outlined text-sm">download</span>
+                            Export CSV
+                        </button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="text-[11px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-200 dark:border-border-dark">
+<th class="px-6 py-4">Employee Name</th>
+<th class="px-6 py-4 text-center">Risk Score</th>
+<th class="px-6 py-4">Departure Type</th>
+<th class="px-6 py-4">Revocation Status</th>
+<th class="px-6 py-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-border-dark">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-background-dark/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-[10px]">JD</div>
+<div>
+<p class="text-sm font-bold">Jordan Doe</p>
+<p class="text-[10px] text-slate-500">Sr. Software Engineer</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-block px-2.5 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-bold border border-red-200 dark:border-red-900/50">84</span>
+</td>
+<td class="px-6 py-4">
+<span class="text-xs font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700">Involuntary</span>
+</td>
+<td class="px-6 py-4">
+<div class="w-full max-w-[120px]">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] text-slate-500">75% Complete</span>
+</div>
+<div class="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 75%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded">
+<span class="material-symbols-outlined text-sm">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-background-dark/50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-[10px]">AM</div>
+<div>
+<p class="text-sm font-bold">Alex Martinez</p>
+<p class="text-[10px] text-slate-500">Product Manager</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-block px-2.5 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-bold border border-green-200 dark:border-green-900/50">12</span>
+</td>
+<td class="px-6 py-4">
+<span class="text-xs font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700">Voluntary</span>
+</td>
+<td class="px-6 py-4">
+<div class="w-full max-w-[120px]">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] text-slate-500">100% Complete</span>
+</div>
+<div class="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-green-500" style="width: 100%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded">
+<span class="material-symbols-outlined text-sm">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-background-dark/50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-[10px]">SC</div>
+<div>
+<p class="text-sm font-bold">Sarah Chen</p>
+<p class="text-[10px] text-slate-500">Sales Lead</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-block px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-200 dark:border-amber-900/50">45</span>
+</td>
+<td class="px-6 py-4">
+<span class="text-xs font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700">Voluntary</span>
+</td>
+<td class="px-6 py-4">
+<div class="w-full max-w-[120px]">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] text-slate-500">30% Complete</span>
+</div>
+<div class="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 30%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded">
+<span class="material-symbols-outlined text-sm">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-6 py-4 border-t border-slate-200 dark:border-border-dark flex items-center justify-center bg-slate-50/30 dark:bg-slate-800/10">
+<button class="text-xs font-bold text-slate-500 hover:text-primary transition-colors flex items-center gap-1">
+                            Load 25 more entries
+                            <span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+</div>
+</div>
+<!-- Footer Section -->
+<footer class="mt-12 flex flex-col md:flex-row items-center justify-between text-slate-400 text-[10px] uppercase tracking-widest font-bold">
+<p>© 2024 OffboardHQ Operational Systems</p>
+<div class="flex gap-6 mt-4 md:mt-0">
+<a class="hover:text-primary" href="#">System Health: Stable</a>
+<a class="hover:text-primary" href="#">Security Logs</a>
+<a class="hover:text-primary" href="#">Documentation</a>
+</div>
+</footer>
+</div>
+</main>
+</div>
+</body></html>

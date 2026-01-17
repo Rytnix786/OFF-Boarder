@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Integration Settings | OffboardHQ</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00738a",
+                        "background-light": "#f9fafa",
+                        "background-dark": "#17191c",
+                        "card-dark": "#24282d",
+                        "success": "#4CBA4C",
+                        "error": "#E65A6A",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-6 py-3">
+<div class="max-w-[1400px] mx-auto flex items-center justify-between gap-8">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 text-primary">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">terminal</span>
+</div>
+<h2 class="text-xl font-extrabold tracking-tight">OffboardHQ</h2>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-sm font-semibold opacity-60 hover:opacity-100" href="#">Dashboard</a>
+<a class="text-sm font-semibold opacity-60 hover:opacity-100" href="#">Employees</a>
+<a class="text-sm font-semibold opacity-60 hover:opacity-100" href="#">Workflows</a>
+<a class="text-sm font-semibold text-primary" href="#">Settings</a>
+</nav>
+</div>
+<div class="flex flex-1 justify-end items-center gap-4">
+<div class="relative max-w-xs w-full hidden lg:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+<input class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary" placeholder="Jump to setting..." type="text"/>
+</div>
+<button class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center overflow-hidden">
+<div class="bg-center bg-no-repeat bg-cover size-full" data-alt="User avatar profile" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAdpq3UsJUL_40ax52nC1iH6r9Wp4e_XDoICWYH4sTVST4KeNAUUw_6wqc08NmQ1BMNNDoXQ21FCsP9A270jLg4aSpA674iULipnkBmgo-RADqDZmV8M2avDXqC5PUaN8yfSo8Hiq6uBL-ESi7JNpDbUIMTUsMWVtIswBGen-MShfjmg2nwGsXSlKFDY8pika6ejwjiCUh1ZaGzXLFPFYVqwbLhxD9VpdvgYtH77PqBp34OHKFKNfxJKXEK53Iflnmi6pWUBwDoPVNG");'></div>
+</div>
+</div>
+</div>
+</header>
+<div class="max-w-[1400px] mx-auto flex">
+<!-- Sidebar Navigation -->
+<aside class="w-64 shrink-0 border-r border-slate-200 dark:border-slate-800 min-h-[calc(100-65px)] p-6 hidden md:block">
+<div class="space-y-6">
+<div>
+<p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Core Settings</p>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">grid_view</span>
+<span class="text-sm font-medium">General</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary border border-primary/20 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">account_tree</span>
+<span class="text-sm font-semibold">Integrations</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span>
+<span class="text-sm font-medium">Team Access</span>
+</a>
+</nav>
+</div>
+<div>
+<p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Developer Tools</p>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">key</span>
+<span class="text-sm font-medium">API Keys</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">history</span>
+<span class="text-sm font-medium">Audit Logs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">webhook</span>
+<span class="text-sm font-medium">Webhooks</span>
+</a>
+</nav>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 p-6 lg:p-10">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+<div class="max-w-2xl">
+<h1 class="text-4xl font-extrabold tracking-tight mb-2">Integration Settings</h1>
+<p class="text-slate-500 dark:text-slate-400 text-lg">Manage technical connections for automated offboarding workflows. View system health and configure API endpoints.</p>
+</div>
+<button class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-bold rounded-lg shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95">
+<span class="material-symbols-outlined">add</span>
+                    Connect New App
+                </button>
+</div>
+<!-- Filter Toolbar -->
+<div class="flex flex-wrap items-center gap-4 mb-8">
+<div class="flex-1 min-w-[300px]">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">filter_alt</span>
+<input class="w-full bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Filter by service name or status..." type="text"/>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-semibold hover:border-primary transition-colors">
+<span>Status: All</span>
+<span class="material-symbols-outlined text-[18px]">expand_more</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-semibold hover:border-primary transition-colors">
+<span>Category</span>
+<span class="material-symbols-outlined text-[18px]">expand_more</span>
+</button>
+</div>
+</div>
+<!-- Integrations List -->
+<div class="space-y-4">
+<!-- Integration Row: Workday -->
+<div class="flex flex-wrap items-center gap-6 p-5 bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 rounded-xl hover:border-primary/40 transition-all group">
+<div class="h-12 w-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center p-2 shrink-0">
+<div class="size-full bg-center bg-no-repeat bg-contain" data-alt="Workday service logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAPW4Fp5q8CM3St6qgdLlP4T1Hndaa8jTpcBuGLS1VllcvD0aXS_EFZufOc2TonQfQZ2ZEiPn76mV7SFPI0jAD2lW5c1vS2qMZbKI64-bBEylCUnlqMocouNOrLVPSirHKNBa5h-40Cx0riHVNWo-E-SMNZDBnd-5iHY8MUVLf1JDTCBpDqSS-cXChGA-aOXKCvYh4ijrI0C7N2QThn6uQL_p2rI3wCm4YLMsjs-tMryQ2A1ZFRks4Nbzcd_3DU6tdpaAIA-iS1q2lL");'></div>
+</div>
+<div class="flex-1 min-w-[200px]">
+<h3 class="font-bold text-lg">Workday</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">HRIS • Primary Source of Truth</p>
+</div>
+<div class="flex items-center gap-8 min-w-[300px]">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-slate-400 mb-1">Status</span>
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-success animate-pulse"></div>
+<span class="text-sm font-semibold text-success">Connected</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-slate-400 mb-1">Last Sync</span>
+<span class="text-sm font-medium">2 minutes ago</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 text-sm font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors">Sync Now</button>
+<button class="px-4 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">Configure</button>
+</div>
+</div>
+<!-- Integration Row: Slack -->
+<div class="flex flex-wrap items-center gap-6 p-5 bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 rounded-xl hover:border-primary/40 transition-all group">
+<div class="h-12 w-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center p-2 shrink-0">
+<div class="size-full bg-center bg-no-repeat bg-contain" data-alt="Slack service logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAAOxK5Boub2sHnMFEeA1p_oiB4sLvMq8rvxXGznddau6oTqUkXLLG3Gdah7tg9lYezH_eJJJzLKnNq1jB-1KGbgs7oWfnd2AC0PTAZFn2MGNW3vVs2_2n8JAPbWy_bysKlOzvm0yfHpJMocM2wBMcIJ9CAk0UkJ3YX2xWlZ6zX58aAjFrY8LYGhtH3z1b7I2IaGTDdC80uLrpIPgENYsv4VHdtDv-nFGAUQX2CKVuxGBBip8ZxoPWgWtjj0B8mBES0xHYcEDI_EMzG");'></div>
+</div>
+<div class="flex-1 min-w-[200px]">
+<h3 class="font-bold text-lg">Slack</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">Communication • Channel Management</p>
+</div>
+<div class="flex items-center gap-8 min-w-[300px]">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-slate-400 mb-1">Status</span>
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-success"></div>
+<span class="text-sm font-semibold text-success">Connected</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-slate-400 mb-1">Last Sync</span>
+<span class="text-sm font-medium">1 hour ago</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 text-sm font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors">Sync Now</button>
+<button class="px-4 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">Configure</button>
+</div>
+</div>
+<!-- Integration Row: GitHub (Error State) -->
+<div class="flex flex-wrap items-center gap-6 p-5 bg-white dark:bg-card-dark border-2 border-error/20 rounded-xl transition-all relative">
+<div class="h-12 w-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center p-2 shrink-0">
+<div class="size-full bg-center bg-no-repeat bg-contain" data-alt="GitHub service logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD-GaelpWjbbEAatxRzPQIK4L4wq0pBZxB9XZPfLs6zIst-ZavVqnxVBYjUtuNtwPXtgXNpLIpJAYW3y7o_Ml_rqVA_l5JUCeWNLpP44S0zgja0UTbyKnojvGC7WofyLoHnqVDdyvryo4afVQZGRVjkZvDTrwOHQEijyKNGTJ08BtUvmLlgT12BkksGw4KdbO44B2ORFFbtHYpD_6VBujOLqrGBujBEvPPzc0WaFOmgFL1DGxCoiRxF0w_aNSK6hDTN_wkwYEOVLBLf");'></div>
+</div>
+<div class="flex-1 min-w-[200px]">
+<h3 class="font-bold text-lg">GitHub Enterprise</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">Version Control • Access Revocation</p>
+</div>
+<div class="flex items-center gap-8 min-w-[300px]">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-slate-400 mb-1">Status</span>
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-error"></div>
+<span class="text-sm font-semibold text-error">Auth Error</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-slate-400 mb-1">Logs</span>
+<a class="text-sm font-semibold text-primary underline underline-offset-4" href="#">View Debug Logs</a>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 text-sm font-bold bg-error text-white rounded-lg hover:bg-error/90 transition-colors">Reconnect</button>
+<button class="px-4 py-2 text-sm font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors">Configure</button>
+</div>
+</div>
+<!-- Integration Row: AWS -->
+<div class="flex flex-wrap items-center gap-6 p-5 bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 rounded-xl hover:border-primary/40 transition-all group">
+<div class="h-12 w-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center p-2 shrink-0">
+<div class="size-full bg-center bg-no-repeat bg-contain" data-alt="AWS service logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCrtq1iydjD5S_7GGRgTiQiqtbKFc2M37PDpWPHUTR1lCFzVmCC_T8E2EgAFW8o7tqHhF2qC3rMbWcucHZQs5F1mhFbb8z3Q80ymmLwgw5GfapatZArh8lS_OQSNdhdEVOZ6D0nUhR_jlO8Rifx0U21E2f2iPim236AbpLxvoGqG1qk9r373pV0Em-_jf9slTed_XoEnPv8qZnc26duP1cFz2mF_UMDOpbTAN8ruvzxBA5N6XzxmaD29z5zGed2kmr-RzZ_GMBL4U6S");'></div>
+</div>
+<div class="flex-1 min-w-[200px]">
+<h3 class="font-bold text-lg">AWS (IAM)</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">Infrastructure • Identity Management</p>
+</div>
+<div class="flex items-center gap-8 min-w-[300px]">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-slate-400 mb-1">Status</span>
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-success"></div>
+<span class="text-sm font-semibold text-success">Connected</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-slate-400 mb-1">Last Sync</span>
+<span class="text-sm font-medium">12 hours ago</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 text-sm font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors">Sync Now</button>
+<button class="px-4 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">Configure</button>
+</div>
+</div>
+</div>
+<!-- Health Snapshot Footer -->
+<div class="mt-12 p-6 bg-slate-100 dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
+<div class="flex flex-wrap items-center justify-between gap-6">
+<div class="flex items-center gap-4">
+<div class="p-3 bg-white dark:bg-card-dark rounded-lg shadow-sm">
+<span class="material-symbols-outlined text-primary">analytics</span>
+</div>
+<div>
+<p class="text-sm font-bold">System Connectivity Snapshot</p>
+<p class="text-xs text-slate-500">Overall health is stable. 3/4 services active.</p>
+</div>
+</div>
+<div class="flex gap-10">
+<div class="text-center">
+<p class="text-2xl font-black text-primary leading-none">99.8%</p>
+<p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Uptime</p>
+</div>
+<div class="text-center">
+<p class="text-2xl font-black text-slate-900 dark:text-white leading-none">12.4k</p>
+<p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">API Calls / 24h</p>
+</div>
+<div class="text-center">
+<p class="text-2xl font-black text-error leading-none">1</p>
+<p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Active Alerts</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
