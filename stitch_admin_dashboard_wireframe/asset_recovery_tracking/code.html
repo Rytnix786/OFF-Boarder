@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Asset Recovery Tracking - OffboardHQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0f8a61",
+                        "primary-glow": "#14B860",
+                        "background-dark": "#13171F",
+                        "glass-border": "rgba(255, 255, 255, 0.1)",
+                        "glass-surface": "rgba(255, 255, 255, 0.03)",
+                        "glass-surface-hover": "rgba(255, 255, 255, 0.06)",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #13171F;
+        }
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #13171F; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a303c; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3e4756; 
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        
+        .glass-card-hover:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .text-shadow-sm {
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-slate-300 antialiased selection:bg-primary/30 selection:text-white overflow-hidden h-screen flex">
+<!-- Sidebar -->
+<aside class="w-20 lg:w-64 flex flex-col border-r border-glass-border glass-panel relative z-20 transition-all duration-300 ease-in-out shrink-0">
+<!-- Logo Area -->
+<div class="h-20 flex items-center justify-center lg:justify-start lg:px-6 gap-3 border-b border-glass-border">
+<div class="size-8 rounded-lg bg-gradient-to-br from-primary to-emerald-800 flex items-center justify-center shadow-[0_0_15px_rgba(15,138,97,0.5)] shrink-0">
+<span class="material-symbols-outlined text-white text-lg">token</span>
+</div>
+<div class="hidden lg:flex flex-col">
+<h1 class="text-white text-base font-bold tracking-tight">OffboardHQ</h1>
+<p class="text-xs text-slate-500 font-medium">Admin Console</p>
+</div>
+</div>
+<!-- Navigation -->
+<nav class="flex-1 flex flex-col gap-2 p-4 overflow-y-auto">
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">dashboard</span>
+<span class="hidden lg:block text-sm font-medium">Dashboard</span>
+</a>
+<!-- Active Item -->
+<a class="relative flex items-center gap-3 px-3 py-3 rounded-lg bg-white/5 text-white transition-colors" href="#">
+<div class="absolute left-0 h-6 w-1 rounded-r-full bg-primary-glow shadow-[0_0_10px_rgba(20,184,96,0.6)]"></div>
+<span class="material-symbols-outlined text-primary-glow">inventory_2</span>
+<span class="hidden lg:block text-sm font-medium">Assets</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">inbox</span>
+<span class="hidden lg:block text-sm font-medium">Requests</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">assessment</span>
+<span class="hidden lg:block text-sm font-medium">Reports</span>
+</a>
+<div class="h-px bg-white/5 my-2 mx-2"></div>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">settings</span>
+<span class="hidden lg:block text-sm font-medium">Settings</span>
+</a>
+</nav>
+<!-- User Profile (Simplified for sidebar bottom) -->
+<div class="p-4 border-t border-glass-border">
+<div class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors">
+<div class="size-8 rounded-full bg-slate-700 bg-center bg-cover border border-white/10" data-alt="User avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA99TcNPFH8yDptlITs6MwqsIh_1RF6onwvDmzHeHwXr3aOcxAGjWLfu-T9TTEmMJEssJ9mQY7M9AD5rnTKvTFaNkrRfY_A8vPHbq09ew3vp5rFQCXTdEhX2cSGoTEnWxef449luFg_8zMRGjUbTBC2nI13OzpTWxKh5qM_lY1p8BxAL2jaWVhoPUAzZ_gVggNswLJ08FofzMftkcUcDpsJh2NhB9L5BvoAx7PAywbK2WjrJ1y4q9KmP_yBp37kR1vHX1otwFSqUgso');"></div>
+<div class="hidden lg:flex flex-col overflow-hidden">
+<p class="text-sm text-white font-medium truncate">Alex Morgan</p>
+<p class="text-xs text-slate-500 truncate">IT Admin</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-full overflow-hidden relative">
+<!-- Background Decor (Gradient Blobs) -->
+<div class="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
+<div class="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] bg-blue-900/10 rounded-full blur-[120px] pointer-events-none"></div>
+<!-- Top Header -->
+<header class="h-20 border-b border-glass-border flex items-center justify-between px-8 bg-background-dark/80 backdrop-blur-md z-10 shrink-0">
+<!-- Search -->
+<div class="flex items-center w-96 relative group">
+<span class="material-symbols-outlined absolute left-3 text-slate-500 group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-white/5 border border-transparent focus:border-glass-border focus:bg-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 outline-none transition-all duration-300" placeholder="Search serial, asset tag, or employee..." type="text"/>
+</div>
+<!-- Header Actions -->
+<div class="flex items-center gap-4">
+<button class="relative p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-rose-500 rounded-full border-2 border-[#13171F]"></span>
+</button>
+<div class="h-8 w-px bg-glass-border"></div>
+<button class="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white transition-colors">
+<span>Help &amp; Support</span>
+<span class="material-symbols-outlined text-lg">help</span>
+</button>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-8 flex flex-col gap-8 scroll-smooth">
+<!-- Page Heading & CTA -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-2 text-slate-500 text-sm mb-1">
+<span>Dashboard</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-white">Assets</span>
+</div>
+<h2 class="text-4xl font-bold text-white tracking-tight">Hardware Recovery</h2>
+<p class="text-slate-400 max-w-2xl text-lg font-light leading-relaxed">Track returned devices, manage logistics, and streamline the offboarding process.</p>
+</div>
+<button class="group relative overflow-hidden rounded-xl bg-primary/10 border border-primary/40 px-6 py-3 transition-all duration-300 hover:border-primary/80 hover:bg-primary/20 hover:shadow-[0_0_30px_rgba(20,184,96,0.2)]">
+<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-radial from-primary/20 to-transparent pointer-events-none"></div>
+<div class="relative flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-glow group-hover:animate-pulse">qr_code_2</span>
+<span class="font-bold text-primary-glow tracking-wide">Generate Shipping Label</span>
+</div>
+</button>
+</div>
+<!-- Stats Row -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Stat Card 1 -->
+<div class="glass-panel p-6 rounded-xl flex flex-col gap-1 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-white">devices</span>
+</div>
+<p class="text-slate-400 text-sm font-medium uppercase tracking-wider">Total Assets</p>
+<div class="flex items-end gap-3">
+<p class="text-3xl font-bold text-white">1,240</p>
+<span class="text-emerald-400 text-sm font-medium flex items-center mb-1 bg-emerald-400/10 px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-sm mr-0.5">trending_up</span> 12%
+                        </span>
+</div>
+</div>
+<!-- Stat Card 2 -->
+<div class="glass-panel p-6 rounded-xl flex flex-col gap-1 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-amber-200">pending</span>
+</div>
+<p class="text-slate-400 text-sm font-medium uppercase tracking-wider">Pending Return</p>
+<div class="flex items-end gap-3">
+<p class="text-3xl font-bold text-white">45</p>
+<span class="text-amber-400 text-sm font-medium flex items-center mb-1 bg-amber-400/10 px-1.5 py-0.5 rounded">
+                             Active
+                        </span>
+</div>
+</div>
+<!-- Stat Card 3 -->
+<div class="glass-panel p-6 rounded-xl flex flex-col gap-1 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-teal-200">recycling</span>
+</div>
+<p class="text-slate-400 text-sm font-medium uppercase tracking-wider">Recovery Rate</p>
+<div class="flex items-end gap-3">
+<p class="text-3xl font-bold text-white">98%</p>
+<span class="text-emerald-400 text-sm font-medium flex items-center mb-1 bg-emerald-400/10 px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-sm mr-0.5">trending_up</span> 2%
+                        </span>
+</div>
+</div>
+</div>
+<!-- Filters & Sort -->
+<div class="flex flex-col sm:flex-row justify-between items-center gap-4 pb-2 border-b border-white/5">
+<div class="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 no-scrollbar">
+<button class="px-4 py-1.5 rounded-full text-sm font-medium bg-white text-background-dark shadow-lg shadow-white/10 transition-transform hover:scale-105">All Assets</button>
+<button class="px-4 py-1.5 rounded-full text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10 transition-all">In Transit</button>
+<button class="px-4 py-1.5 rounded-full text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10 transition-all">Received</button>
+<button class="px-4 py-1.5 rounded-full text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10 transition-all">Pending</button>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-xs text-slate-500 uppercase font-semibold tracking-wider">Sort by:</span>
+<button class="flex items-center gap-2 text-sm text-slate-300 hover:text-white transition-colors">
+                        Status <span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+</div>
+</div>
+<!-- Asset Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-12">
+<!-- Asset Card 1 -->
+<div class="glass-panel glass-card-hover rounded-xl p-6 flex flex-col justify-between group transition-all duration-300 min-h-[280px]">
+<div class="flex justify-between items-start mb-6">
+<div class="size-14 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+<span class="material-symbols-outlined text-4xl text-white/80">laptop_mac</span>
+</div>
+<button class="text-slate-500 hover:text-white transition-colors p-1 rounded hover:bg-white/10">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="mb-6">
+<div class="flex items-center gap-2 mb-1">
+<h3 class="text-xl font-bold text-white">MacBook Pro 16"</h3>
+<span class="text-xs px-2 py-0.5 rounded border border-white/10 text-slate-400 bg-white/5">M1 Max</span>
+</div>
+<p class="text-sm text-slate-500 font-mono tracking-wide">SN: C02XJ19KMD6T</p>
+</div>
+<div class="mt-auto pt-6 border-t border-white/5 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-600 bg-cover border border-white/10" data-alt="Employee avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA7YmO0Gyu8qH0XUfxeD6TQspf0p27oOzh3WaAF-PNPGYy5mH2pxx6nj1ofVuCo6-RZBSU9S2R3kEV9Aurc7RYoFWFT2jk114ApRSfDpIR97vEsvFgU0ya_ELmdKFvWRKJgv-lbw6hEL5bKMn-jk7-lgIC7UUtANBd7V5m8CfpYPbnk_o8V2JcyD1-eKcriF80i5kfyBazkoUY8gtMHVvWezyFt3gbm3fenR3aYjfoMdGRh52JIdOOee-34rnh1oUF9TO56wOVu_7Ob');"></div>
+<div class="flex flex-col">
+<span class="text-sm text-slate-200 font-medium">Jane Doe</span>
+<span class="text-xs text-slate-500">Design Lead</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-200 border border-amber-500/20">
+<span class="size-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                                In Transit
+                            </span>
+<button class="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 hover:underline decoration-emerald-400/30 underline-offset-4 transition-all">
+                                Track Package <span class="material-symbols-outlined text-sm">open_in_new</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Asset Card 2 -->
+<div class="glass-panel glass-card-hover rounded-xl p-6 flex flex-col justify-between group transition-all duration-300 min-h-[280px]">
+<div class="flex justify-between items-start mb-6">
+<div class="size-14 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+<span class="material-symbols-outlined text-4xl text-white/80">smartphone</span>
+</div>
+<button class="text-slate-500 hover:text-white transition-colors p-1 rounded hover:bg-white/10">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="mb-6">
+<div class="flex items-center gap-2 mb-1">
+<h3 class="text-xl font-bold text-white">iPhone 13 Pro</h3>
+<span class="text-xs px-2 py-0.5 rounded border border-white/10 text-slate-400 bg-white/5">256GB</span>
+</div>
+<p class="text-sm text-slate-500 font-mono tracking-wide">SN: F17DHL8900X</p>
+</div>
+<div class="mt-auto pt-6 border-t border-white/5 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-600 bg-cover border border-white/10" data-alt="Employee avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCwG2e-fKxEGrYbXSFDsouPFa-rtcUj0fHIjy7vEWbhw98IrjnfE_w37Crz5OR6h-bADyBssGYfQZse5StLmZiW145Yvot0B9j2wm1Wn_xeXyiMMmDsHJtY48dgS2f-FzeCgDgHUyk-L_c4SKJ69-VKqy5vwLfq4jjS8dJ_aR1zPuQTzAKkXcNJC50etzl_qScuEZ-pD2jZplgZFC-rwCxNeLbXXdgBw6KmT15zTMXyR2hqFcJMaqpXN5tuw4WUAIsORxO0lgPSpgnA');"></div>
+<div class="flex flex-col">
+<span class="text-sm text-slate-200 font-medium">John Smith</span>
+<span class="text-xs text-slate-500">Sales Director</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-300 border border-slate-500/20">
+<span class="size-1.5 rounded-full bg-slate-400"></span>
+                                Pending
+                            </span>
+<button class="text-xs font-bold text-primary-glow hover:text-emerald-300 flex items-center gap-1 hover:underline decoration-emerald-400/30 underline-offset-4 transition-all">
+                                Generate Label
+                            </button>
+</div>
+</div>
+</div>
+<!-- Asset Card 3 -->
+<div class="glass-panel glass-card-hover rounded-xl p-6 flex flex-col justify-between group transition-all duration-300 min-h-[280px]">
+<div class="flex justify-between items-start mb-6">
+<div class="size-14 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+<span class="material-symbols-outlined text-4xl text-white/80">security_key</span>
+</div>
+<button class="text-slate-500 hover:text-white transition-colors p-1 rounded hover:bg-white/10">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="mb-6">
+<div class="flex items-center gap-2 mb-1">
+<h3 class="text-xl font-bold text-white">YubiKey 5C</h3>
+<span class="text-xs px-2 py-0.5 rounded border border-white/10 text-slate-400 bg-white/5">NFC</span>
+</div>
+<p class="text-sm text-slate-500 font-mono tracking-wide">SN: 88291002</p>
+</div>
+<div class="mt-auto pt-6 border-t border-white/5 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-600 bg-cover border border-white/10" data-alt="Employee avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCPHJx9-kR5JTzec0F406uARI19Et_a_GoQxOVfF7T-qbCcI2LOFRf_5xFxPEGVOm4MbAehsZngBNa4jykTuTXdBCUE9AuoW1JHTjJDrlRdAtLje2Wkg0Sb7hy4IACazGyE_pHKcqKJ0wkj-f5J9jN4Ja7D3lkg0vkqhSPXMz45HEa63s5qA0EGQm99pfRKngf_bRqKMG-7lJmj4YwoV-WVIkdiF8z0yychrlNevgPY7uiXBV2w8bOnODVXFCUqLODbLICI8rdSwnnv');"></div>
+<div class="flex flex-col">
+<span class="text-sm text-slate-200 font-medium">Mike Ross</span>
+<span class="text-xs text-slate-500">Legal Counsel</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-500/10 text-teal-300 border border-teal-500/20">
+<span class="material-symbols-outlined text-sm">check</span>
+                                Received
+                            </span>
+<button class="text-xs font-bold text-slate-300 hover:text-white flex items-center gap-1 hover:underline decoration-white/30 underline-offset-4 transition-all">
+                                Inspect Item
+                            </button>
+</div>
+</div>
+</div>
+<!-- Asset Card 4 -->
+<div class="glass-panel glass-card-hover rounded-xl p-6 flex flex-col justify-between group transition-all duration-300 min-h-[280px]">
+<div class="flex justify-between items-start mb-6">
+<div class="size-14 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+<span class="material-symbols-outlined text-4xl text-white/80">tablet_mac</span>
+</div>
+<button class="text-slate-500 hover:text-white transition-colors p-1 rounded hover:bg-white/10">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="mb-6">
+<div class="flex items-center gap-2 mb-1">
+<h3 class="text-xl font-bold text-white">iPad Pro 12.9"</h3>
+<span class="text-xs px-2 py-0.5 rounded border border-white/10 text-slate-400 bg-white/5">Cellular</span>
+</div>
+<p class="text-sm text-slate-500 font-mono tracking-wide">SN: DMPY82K1</p>
+</div>
+<div class="mt-auto pt-6 border-t border-white/5 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-600 bg-cover border border-white/10" data-alt="Employee avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCAqtcWtK6x6B37N10J4AZG4eONjuvGiNxPgtTI9IR_Vrgi0Oy5FDvzhDMok8Fv40jJcl8LKFNQA72rhyxG_oCI_vvCqt4zyV8sd1cAkfjsBA8gfE614lSZGGHmNPylIDS4qelHbO5yC5hG3qPc3FKAcsI346p_tNN6-h_WSjZK4fnH8jsIRq7VZQNoBMo5WAQd7weLtde3ky85LE5FZjdh_YXVmhNjP8sqgIbbPxAr8xFh528Xv615E_qhKfa8yPSM8cLYqNroXHSg');"></div>
+<div class="flex flex-col">
+<span class="text-sm text-slate-200 font-medium">Sarah Lee</span>
+<span class="text-xs text-slate-500">Product Manager</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-200 border border-amber-500/20">
+<span class="size-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                                In Transit
+                            </span>
+<button class="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 hover:underline decoration-emerald-400/30 underline-offset-4 transition-all">
+                                Track Package
+                            </button>
+</div>
+</div>
+</div>
+<!-- Asset Card 5 -->
+<div class="glass-panel glass-card-hover rounded-xl p-6 flex flex-col justify-between group transition-all duration-300 min-h-[280px]">
+<div class="flex justify-between items-start mb-6">
+<div class="size-14 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+<span class="material-symbols-outlined text-4xl text-white/80">laptop_windows</span>
+</div>
+<button class="text-slate-500 hover:text-white transition-colors p-1 rounded hover:bg-white/10">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="mb-6">
+<div class="flex items-center gap-2 mb-1">
+<h3 class="text-xl font-bold text-white">Dell XPS 15</h3>
+<span class="text-xs px-2 py-0.5 rounded border border-white/10 text-slate-400 bg-white/5">i9 32GB</span>
+</div>
+<p class="text-sm text-slate-500 font-mono tracking-wide">SN: 923F-221A</p>
+</div>
+<div class="mt-auto pt-6 border-t border-white/5 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-600 bg-cover border border-white/10" data-alt="Employee avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC4NSfDSTynCjBO767vQFqkbtqBlKSyW3HJmTd5xwRQIuQfYhJBZ7_q4zDV3YmWRYf2iPw_fmYNjpToEp1X0ZpiatIwxqYhMLrp2WyUO82nvtn9LErp2duHYcNyNU53Ljy2wi2CayqTAC6k8cRwTtP_UdlA6GIgZGIZsXIFFLX_ll0n9tBGL7TpsX5u1qsJj28w-28Qy1F3_1MI8WtoseHbnWuR28urqEZENPOdrdzpbvMPGbAmmcfOq254BQyH2R7u8YY2oT2zEwEl');"></div>
+<div class="flex flex-col">
+<span class="text-sm text-slate-200 font-medium">David Kim</span>
+<span class="text-xs text-slate-500">DevOps Engineer</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-300 border border-slate-500/20">
+<span class="size-1.5 rounded-full bg-slate-400"></span>
+                                Pending
+                            </span>
+<button class="text-xs font-bold text-primary-glow hover:text-emerald-300 flex items-center gap-1 hover:underline decoration-emerald-400/30 underline-offset-4 transition-all">
+                                Generate Label
+                            </button>
+</div>
+</div>
+</div>
+<!-- Asset Card 6 -->
+<div class="glass-panel glass-card-hover rounded-xl p-6 flex flex-col justify-between group transition-all duration-300 min-h-[280px]">
+<div class="flex justify-between items-start mb-6">
+<div class="size-14 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+<span class="material-symbols-outlined text-4xl text-white/80">headphones</span>
+</div>
+<button class="text-slate-500 hover:text-white transition-colors p-1 rounded hover:bg-white/10">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="mb-6">
+<div class="flex items-center gap-2 mb-1">
+<h3 class="text-xl font-bold text-white">Sony WH-1000XM5</h3>
+<span class="text-xs px-2 py-0.5 rounded border border-white/10 text-slate-400 bg-white/5">Noise Cancelling</span>
+</div>
+<p class="text-sm text-slate-500 font-mono tracking-wide">SN: SONY-ANC-99</p>
+</div>
+<div class="mt-auto pt-6 border-t border-white/5 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-600 bg-cover border border-white/10" data-alt="Employee avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAUHL7p30B5-CQ2B60_cuEkceD2m7xZkMKlq0Opi7th7foaOIQhOxaBPw6h85IDziyzcsQWIQ3Xhony8XX-sMNULxI9INbp6IoQUy8ZXSDXw7S_677IwOpgfWJWe4u3guYysQ7Z_A2uGqJCApbaXYj9RKmpffR4jJ4ZJDTOJ_8wQ9kTF2KaFiaWZ_auRRW6WWkeKDwWWlDnExOujW-1AbMWoB8qn44nO62ycxnixrpsF2uwpBeq8t6mpD0AUB6BuNZNWu1rOvBYpdrv');"></div>
+<div class="flex flex-col">
+<span class="text-sm text-slate-200 font-medium">Elena Rodriguez</span>
+<span class="text-xs text-slate-500">HR Specialist</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-500/10 text-teal-300 border border-teal-500/20">
+<span class="material-symbols-outlined text-sm">check</span>
+                                Received
+                            </span>
+<button class="text-xs font-bold text-slate-300 hover:text-white flex items-center gap-1 hover:underline decoration-white/30 underline-offset-4 transition-all">
+                                Inspect Item
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>
