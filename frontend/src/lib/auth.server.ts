@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
@@ -6,7 +7,7 @@ import type { MembershipWithOrg, AuthSession } from "@/lib/auth-types";
 
 export type { AuthUser, MembershipWithOrg, AuthSession } from "@/lib/auth-types";
 
-export async function getSupabaseUser() {
+export const getSupabaseUser = cache(async () => {
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.getUser();
@@ -17,9 +18,9 @@ export async function getSupabaseUser() {
   } catch {
     return null;
   }
-}
+});
 
-export async function getAuthSession(orgSlug?: string): Promise<AuthSession | null> {
+export const getAuthSession = cache(async (orgSlug?: string): Promise<AuthSession | null> => {
   const supabaseUser = await getSupabaseUser();
   if (!supabaseUser) return null;
 
@@ -78,7 +79,7 @@ export async function getAuthSession(orgSlug?: string): Promise<AuthSession | nu
       currentMembership,
       currentOrgId: currentMembership?.organizationId || null,
     };
-}
+});
 
 export async function requireAuth(orgSlug?: string): Promise<AuthSession> {
   const session = await getAuthSession(orgSlug);
