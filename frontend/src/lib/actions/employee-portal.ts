@@ -9,7 +9,8 @@ import {
 } from "@/lib/employee-auth";
 import { createAuditLog } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
-import { AssetProofType } from "@prisma/client";
+import { AssetProofType, EvidenceType } from "@prisma/client";
+import crypto from "crypto";
 
 const ATTESTATION_STATEMENT = "I confirm that I no longer retain access to company systems or data.";
 
@@ -80,6 +81,7 @@ export async function completeEmployeeTask(taskId: string) {
       offboarding: {
         select: { id: true, status: true },
       },
+      evidence: true,
     },
   });
 
@@ -97,18 +99,33 @@ export async function completeEmployeeTask(taskId: string) {
     return { success: false, error: "This offboarding has been finalized" };
   }
 
-  await prisma.offboardingTask.update({
-    where: { id: taskId },
-    data: {
-      status: "COMPLETED",
-      completedAt: new Date(),
-      completedBy: session.user.id,
-    },
-  });
+  if (task.evidenceRequirement === "REQUIRED" && task.evidence.length === 0) {
+    await logBlockedAction(session, "complete_task", "Evidence required but not provided", { taskId });
+    return { success: false, error: "Evidence is required for this task. Please add at least one evidence item before completing." };
+  }
+
+  await prisma.$transaction([
+    prisma.offboardingTask.update({
+      where: { id: taskId },
+      data: {
+        status: "COMPLETED",
+        completedAt: new Date(),
+        completedBy: session.user.id,
+      },
+    }),
+    prisma.taskEvidence.updateMany({
+      where: { taskId, isImmutable: false },
+      data: {
+        isImmutable: true,
+        immutableAt: new Date(),
+      },
+    }),
+  ]);
 
   await logEmployeeAction(session, "task_completed", "offboarding_task", taskId, {
     taskName: task.name,
     offboardingId: task.offboardingId,
+    evidenceCount: task.evidence.length,
   });
 
   revalidatePath("/app/employee");
@@ -542,4 +559,161 @@ export async function checkOffboardingCompletionEligibility() {
     pendingAssetReturns,
     attestationSigned: !!attestation,
   };
+}
+
+export async function addEmployeeTaskEvidence(
+  taskId: string,
+  data: {
+    type: EvidenceType;
+    title?: string;
+    description?: string;
+    fileName?: string;
+    fileUrl?: string;
+    fileSize?: number;
+    mimeType?: string;
+    linkUrl?: string;
+    noteContent?: string;
+  }
+) {
+  const session = await requireEmployeeOffboarding();
+
+  const isOwner = await verifyEmployeeOwnership(session, "task", taskId);
+  if (!isOwner) {
+    await logBlockedAction(session, "add_task_evidence", "Task not owned by employee", { taskId });
+    return { success: false, error: "You do not have permission to add evidence to this task" };
+  }
+
+  const task = await prisma.offboardingTask.findUnique({
+    where: { id: taskId },
+    include: {
+      offboarding: { select: { id: true, status: true } },
+    },
+  });
+
+  if (!task) {
+    return { success: false, error: "Task not found" };
+  }
+
+  if (task.status === "COMPLETED" && task.offboarding.status === "COMPLETED") {
+    await logBlockedAction(session, "add_task_evidence", "Task already completed", { taskId });
+    return { success: false, error: "Cannot add evidence to a completed task in a completed offboarding" };
+  }
+
+  const clientInfo = await getClientInfo();
+
+  let fileHash: string | null = null;
+  if (data.fileUrl && data.type === "FILE") {
+    fileHash = crypto.createHash("sha256").update(data.fileUrl + (data.fileName || "") + Date.now()).digest("hex");
+  }
+
+  const evidence = await prisma.taskEvidence.create({
+    data: {
+      taskId,
+      offboardingId: session.offboardingId,
+      organizationId: session.organizationId,
+      type: data.type,
+      title: data.title,
+      description: data.description,
+      fileName: data.fileName,
+      fileUrl: data.fileUrl,
+      fileSize: data.fileSize,
+      fileHash,
+      mimeType: data.mimeType,
+      linkUrl: data.linkUrl,
+      noteContent: data.noteContent,
+      createdByUserId: session.user.id,
+      ipAddress: clientInfo.ipAddress,
+      userAgent: clientInfo.userAgent,
+      isImmutable: false,
+    },
+  });
+
+  await logEmployeeAction(session, "task_evidence_added", "task_evidence", evidence.id, {
+    taskId,
+    taskName: task.name,
+    evidenceType: data.type,
+    title: data.title,
+  });
+
+  revalidatePath("/app/employee/tasks");
+  return { success: true, evidenceId: evidence.id };
+}
+
+export async function getEmployeeTaskEvidence(taskId: string) {
+  const session = await requireEmployeeOffboarding();
+
+  const isOwner = await verifyEmployeeOwnership(session, "task", taskId);
+  if (!isOwner) {
+    return [];
+  }
+
+  return prisma.taskEvidence.findMany({
+    where: { taskId },
+    orderBy: { createdAt: "asc" },
+  });
+}
+
+export async function deleteEmployeeTaskEvidence(evidenceId: string) {
+  const session = await requireEmployeeOffboarding();
+
+  const evidence = await prisma.taskEvidence.findUnique({
+    where: { id: evidenceId },
+    include: {
+      task: {
+        include: { offboarding: true },
+      },
+    },
+  });
+
+  if (!evidence) {
+    return { success: false, error: "Evidence not found" };
+  }
+
+  const isOwner = await verifyEmployeeOwnership(session, "task", evidence.taskId);
+  if (!isOwner) {
+    await logBlockedAction(session, "delete_task_evidence", "Task not owned by employee", { evidenceId });
+    return { success: false, error: "You do not have permission to delete this evidence" };
+  }
+
+  if (evidence.isImmutable) {
+    return { success: false, error: "Cannot delete sealed evidence" };
+  }
+
+  if (evidence.task.status === "COMPLETED") {
+    return { success: false, error: "Cannot delete evidence from a completed task" };
+  }
+
+  await prisma.taskEvidence.delete({
+    where: { id: evidenceId },
+  });
+
+  await logEmployeeAction(session, "task_evidence_deleted", "task_evidence", evidenceId, {
+    taskId: evidence.taskId,
+    evidenceType: evidence.type,
+  });
+
+  revalidatePath("/app/employee/tasks");
+  return { success: true };
+}
+
+export async function getEmployeeTasksWithEvidence() {
+  const session = await requireEmployeeOffboarding();
+
+  const tasks = await prisma.offboardingTask.findMany({
+    where: {
+      offboardingId: session.offboardingId,
+      assignedToEmployeeId: session.employee.id,
+    },
+    include: {
+      evidence: {
+        orderBy: { createdAt: "asc" },
+      },
+    },
+    orderBy: [
+      { order: "asc" },
+      { createdAt: "asc" },
+    ],
+  });
+
+  return tasks;
 }

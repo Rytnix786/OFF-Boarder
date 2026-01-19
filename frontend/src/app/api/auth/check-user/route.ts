@@ -21,6 +21,12 @@ export async function GET() {
             },
           },
         },
+        employeeUserLinks: {
+          where: { status: "VERIFIED" },
+          include: {
+            organization: { select: { id: true, name: true, status: true } },
+          },
+        },
       },
     });
 
@@ -29,6 +35,7 @@ export async function GET() {
         isPlatformAdmin: false,
         hasOrganization: false,
         hasPendingOrg: false,
+        hasEmployeePortalAccess: false,
         needsSetup: true,
       });
     }
@@ -41,10 +48,15 @@ export async function GET() {
       (m) => m.organization.status === "PENDING"
     );
 
+    const activeEmployeeLink = dbUser.employeeUserLinks.find(
+      (link) => link.status === "VERIFIED" && link.organization.status === "ACTIVE"
+    );
+
     return NextResponse.json({
       isPlatformAdmin: dbUser.isPlatformAdmin,
       hasOrganization: !!activeOrg,
       hasPendingOrg: !!pendingOrg,
+      hasEmployeePortalAccess: !!activeEmployeeLink,
       needsSetup: false,
     });
   } catch (error) {

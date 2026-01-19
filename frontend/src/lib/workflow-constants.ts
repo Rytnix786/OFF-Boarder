@@ -12,8 +12,10 @@ export type DefaultTask = {
   isRequired?: boolean;
   requiresApproval?: boolean;
   isHighRiskTask?: boolean;
+  isEmployeeRequired?: boolean;
   assigneeRole?: string;
   assigneeDepartment?: string;
+  evidenceRequirement?: "REQUIRED" | "OPTIONAL" | "NONE";
 };
 
 export type DefaultWorkflowTemplate = {
@@ -39,6 +41,8 @@ export const STANDARD_RESIGNATION_TASKS: DefaultTask[] = [
   { name: "Process final paycheck", description: "Calculate final pay including unused PTO", category: "FINANCE", order: 12, defaultDueDays: 3, isRequired: true, requiresApproval: true, assigneeDepartment: "Finance" },
   { name: "Terminate benefits", description: "Process benefits termination and COBRA notifications", category: "FINANCE", order: 13, defaultDueDays: 7, isRequired: true, assigneeDepartment: "HR" },
   { name: "Archive user data", description: "Backup and archive employee files and emails per retention policy", category: "IT", order: 14, defaultDueDays: 14, isRequired: true, assigneeDepartment: "IT" },
+  { name: "Return company property", description: "Confirm return of all company-issued equipment and materials", category: "EMPLOYEE", order: 15, defaultDueDays: 0, isRequired: true, isEmployeeRequired: true, evidenceRequirement: "OPTIONAL" },
+  { name: "Complete exit checklist", description: "Verify all personal data removal and handover completion", category: "EMPLOYEE", order: 16, defaultDueDays: 0, isRequired: true, isEmployeeRequired: true, evidenceRequirement: "REQUIRED" },
 ];
 
 export const TERMINATION_HIGH_RISK_TASKS: DefaultTask[] = [
