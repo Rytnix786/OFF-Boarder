@@ -1,5 +1,5 @@
 import { getEmployeeAttestation } from "@/lib/actions/employee-portal";
-import { requireEmployeeOffboarding } from "@/lib/employee-auth";
+import { requireEmployeeOffboarding } from "@/lib/employee-auth.server";
 import AttestationForm from "./AttestationForm";
 import { Box, Typography, Alert, Paper, Chip } from "@mui/material";
 

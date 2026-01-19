@@ -1,6 +1,6 @@
 import { requireActiveOrg } from "@/lib/auth.server";
-import { requirePermission, isAdmin } from "@/lib/rbac";
-import { getEnhancedAnalytics, type EnhancedAnalyticsData } from "@/lib/cache";
+import { requirePermission, isAdmin } from "@/lib/rbac.server";
+import { getEnhancedAnalytics, type EnhancedAnalyticsData } from "@/lib/cache.server";
 import AnalyticsDashboardClient from "./AnalyticsDashboardClient";
 import { redirect } from "next/navigation";
 

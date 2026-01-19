@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAuthSession } from "@/lib/auth.server";
-import { isAdmin } from "@/lib/rbac";
+import { isAdmin } from "@/lib/rbac.server";
 import { getAllPolicies, getEnforcementLogs } from "@/lib/security-policies";
 import { CATEGORY_INFO } from "@/lib/policy-definitions";
 import SecurityPoliciesClient from "./SecurityPoliciesClient";

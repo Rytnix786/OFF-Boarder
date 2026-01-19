@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { getSupabaseUser } from "@/lib/auth.server";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog } from "@/lib/audit.server";
 
 const JOIN_REQUEST_EXPIRY_DAYS = 14;
 

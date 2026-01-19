@@ -1,6 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { redirect } from "next/navigation";
 import type { MembershipWithOrg, AuthSession } from "@/lib/auth-types";
 

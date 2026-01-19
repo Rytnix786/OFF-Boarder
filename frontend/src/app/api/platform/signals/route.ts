@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { requirePlatformAdmin, getCurrentPlatformAdmin, logPlatformAction } from "@/lib/platform-auth";
 
 export async function GET(request: NextRequest) {

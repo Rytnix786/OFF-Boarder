@@ -1,7 +1,7 @@
 import { Box, Typography, Button, Card, CardContent, alpha, Chip } from "@mui/material";
 import Link from "next/link";
 import { getAuthSession } from "@/lib/auth.server";
-import { getUserPermissions } from "@/lib/rbac";
+import { getUserPermissions } from "@/lib/rbac.server";
 import { getFirstAccessibleRoute, getRoleDisplayName, getRoleColor } from "@/lib/navigation";
 
 export default async function AccessDeniedPage() {

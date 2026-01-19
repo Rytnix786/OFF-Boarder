@@ -1,5 +1,5 @@
 import "server-only";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { AuthSession } from "./auth";
 import { PortalType } from "@prisma/client";
 

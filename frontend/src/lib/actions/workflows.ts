@@ -1,10 +1,10 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { requireActiveOrg } from "@/lib/auth.server";
 import type { AuthSession } from "@/lib/auth-types";
-import { requirePermission, requireOwnerOrAdmin } from "@/lib/rbac";
-import { createAuditLog } from "@/lib/audit";
+import { requirePermission, requireOwnerOrAdmin } from "@/lib/rbac.server";
+import { createAuditLog } from "@/lib/audit.server";
 import { revalidatePath } from "next/cache";
 import { DEFAULT_WORKFLOW_TEMPLATES, DEFAULT_WORKFLOW_TASKS, DefaultTask } from "@/lib/workflow-constants";
 

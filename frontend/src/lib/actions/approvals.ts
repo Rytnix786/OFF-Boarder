@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { requireActiveOrg } from "@/lib/auth.server";
 import { 
   requirePermission, 
@@ -10,8 +10,8 @@ import {
   enforceContributorTasksOnly,
   enforceSubjectCannotSelfApprove,
   isAuditor
-} from "@/lib/rbac";
-import { createAuditLog } from "@/lib/audit";
+} from "@/lib/rbac.server";
+import { createAuditLog } from "@/lib/audit.server";
 import { createNotificationForOrgMembers } from "@/lib/notifications";
 import { revalidatePath } from "next/cache";
 import { ApprovalStatus, ApprovalType } from "@prisma/client";

@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { AuthSession } from "@/lib/auth-types";
 import { Box, Typography, Card, CardContent, Grid, Button, Chip, LinearProgress, Avatar, alpha } from "@mui/material";
 import Link from "next/link";
@@ -9,7 +9,7 @@ import {
   QuickAction,
   DashboardEmptyState,
 } from "./shared";
-import { getExcludedOffboardingIdsForUser } from "@/lib/rbac";
+import { getExcludedOffboardingIdsForUser } from "@/lib/rbac.server";
 
 interface MemberDashboardProps {
   session: AuthSession;

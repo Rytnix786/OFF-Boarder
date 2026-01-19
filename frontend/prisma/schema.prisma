@@ -352,6 +352,9 @@ model OffboardingTask {
   requiresApproval     Boolean             @default(false)
   isHighRiskTask       Boolean             @default(false)
   isEmployeeRequired   Boolean             @default(false)
+  isVerified           Boolean             @default(false)
+  verifiedAt           DateTime?
+  verifiedByUserId     String?
   order                Int                 @default(0)
   assignedToUserId     String?
   assignedToEmployeeId String?

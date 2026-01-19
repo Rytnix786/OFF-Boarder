@@ -1,13 +1,13 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { 
   requireEmployeeOffboarding,
   verifyEmployeeOwnership,
   getClientInfo,
   EmployeePortalSession
-} from "@/lib/employee-auth";
-import { createAuditLog } from "@/lib/audit";
+} from "@/lib/employee-auth.server";
+import { createAuditLog } from "@/lib/audit.server";
 import { revalidatePath } from "next/cache";
 import { AssetProofType, EvidenceType } from "@prisma/client";
 import crypto from "crypto";

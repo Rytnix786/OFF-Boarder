@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import Link from "next/link";
-import type { EnhancedAnalyticsData } from "@/lib/cache";
+import { EnhancedAnalyticsData } from "@/lib/types";
 import {
   AreaChart,
   Area,

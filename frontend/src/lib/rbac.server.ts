@@ -1,9 +1,9 @@
 import "server-only";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { SystemRole, PortalType } from "@prisma/client";
 import { AuthSession } from "./auth";
 import { PermissionCode, getSystemRolePermissions } from "./permissions";
-import { createAuditLog } from "./audit";
+import { createAuditLog } from "./audit.server";
 
 export type { PermissionCode } from "./permissions";
 export { getSystemRolePermissions } from "./permissions";

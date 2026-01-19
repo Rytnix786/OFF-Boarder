@@ -1,5 +1,5 @@
 import { getEmployeeAssets } from "@/lib/actions/employee-portal";
-import { requireEmployeeOffboarding } from "@/lib/employee-auth";
+import { requireEmployeeOffboarding } from "@/lib/employee-auth.server";
 import AssetsList from "./AssetsList";
 import { Box, Typography, Alert } from "@mui/material";
 

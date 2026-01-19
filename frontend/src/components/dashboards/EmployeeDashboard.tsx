@@ -1,4 +1,4 @@
-import type { EmployeePortalSession } from "@/lib/employee-auth";
+import type { EmployeePortalSession } from "@/lib/employee-auth.server";
 import {
   Box,
   Typography,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth.server";
-import { isAdmin } from "@/lib/rbac";
-import { prisma } from "@/lib/prisma";
+import { isAdmin } from "@/lib/rbac.server";
+import { prisma } from "@/lib/prisma.server";
 import {
   markEmployeeHighRisk,
   removeHighRiskStatus,
@@ -12,7 +12,7 @@ import {
   forceLogoutEmployee,
   blockEmployeeIP,
 } from "@/lib/employee-security";
-import { validateIPAddress } from "@/lib/ip-blocking";
+import { validateIPAddress } from "@/lib/ip-blocking.server";
 
 interface RouteParams {
   params: Promise<{ id: string }>;

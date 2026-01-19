@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth.server";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog } from "@/lib/audit.server";
 import {
   blockIP,
   unblockIP,
   getBlockedIPs,
   validateIPAddress,
   getClientIP,
-} from "@/lib/ip-blocking";
+} from "@/lib/ip-blocking.server";
 import { BlockScope } from "@prisma/client";
 
 export async function GET(request: NextRequest) {
@@ -159,7 +159,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "Missing ID" }, { status: 400 });
   }
 
-  const { prisma } = await import("@/lib/prisma");
+  const { prisma } = await import("@/lib/prisma.server");
   const blockedIP = await prisma.blockedIP.findUnique({
     where: { id },
     include: { organization: { select: { id: true } } },

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { getSupabaseUser } from "@/lib/auth.server";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog } from "@/lib/audit.server";
 
 const TERMINAL_STATUSES = ["APPROVED", "DENIED", "EXPIRED"];
 

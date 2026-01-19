@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { Box, Card, CardContent, Typography, Chip, Button, Divider, Alert } from "@mui/material";
 import Link from "next/link";
 import { SignOutButton } from "./SignOutButton";

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { createClient } from "@/lib/supabase/server";
 import { SupportCategory, SupportPriority } from "@prisma/client";
 

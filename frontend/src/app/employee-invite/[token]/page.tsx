@@ -1,6 +1,6 @@
 import { acceptEmployeePortalInvite } from "@/lib/actions/employee-invite";
 import { getSupabaseUser } from "@/lib/auth.server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { redirect } from "next/navigation";
 import InviteAcceptClient from "./InviteAcceptClient";
 import { Box, Paper, Typography, Alert, Button } from "@mui/material";

@@ -1,6 +1,6 @@
 import { requireActiveOrg } from "@/lib/auth.server";
-import { requirePermission } from "@/lib/rbac";
-import { prisma } from "@/lib/prisma";
+import { requirePermission } from "@/lib/rbac.server";
+import { prisma } from "@/lib/prisma.server";
 import OrganizationClient from "./OrganizationClient";
 
 export default async function OrganizationSettingsPage() {

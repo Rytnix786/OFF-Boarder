@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getAuthSession, getUserPendingOrgs } from "@/lib/auth.server";
-import { getUserPermissions } from "@/lib/rbac";
+import { getUserPermissions } from "@/lib/rbac.server";
 import { canAccessRoute, getFirstAccessibleRoute } from "@/lib/navigation";
 import AppShell from "@/components/app/AppShell";
-import { prisma } from "@/lib/prisma";
-import { getEmployeePortalSession } from "@/lib/employee-auth";
+import { prisma } from "@/lib/prisma.server";
+import { getEmployeePortalSession } from "@/lib/employee-auth.server";
 
 export default async function AppLayout({
   children,

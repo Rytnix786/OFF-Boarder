@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth.server";
-import { getNotificationsWithCount, invalidateUserCache } from "@/lib/cache";
+import { getNotificationsWithCount, invalidateUserCache } from "@/lib/cache.server";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {

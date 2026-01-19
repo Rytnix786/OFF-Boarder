@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { requirePlatformAdmin, logPlatformAction } from "@/lib/platform-auth";
 
 export async function GET(request: NextRequest) {
@@ -133,8 +133,8 @@ export async function PUT(request: NextRequest) {
         break;
 
       case "reactivate":
-        if (org.status !== "SUSPENDED" && org.status !== "REJECTED") {
-          return NextResponse.json({ error: "Organization is not suspended or rejected" }, { status: 400 });
+        if (org.status !== "SUSPENDED") {
+          return NextResponse.json({ error: "Only suspended organizations can be reactivated. Use 'accept_rejected' for rejected organizations." }, { status: 400 });
         }
         newStatus = "ACTIVE";
         auditAction = "ORG_REACTIVATED";
@@ -156,7 +156,7 @@ export async function PUT(request: NextRequest) {
           return NextResponse.json({ error: "Organization is not rejected" }, { status: 400 });
         }
         newStatus = "ACTIVE";
-        auditAction = "ORG_REACTIVATED";
+        auditAction = "ORG_APPROVED"; // Treating as an approval
         break;
 
       default:

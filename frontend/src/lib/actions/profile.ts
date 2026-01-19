@@ -1,8 +1,8 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { requireAuth, requireActiveOrg } from "@/lib/auth.server";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog } from "@/lib/audit.server";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 

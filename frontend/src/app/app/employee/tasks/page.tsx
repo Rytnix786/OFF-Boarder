@@ -1,5 +1,5 @@
 import { getEmployeeTasksWithEvidence } from "@/lib/actions/employee-portal";
-import { requireEmployeeOffboarding } from "@/lib/employee-auth";
+import { requireEmployeeOffboarding } from "@/lib/employee-auth.server";
 import TasksList from "./TasksList";
 import { Box, Typography, Alert } from "@mui/material";
 

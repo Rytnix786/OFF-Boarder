@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkIPBlockedForAnyOrg, recordBlockedAttempt } from "@/lib/ip-blocking";
+import { checkIPBlockedForAnyOrg, recordBlockedAttempt } from "@/lib/ip-blocking.server";
 
 export async function POST(request: NextRequest) {
   try {

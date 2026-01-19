@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { requireActiveOrg } from "@/lib/auth.server";
-import { requirePermission, isOwner, isAdmin, isAuditor } from "@/lib/rbac";
-import { createAuditLog } from "@/lib/audit";
+import { requirePermission, isOwner, isAdmin, isAuditor } from "@/lib/rbac.server";
+import { createAuditLog } from "@/lib/audit.server";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import crypto from "crypto";

@@ -1,9 +1,9 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { requireActiveOrg } from "@/lib/auth.server";
-import { requirePermission } from "@/lib/rbac";
-import { createAuditLog } from "@/lib/audit";
+import { requirePermission } from "@/lib/rbac.server";
+import { createAuditLog } from "@/lib/audit.server";
 import { revalidatePath } from "next/cache";
 import crypto from "crypto";
 

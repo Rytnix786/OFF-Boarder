@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth.server";
-import { isAdmin } from "@/lib/rbac";
+import { isAdmin } from "@/lib/rbac.server";
 import { 
   updateSecurityPolicy, 
   getAllPolicies, 
