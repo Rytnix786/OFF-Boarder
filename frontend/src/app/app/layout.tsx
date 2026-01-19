@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { getAuthSession, getUserPendingOrgs } from "@/lib/auth.server";
+import { getAuthSession, getUserPendingOrgs, getSupabaseUser } from "@/lib/auth.server";
 import { getUserPermissions } from "@/lib/rbac";
 import { canAccessRoute, getFirstAccessibleRoute } from "@/lib/navigation";
 import AppShell from "@/components/app/AppShell";
@@ -11,9 +11,20 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getAuthSession();
   const headersList = await headers();
   const pathname = headersList.get("x-pathname") || "";
+
+  const isEmployeePortalRoute = pathname.startsWith("/app/employee");
+
+  if (isEmployeePortalRoute) {
+    const supabaseUser = await getSupabaseUser();
+    if (!supabaseUser) {
+      redirect("/login?redirect=/app/employee");
+    }
+    return <>{children}</>;
+  }
+
+  const session = await getAuthSession();
 
   if (!session) {
     redirect("/login");

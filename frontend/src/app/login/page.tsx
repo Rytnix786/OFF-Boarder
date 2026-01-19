@@ -88,15 +88,17 @@ function LoginContent() {
           return;
         }
       
-      if (checkData.isPlatformAdmin) {
-        window.location.href = "/admin";
-      } else if (checkData.hasOrganization) {
-        window.location.href = "/app";
-      } else if (checkData.hasPendingOrg) {
-        window.location.href = "/pending";
-      } else {
-        window.location.href = "/register";
-      }
+        if (checkData.isPlatformAdmin) {
+          window.location.href = "/admin";
+        } else if (checkData.hasOrganization) {
+          window.location.href = "/app";
+        } else if (checkData.hasEmployeePortalAccess) {
+          window.location.href = "/app/employee";
+        } else if (checkData.hasPendingOrg) {
+          window.location.href = "/pending";
+        } else {
+          window.location.href = "/register";
+        }
     } catch (err) {
       setError("An unexpected error occurred");
     } finally {
