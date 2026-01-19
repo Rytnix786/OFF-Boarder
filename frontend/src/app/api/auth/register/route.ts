@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
       name, 
       orgName, 
       invitationToken,
+      employeeInviteToken,
       joinOrganizationId,
       requestedRole,
     } = await request.json();
@@ -53,10 +54,50 @@ export async function POST(request: NextRequest) {
 
     // Determine registration mode
     let invitation = null;
+    let employeeInvite = null;
     let joinOrg = null;
 
+    // Mode 0: Employee Portal Invite-based registration
+    if (employeeInviteToken) {
+      employeeInvite = await prisma.employeePortalInvite.findUnique({
+        where: { token: employeeInviteToken },
+        include: { 
+          organization: true,
+          employee: true,
+        },
+      });
+
+      if (!employeeInvite) {
+        return NextResponse.json({ error: "Employee invitation not found" }, { status: 400 });
+      }
+
+      if (employeeInvite.status !== "PENDING") {
+        return NextResponse.json({ 
+          error: "This employee invitation has already been used or is no longer valid",
+          code: "invitation_used"
+        }, { status: 400 });
+      }
+
+      if (new Date() > employeeInvite.expiresAt) {
+        await prisma.employeePortalInvite.update({
+          where: { id: employeeInvite.id },
+          data: { status: "EXPIRED" },
+        });
+        return NextResponse.json({ 
+          error: "This employee invitation has expired. Please request a new one from your administrator.",
+          code: "invitation_expired"
+        }, { status: 400 });
+      }
+
+      if (employeeInvite.email.toLowerCase() !== normalizedEmail) {
+        return NextResponse.json({ 
+          error: "This invitation was sent to a different email address",
+          code: "email_mismatch"
+        }, { status: 403 });
+      }
+    }
     // Mode 1: Invitation-based registration
-    if (invitationToken) {
+    else if (invitationToken) {
       invitation = await prisma.invitation.findUnique({
         where: { token: invitationToken },
         include: { organization: true },
@@ -107,6 +148,24 @@ export async function POST(request: NextRequest) {
     }
     // Mode 3: Create new organization
     else {
+      // Check for pending employee portal invitations
+      const pendingEmployeeInvite = await prisma.employeePortalInvite.findFirst({
+        where: {
+          email: { equals: normalizedEmail, mode: "insensitive" },
+          status: "PENDING",
+          expiresAt: { gt: new Date() },
+        },
+        include: { organization: true },
+      });
+
+      if (pendingEmployeeInvite) {
+        return NextResponse.json({ 
+          error: `You have a pending employee portal invitation to ${pendingEmployeeInvite.organization.name}. Please check your email for the invitation link.`,
+          code: "has_employee_invitation",
+          organizationName: pendingEmployeeInvite.organization.name,
+        }, { status: 400 });
+      }
+
       // Check for pending invitations
       const pendingInvitation = await prisma.invitation.findFirst({
         where: {
@@ -137,8 +196,9 @@ export async function POST(request: NextRequest) {
       email_confirm: true,
       user_metadata: {
         name,
-        org_name: invitation ? null : orgName,
+        org_name: (invitation || employeeInvite) ? null : orgName,
         invitation_token: invitationToken || null,
+        employee_invite_token: employeeInviteToken || null,
         join_organization_id: joinOrganizationId || null,
         requested_role: requestedRole || null,
       },
@@ -222,6 +282,75 @@ export async function POST(request: NextRequest) {
           joinedViaInvitation: true,
           redirectTo: "/app"
         });
+    }
+
+    // Mode 0: Process employee portal invite registration
+    if (employeeInvite) {
+      const result = await prisma.$transaction(async (tx) => {
+        const user = await tx.user.create({
+          data: {
+            supabaseId: authData.user.id,
+            email: normalizedEmail,
+            name,
+            isPlatformAdmin: false,
+          },
+        });
+
+        const employeeUserLink = await tx.employeeUserLink.create({
+          data: {
+            employeeId: employeeInvite.employeeId,
+            userId: user.id,
+            organizationId: employeeInvite.organizationId,
+            status: "VERIFIED",
+            verifiedAt: new Date(),
+          },
+        });
+
+        await tx.employeePortalInvite.update({
+          where: { id: employeeInvite.id },
+          data: {
+            status: "ACCEPTED",
+            acceptedAt: new Date(),
+          },
+        });
+
+        await tx.auditLog.create({
+          data: {
+            action: "employee.portal_linked",
+            entityType: "EmployeeUserLink",
+            entityId: employeeUserLink.id,
+            newData: { 
+              email: user.email, 
+              employeeId: employeeInvite.employeeId,
+              employeeName: `${employeeInvite.employee.firstName} ${employeeInvite.employee.lastName}`,
+            },
+            organizationId: employeeInvite.organizationId,
+            userId: user.id,
+          },
+        });
+
+        await tx.auditLog.create({
+          data: {
+            action: "user.registered",
+            entityType: "User",
+            entityId: user.id,
+            newData: { email: user.email, name: user.name, joinedViaEmployeeInvite: true },
+            organizationId: employeeInvite.organizationId,
+            userId: user.id,
+          },
+        });
+
+        return { user, employeeUserLink, organization: employeeInvite.organization, employee: employeeInvite.employee };
+      });
+
+      return NextResponse.json({ 
+        success: true, 
+        user: result.user,
+        organization: result.organization,
+        employee: result.employee,
+        joinedViaEmployeeInvite: true,
+        redirectTo: "/app/employee"
+      });
     }
 
     // Mode 2: Process join request registration
