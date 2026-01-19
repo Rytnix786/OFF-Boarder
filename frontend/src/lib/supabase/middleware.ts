@@ -119,27 +119,40 @@ export async function updateSession(request: NextRequest) {
 
   const isAuthPage = pathname === "/login" || pathname === "/register";
   const isProtectedRoute = pathname.startsWith("/app");
+  const isPlatformAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/platform");
   
-  // These routes are accessible to authenticated users regardless of org status
-  // They handle their own auth checks and show appropriate UI
-  const isStatusPage = 
+  // Terminal state pages - these are accessible to authenticated users regardless of org status
+  // They handle their own auth checks and display appropriate UI based on org state
+  const isTerminalStatePage = 
     pathname === "/org-blocked" || 
     pathname === "/pending";
 
   // Unauthenticated users trying to access protected routes -> login
-  if (!user && isProtectedRoute) {
+  if (!user && (isProtectedRoute || isPlatformAdminRoute)) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  // Unauthenticated users on terminal state pages -> login
+  // (they shouldn't be on these pages without being logged in)
+  if (!user && isTerminalStatePage) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
   // Authenticated users on auth pages -> redirect to app (let app layout handle org status)
-  // But NOT if they're on status pages (org-blocked, pending)
+  // This prevents login loops - authenticated users should not be on login/register
   if (user && isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/app";
     return NextResponse.redirect(url);
   }
+
+  // Important: Do NOT redirect users away from terminal state pages
+  // These pages handle their own logic to determine what to show
+  // and will redirect to /app if the user has an active org
 
   return supabaseResponse;
 }
