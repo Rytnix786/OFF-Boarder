@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Box,
   Typography,
@@ -17,6 +17,7 @@ import {
   Collapse,
   Tooltip,
   CircularProgress,
+  LinearProgress,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { addTaskEvidence, deleteTaskEvidence } from "@/lib/actions/task-evidence";
@@ -39,6 +40,7 @@ type EvidenceItem = {
 interface TaskEvidencePanelProps {
   taskId: string;
   taskName: string;
+  offboardingId: string;
   evidenceRequirement: "REQUIRED" | "OPTIONAL" | "NONE";
   evidence: EvidenceItem[];
   taskCompleted: boolean;
@@ -49,6 +51,7 @@ interface TaskEvidencePanelProps {
 export function TaskEvidencePanel({
   taskId,
   taskName,
+  offboardingId,
   evidenceRequirement,
   evidence,
   taskCompleted,
@@ -58,12 +61,15 @@ export function TaskEvidencePanel({
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [expanded, setExpanded] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [addType, setAddType] = useState<"FILE" | "LINK" | "NOTE">("NOTE");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   if (evidenceRequirement === "NONE") {
     return null;
@@ -77,6 +83,7 @@ export function TaskEvidencePanel({
   const handleAddEvidence = async (formData: FormData) => {
     setLoading(true);
     setError(null);
+    setUploadProgress(0);
 
     try {
       const type = formData.get("type") as "FILE" | "LINK" | "NOTE";
@@ -84,7 +91,45 @@ export function TaskEvidencePanel({
       const description = formData.get("description") as string;
 
       let result;
-      if (type === "LINK") {
+      if (type === "FILE") {
+        if (!selectedFile) {
+          setError("Please select a file");
+          setLoading(false);
+          return;
+        }
+
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", selectedFile);
+        uploadFormData.append("taskId", taskId);
+        uploadFormData.append("offboardingId", offboardingId);
+
+        setUploadProgress(10);
+        const uploadResponse = await fetch("/api/upload/evidence", {
+          method: "POST",
+          body: uploadFormData,
+        });
+
+        setUploadProgress(70);
+        const uploadResult = await uploadResponse.json();
+
+        if (!uploadResponse.ok || uploadResult.error) {
+          setError(uploadResult.error || "Failed to upload file");
+          setLoading(false);
+          return;
+        }
+
+        setUploadProgress(90);
+        result = await addTaskEvidence(taskId, {
+          type: "FILE",
+          title: title || selectedFile.name,
+          description,
+          fileName: uploadResult.fileName,
+          fileUrl: uploadResult.fileUrl,
+          fileSize: uploadResult.fileSize,
+          mimeType: uploadResult.mimeType,
+        });
+        setUploadProgress(100);
+      } else if (type === "LINK") {
         const linkUrl = formData.get("linkUrl") as string;
         if (!linkUrl) {
           setError("URL is required");
@@ -111,7 +156,7 @@ export function TaskEvidencePanel({
           noteContent,
         });
       } else {
-        setError("File upload not implemented yet");
+        setError("Invalid evidence type");
         setLoading(false);
         return;
       }
@@ -120,12 +165,14 @@ export function TaskEvidencePanel({
         setError(result.error);
       } else {
         setAddDialogOpen(false);
+        setSelectedFile(null);
         router.refresh();
       }
     } catch (err) {
       setError("Failed to add evidence");
     }
     setLoading(false);
+    setUploadProgress(0);
   };
 
   const handleDeleteEvidence = async (evidenceId: string) => {
@@ -337,17 +384,40 @@ export function TaskEvidencePanel({
                       )}
                     </Box>
                     {item.description && (
-                      <Typography
-                        sx={{
-                          fontSize: "0.7rem",
-                          color: "text.secondary",
-                          mt: 0.25,
-                        }}
-                      >
-                        {item.description}
-                      </Typography>
-                    )}
-                    {item.linkUrl && (
+                        <Typography
+                          sx={{
+                            fontSize: "0.7rem",
+                            color: "text.secondary",
+                            mt: 0.25,
+                          }}
+                        >
+                          {item.description}
+                        </Typography>
+                      )}
+                      {item.fileUrl && item.type === "FILE" && (
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+                          <Typography
+                            component="a"
+                            href={item.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                              fontSize: "0.7rem",
+                              color: "primary.main",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 0.5,
+                              "&:hover": { textDecoration: "underline" },
+                            }}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                              download
+                            </span>
+                            {item.fileName || "Download File"}
+                          </Typography>
+                        </Box>
+                      )}
+                      {item.linkUrl && (
                       <Typography
                         component="a"
                         href={item.linkUrl}
@@ -455,12 +525,15 @@ export function TaskEvidencePanel({
             )}
 
             <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-              {(["NOTE", "LINK"] as const).map((type) => (
+              {(["FILE", "NOTE", "LINK"] as const).map((type) => (
                 <Button
                   key={type}
                   variant={addType === type ? "contained" : "outlined"}
                   size="small"
-                  onClick={() => setAddType(type)}
+                  onClick={() => {
+                    setAddType(type);
+                    setSelectedFile(null);
+                  }}
                   startIcon={
                     <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
                       {getTypeIcon(type)}
@@ -479,9 +552,72 @@ export function TaskEvidencePanel({
               fullWidth
               label="Title"
               name="title"
-              placeholder={addType === "NOTE" ? "Attestation Statement" : "Evidence Link"}
+              placeholder={addType === "FILE" ? "Document name" : addType === "NOTE" ? "Attestation Statement" : "Evidence Link"}
               sx={{ mb: 2 }}
             />
+
+            {addType === "FILE" && (
+              <Box sx={{ mb: 2 }}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,.pdf,.doc,.docx,.txt"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      if (file.size > 50 * 1024 * 1024) {
+                        setError("File size exceeds 50MB limit");
+                        return;
+                      }
+                      setSelectedFile(file);
+                      setError(null);
+                    }
+                  }}
+                />
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={() => fileInputRef.current?.click()}
+                  startIcon={
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                      upload_file
+                    </span>
+                  }
+                  sx={{ 
+                    py: 2, 
+                    borderStyle: "dashed",
+                    borderColor: selectedFile ? "success.main" : undefined,
+                    bgcolor: selectedFile ? alpha(theme.palette.success.main, 0.05) : undefined,
+                  }}
+                >
+                  {selectedFile ? selectedFile.name : "Choose File"}
+                </Button>
+                {selectedFile && (
+                  <Box sx={{ display: "flex", alignItems: "center", mt: 1, gap: 1 }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 16, color: theme.palette.success.main }}>
+                      check_circle
+                    </span>
+                    <Typography sx={{ fontSize: "0.75rem", color: "text.secondary", flex: 1 }}>
+                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                    </Typography>
+                    <IconButton
+                      size="small"
+                      onClick={() => setSelectedFile(null)}
+                      sx={{ width: 24, height: 24 }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
+                    </IconButton>
+                  </Box>
+                )}
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <LinearProgress variant="determinate" value={uploadProgress} sx={{ mt: 1 }} />
+                )}
+                <Typography sx={{ fontSize: "0.7rem", color: "text.secondary", mt: 1 }}>
+                  Supported: Images, PDFs, Word documents, text files (max 50MB)
+                </Typography>
+              </Box>
+            )}
 
             {addType === "LINK" && (
               <TextField

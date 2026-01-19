@@ -581,14 +581,15 @@ export default function OffboardingDetailClient({
                               )}
                             </Box>
                             <TaskEvidencePanel
-                              taskId={task.id}
-                              taskName={task.name}
-                              evidenceRequirement={task.evidenceRequirement}
-                              evidence={task.evidence}
-                              taskCompleted={task.status === "COMPLETED"}
-                              offboardingCompleted={offboarding.status === "COMPLETED"}
-                              canEdit={canUpdate}
-                            />
+                                taskId={task.id}
+                                taskName={task.name}
+                                offboardingId={offboarding.id}
+                                evidenceRequirement={task.evidenceRequirement}
+                                evidence={task.evidence}
+                                taskCompleted={task.status === "COMPLETED"}
+                                offboardingCompleted={offboarding.status === "COMPLETED"}
+                                canEdit={canUpdate}
+                              />
                           </Box>
                         )})}
                       </Box>

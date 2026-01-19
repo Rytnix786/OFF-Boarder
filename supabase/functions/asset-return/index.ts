@@ -1,3 +1,5 @@
+/// <reference types="https://deno.land/x/types/index.d.ts" />
+// @ts-ignore - Deno types are provided by Supabase Edge Functions runtime
 import { corsHeaders, createSupabaseClient } from "../shared/supabase.ts";
 
 interface ReturnRequest {
@@ -6,7 +8,8 @@ interface ReturnRequest {
     condition: string;
 }
 
-Deno.serve(async (req) => {
+// @ts-ignore - Deno global is available in Supabase Edge Functions runtime
+Deno.serve(async (req: Request) => {
     // 1. Handle CORS Preflight
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders });
@@ -77,8 +80,9 @@ Deno.serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
 
-    } catch (error) {
-        return new Response(JSON.stringify({ error: error.message }), {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        return new Response(JSON.stringify({ error: errorMessage }), {
             status: 500,
             headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
