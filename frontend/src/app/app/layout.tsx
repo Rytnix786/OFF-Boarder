@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { getAuthSession, getUserPendingOrgs, getSupabaseUser } from "@/lib/auth.server";
+import { getAuthSession, getUserPendingOrgs, getSupabaseUser, type MembershipWithOrg } from "@/lib/auth.server";
 import { getUserPermissions } from "@/lib/rbac";
 import { canAccessRoute } from "@/lib/navigation";
 import AppShell from "@/components/app/AppShell";
@@ -24,40 +24,67 @@ export default async function AppLayout({
     return <>{children}</>;
   }
 
-  const session = await getAuthSession();
+  let session = await getAuthSession();
 
   if (!session) {
     redirect("/login");
   }
 
   if (!session.currentMembership) {
-    const blockedMembership = await prisma.membership.findFirst({
+    const activeMembership = await prisma.membership.findFirst({
       where: {
         userId: session.user.id,
         status: "ACTIVE",
-        organization: {
-          status: { in: ["SUSPENDED", "REJECTED"] }
-        }
+        organization: { status: "ACTIVE" }
       },
       include: {
-        organization: { select: { status: true } }
+        organization: { select: { id: true, name: true, slug: true, status: true, logoUrl: true } }
       }
     });
 
-    if (blockedMembership) {
-      redirect("/org-blocked");
-    }
+    if (activeMembership) {
+      const membershipWithOrg: MembershipWithOrg = {
+        id: activeMembership.id,
+        organizationId: activeMembership.organizationId,
+        systemRole: activeMembership.systemRole,
+        status: activeMembership.status,
+        organization: activeMembership.organization,
+      };
+      session = {
+        ...session,
+        currentMembership: membershipWithOrg,
+        currentOrgId: activeMembership.organizationId,
+        memberships: session.memberships.length > 0 ? session.memberships : [membershipWithOrg],
+      };
+    } else {
+      const blockedMembership = await prisma.membership.findFirst({
+        where: {
+          userId: session.user.id,
+          status: "ACTIVE",
+          organization: {
+            status: { in: ["SUSPENDED", "REJECTED"] }
+          }
+        },
+        include: {
+          organization: { select: { status: true } }
+        }
+      });
 
-    if (session.user.isPlatformAdmin) {
-      redirect("/admin");
-    }
-    
-    const pendingOrgs = await getUserPendingOrgs(session.user.id);
-    if (pendingOrgs.length > 0) {
+      if (blockedMembership) {
+        redirect("/org-blocked");
+      }
+
+      if (session.user.isPlatformAdmin) {
+        redirect("/admin");
+      }
+      
+      const pendingOrgs = await getUserPendingOrgs(session.user.id);
+      if (pendingOrgs.length > 0) {
+        redirect("/pending");
+      }
+      
       redirect("/pending");
     }
-    
-    redirect("/pending");
   }
 
   if (session.currentMembership.organization.status !== "ACTIVE") {
