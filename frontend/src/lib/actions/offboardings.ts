@@ -76,7 +76,7 @@ export async function createOffboarding(formData: FormData) {
     template = await ensureDefaultWorkflowTemplate(orgId);
   }
 
-  const templateWithTasks = template as typeof template & { tasks?: { name: string; description: string | null; category: string | null; defaultDueDays: number | null; requiresApproval: boolean; isHighRiskTask: boolean; evidenceRequirement?: "REQUIRED" | "OPTIONAL" | "NONE" }[] };
+  const templateWithTasks = template as typeof template & { tasks?: { name: string; description: string | null; category: string | null; defaultDueDays: number | null; requiresApproval: boolean; isHighRiskTask: boolean; isEmployeeRequired?: boolean; assigneeType?: "EMPLOYEE" | "ORG_USER"; evidenceRequirement?: "REQUIRED" | "OPTIONAL" | "NONE" }[] };
   const templateTasks = templateWithTasks.tasks || [];
   const allTasks = [...templateTasks];
 
@@ -89,6 +89,8 @@ export async function createOffboarding(formData: FormData) {
       defaultDueDays: t.defaultDueDays ?? null,
       requiresApproval: t.requiresApproval || false,
       isHighRiskTask: t.isHighRiskTask || false,
+      isEmployeeRequired: t.isEmployeeRequired || false,
+      assigneeType: t.assigneeType || "ORG_USER" as const,
       evidenceRequirement: ("evidenceRequirement" in t ? t.evidenceRequirement : "OPTIONAL") as "REQUIRED" | "OPTIONAL" | "NONE",
     })));
   }
@@ -126,6 +128,9 @@ export async function createOffboarding(formData: FormData) {
             : dueDate,
           requiresApproval: task.requiresApproval || false,
           isHighRiskTask: task.isHighRiskTask || false,
+          isEmployeeRequired: task.isEmployeeRequired || task.assigneeType === "EMPLOYEE" || false,
+          assigneeType: task.assigneeType || (task.isEmployeeRequired ? "EMPLOYEE" : "ORG_USER"),
+          assignedToEmployeeId: (task.assigneeType === "EMPLOYEE" || task.isEmployeeRequired) ? employeeId : null,
           evidenceRequirement: task.evidenceRequirement || "NONE",
         })),
       },
@@ -346,22 +351,24 @@ export async function updateOffboardingRisk(
     const hasHighRiskTasks = existingTasks.some(t => highRiskTaskNames.includes(t.name));
 
     if (!hasHighRiskTasks) {
-      await prisma.offboardingTask.createMany({
-        data: HIGH_RISK_ADDITIONAL_TASKS.map((task, index) => ({
-          offboardingId,
-          name: task.name,
-          description: task.description,
-          category: task.category,
-          status: "PENDING",
-          order: index,
-          dueDate: offboarding.scheduledDate 
-            ? new Date(offboarding.scheduledDate.getTime() + (task.defaultDueDays || 0) * 24 * 60 * 60 * 1000)
-            : null,
-          requiresApproval: task.requiresApproval || false,
-          isHighRiskTask: true,
-        })),
-      });
-    }
+        await prisma.offboardingTask.createMany({
+          data: HIGH_RISK_ADDITIONAL_TASKS.map((task, index) => ({
+            offboardingId,
+            name: task.name,
+            description: task.description,
+            category: task.category,
+            status: "PENDING",
+            order: index,
+            dueDate: offboarding.scheduledDate 
+              ? new Date(offboarding.scheduledDate.getTime() + (task.defaultDueDays || 0) * 24 * 60 * 60 * 1000)
+              : null,
+            requiresApproval: task.requiresApproval || false,
+            isHighRiskTask: true,
+            isEmployeeRequired: task.isEmployeeRequired || false,
+            assigneeType: task.assigneeType || "ORG_USER",
+          })),
+        });
+      }
   }
 
   await createAuditLog(session, orgId, {
@@ -410,17 +417,36 @@ export async function updateOffboardingTask(taskId: string, status: "PENDING" | 
 
   const { isUserOffboardingSubject, getUserLinkedEmployeeId } = await import("@/lib/rbac");
   const isSubject = await isUserOffboardingSubject(session.user.id, orgId, task.offboardingId);
+  const linkedEmployeeId = await getUserLinkedEmployeeId(session.user.id, orgId);
   
-  if (isSubject) {
-    if (!task.isEmployeeRequired) {
-      return { error: "INVARIANT: Subjects can only complete tasks marked as 'Employee Required'" };
+  const isEmployeeTask = task.assigneeType === "EMPLOYEE" || task.isEmployeeRequired;
+  const isOrgUserTask = task.assigneeType === "ORG_USER" || (!task.assigneeType && !task.isEmployeeRequired);
+
+  if (status === "COMPLETED") {
+    if (isEmployeeTask) {
+      if (!isSubject || linkedEmployeeId !== task.offboarding.employeeId) {
+        return { error: "Only the assigned employee can complete this task. Employee tasks cannot be completed by administrators." };
+      }
+    } else if (isOrgUserTask) {
+      if (isSubject) {
+        return { error: "Employees cannot complete organization-assigned tasks. This task must be completed by an administrator." };
+      }
+      if (!isContributor(session)) {
+        await requirePermission(session, "offboarding:update");
+      } else {
+        if (task.assignedToUserId && task.assignedToUserId !== session.user.id) {
+          return { error: "Contributors can only complete tasks assigned to them" };
+        }
+      }
     }
   } else {
-    if (!isContributor(session)) {
-      await requirePermission(session, "offboarding:update");
+    if (isSubject) {
+      if (!isEmployeeTask) {
+        return { error: "Subjects can only modify tasks assigned to them" };
+      }
     } else {
-      if (task.assignedToUserId !== session.user.id) {
-        return { error: "INVARIANT: Contributors can only complete tasks assigned to them" };
+      if (!isContributor(session)) {
+        await requirePermission(session, "offboarding:update");
       }
     }
   }
@@ -435,12 +461,16 @@ export async function updateOffboardingTask(taskId: string, status: "PENDING" | 
     }
   }
 
+  const completedByActorType = isSubject ? "EMPLOYEE" : "ORG_USER";
+
   const updated = await prisma.offboardingTask.update({
     where: { id: taskId },
     data: {
       status,
       completedAt: status === "COMPLETED" ? new Date() : null,
       completedBy: status === "COMPLETED" ? session.user.id : null,
+      completedByActorType: status === "COMPLETED" ? completedByActorType : null,
+      completedByEmployeeId: status === "COMPLETED" && isSubject ? linkedEmployeeId : null,
     },
   });
 
@@ -510,7 +540,11 @@ export async function updateOffboardingTask(taskId: string, status: "PENDING" | 
     action: "task.completed",
     entityType: "OffboardingTask",
     entityId: taskId,
-    newData: { taskName: task.name, status },
+    newData: { 
+      taskName: task.name, 
+      status,
+      completedByActorType: status === "COMPLETED" ? completedByActorType : undefined,
+    },
   });
 
   if (status === "COMPLETED") {

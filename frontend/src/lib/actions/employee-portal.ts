@@ -78,13 +78,19 @@ export async function completeEmployeeTask(taskId: string) {
     where: { id: taskId },
     include: {
       offboarding: {
-        select: { id: true, status: true },
+        select: { id: true, status: true, employeeId: true },
       },
+      evidence: true,
     },
   });
 
   if (!task) {
     return { success: false, error: "Task not found" };
+  }
+
+  if (task.assigneeType === "ORG_USER" && !task.isEmployeeRequired) {
+    await logBlockedAction(session, "complete_task", "Task is assigned to org user, not employee", { taskId });
+    return { success: false, error: "This task must be completed by an administrator" };
   }
 
   if (task.status === "COMPLETED") {
@@ -97,18 +103,35 @@ export async function completeEmployeeTask(taskId: string) {
     return { success: false, error: "This offboarding has been finalized" };
   }
 
+  if (task.evidenceRequirement === "REQUIRED" && task.evidence.length === 0) {
+    return { success: false, error: "Evidence is required to complete this task. Please upload evidence first." };
+  }
+
   await prisma.offboardingTask.update({
     where: { id: taskId },
     data: {
       status: "COMPLETED",
       completedAt: new Date(),
       completedBy: session.user.id,
+      completedByActorType: "EMPLOYEE",
+      completedByEmployeeId: session.employee.id,
     },
   });
+
+  if (task.evidence.length > 0) {
+    await prisma.taskEvidence.updateMany({
+      where: { taskId, isImmutable: false },
+      data: {
+        isImmutable: true,
+        immutableAt: new Date(),
+      },
+    });
+  }
 
   await logEmployeeAction(session, "task_completed", "offboarding_task", taskId, {
     taskName: task.name,
     offboardingId: task.offboardingId,
+    completedByActorType: "EMPLOYEE",
   });
 
   revalidatePath("/app/employee");
@@ -255,7 +278,16 @@ export async function getEmployeeTasks() {
   const tasks = await prisma.offboardingTask.findMany({
     where: {
       offboardingId: session.offboardingId,
-      assignedToEmployeeId: session.employee.id,
+      OR: [
+        { assignedToEmployeeId: session.employee.id },
+        { assigneeType: "EMPLOYEE", offboarding: { employeeId: session.employee.id } },
+        { isEmployeeRequired: true, offboarding: { employeeId: session.employee.id } },
+      ],
+    },
+    include: {
+      evidence: {
+        orderBy: { createdAt: "desc" },
+      },
     },
     orderBy: [
       { order: "asc" },
@@ -304,7 +336,11 @@ export async function getEmployeeTimeline() {
     prisma.offboardingTask.findMany({
       where: {
         offboardingId: session.offboardingId,
-        assignedToEmployeeId: session.employee.id,
+        OR: [
+          { assignedToEmployeeId: session.employee.id },
+          { assigneeType: "EMPLOYEE", offboarding: { employeeId: session.employee.id } },
+          { isEmployeeRequired: true, offboarding: { employeeId: session.employee.id } },
+        ],
       },
       select: {
         id: true,
@@ -455,8 +491,12 @@ export async function exportEmployeeData() {
 prisma.offboardingTask.findMany({
         where: {
           offboardingId: session.offboardingId,
-          assignedToEmployeeId: session.employee.id,
           status: "COMPLETED",
+          OR: [
+            { assignedToEmployeeId: session.employee.id },
+            { assigneeType: "EMPLOYEE", offboarding: { employeeId: session.employee.id } },
+            { isEmployeeRequired: true, offboarding: { employeeId: session.employee.id } },
+          ],
         },
       select: {
         name: true,
@@ -517,7 +557,11 @@ export async function checkOffboardingCompletionEligibility() {
       where: {
         offboardingId: session.offboardingId,
         status: { not: "COMPLETED" },
-        assignedToEmployeeId: session.employee.id,
+        OR: [
+          { assignedToEmployeeId: session.employee.id },
+          { assigneeType: "EMPLOYEE", offboarding: { employeeId: session.employee.id } },
+          { isEmployeeRequired: true, offboarding: { employeeId: session.employee.id } },
+        ],
       },
     }),
     prisma.assetReturn.count({
