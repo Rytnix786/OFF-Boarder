@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Box,
   Paper,
@@ -18,6 +18,7 @@ import {
   Collapse,
   Tooltip,
   alpha,
+  LinearProgress,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { completeEmployeeTask, addEmployeeTaskEvidence, deleteEmployeeTaskEvidence } from "@/lib/actions/employee-portal";
@@ -32,17 +33,26 @@ interface TasksListProps {
   tasks: TaskWithEvidence[];
 }
 
+const formatFileSize = (bytes: number) => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
 export default function TasksList({ tasks }: TasksListProps) {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [loadingTaskId, setLoadingTaskId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [addEvidenceTaskId, setAddEvidenceTaskId] = useState<string | null>(null);
-  const [evidenceType, setEvidenceType] = useState<"NOTE" | "LINK">("NOTE");
+  const [evidenceType, setEvidenceType] = useState<"NOTE" | "LINK" | "FILE">("NOTE");
   const [evidenceLoading, setEvidenceLoading] = useState(false);
   const [evidenceError, setEvidenceError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleCompleteTask = async (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
@@ -66,12 +76,25 @@ export default function TasksList({ tasks }: TasksListProps) {
     }
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 50 * 1024 * 1024) {
+        setEvidenceError("File size exceeds 50MB limit");
+        return;
+      }
+      setSelectedFile(file);
+      setEvidenceError(null);
+    }
+  };
+
   const handleAddEvidence = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!addEvidenceTaskId) return;
 
     setEvidenceLoading(true);
     setEvidenceError(null);
+    setUploadProgress(0);
 
     const formData = new FormData(e.currentTarget);
     const title = formData.get("title") as string;
@@ -93,7 +116,7 @@ export default function TasksList({ tasks }: TasksListProps) {
           description,
           noteContent,
         });
-      } else {
+      } else if (evidenceType === "LINK") {
         if (!linkUrl) {
           setEvidenceError("URL is required");
           setEvidenceLoading(false);
@@ -105,18 +128,60 @@ export default function TasksList({ tasks }: TasksListProps) {
           description,
           linkUrl,
         });
+      } else if (evidenceType === "FILE") {
+        if (!selectedFile) {
+          setEvidenceError("Please select a file");
+          setEvidenceLoading(false);
+          return;
+        }
+
+        setUploadProgress(10);
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", selectedFile);
+        uploadFormData.append("taskId", addEvidenceTaskId);
+
+        const uploadRes = await fetch("/api/upload/employee-evidence", {
+          method: "POST",
+          body: uploadFormData,
+        });
+
+        setUploadProgress(70);
+
+        if (!uploadRes.ok) {
+          const errorData = await uploadRes.json();
+          setEvidenceError(errorData.error || "Failed to upload file");
+          setEvidenceLoading(false);
+          return;
+        }
+
+        const uploadData = await uploadRes.json();
+        setUploadProgress(90);
+
+        result = await addEmployeeTaskEvidence(addEvidenceTaskId, {
+          type: "FILE",
+          title: title || selectedFile.name,
+          description,
+          fileName: uploadData.fileName,
+          fileUrl: uploadData.fileUrl,
+          fileSize: uploadData.fileSize,
+          mimeType: uploadData.mimeType,
+        });
+        setUploadProgress(100);
       }
 
-      if (!result.success) {
+      if (result && !result.success) {
         setEvidenceError(result.error || "Failed to add evidence");
       } else {
         setAddEvidenceTaskId(null);
+        setSelectedFile(null);
+        setEvidenceType("NOTE");
         router.refresh();
       }
     } catch {
       setEvidenceError("An unexpected error occurred");
     } finally {
       setEvidenceLoading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -316,18 +381,18 @@ export default function TasksList({ tasks }: TasksListProps) {
                                 }}
                               >
                                 <span
-                                  className="material-symbols-outlined"
-                                  style={{
-                                    fontSize: 18,
-                                    color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.5)",
-                                  }}
-                                >
-                                  {item.type === "NOTE" ? "description" : "link"}
-                                </span>
+                                    className="material-symbols-outlined"
+                                    style={{
+                                      fontSize: 18,
+                                      color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.5)",
+                                    }}
+                                  >
+                                    {item.type === "NOTE" ? "description" : item.type === "FILE" ? "attach_file" : "link"}
+                                  </span>
                                 <Box sx={{ flex: 1, minWidth: 0 }}>
                                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                                     <Typography sx={{ fontSize: "0.8rem", fontWeight: 600 }}>
-                                      {item.title || (item.type === "NOTE" ? "Note" : "Link")}
+                                      {item.title || (item.type === "NOTE" ? "Note" : item.type === "FILE" ? "File" : "Link")}
                                     </Typography>
                                     {item.isImmutable && (
                                       <Tooltip title="Sealed evidence">
@@ -340,7 +405,29 @@ export default function TasksList({ tasks }: TasksListProps) {
                                       </Tooltip>
                                     )}
                                   </Box>
-                                  {item.linkUrl && (
+                                  {item.type === "FILE" && item.fileUrl && (
+                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.25 }}>
+                                      <Typography
+                                        component="a"
+                                        href={item.fileUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        sx={{
+                                          fontSize: "0.7rem",
+                                          color: "primary.main",
+                                          "&:hover": { textDecoration: "underline" },
+                                        }}
+                                      >
+                                        {item.fileName || "Download file"}
+                                      </Typography>
+                                      {item.fileSize && (
+                                        <Typography sx={{ fontSize: "0.65rem", color: "text.secondary" }}>
+                                          ({formatFileSize(item.fileSize)})
+                                        </Typography>
+                                      )}
+                                      </Box>
+                                    )}
+                                    {item.linkUrl && item.type !== "FILE" && (
                                     <Typography
                                       component="a"
                                       href={item.linkUrl}
@@ -472,57 +559,130 @@ export default function TasksList({ tasks }: TasksListProps) {
               </Alert>
             )}
 
-            <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-              {(["NOTE", "LINK"] as const).map((type) => (
-                <Button
-                  key={type}
-                  variant={evidenceType === type ? "contained" : "outlined"}
-                  size="small"
-                  onClick={() => setEvidenceType(type)}
-                  startIcon={
-                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                      {type === "NOTE" ? "description" : "link"}
-                    </span>
-                  }
-                  sx={{ flex: 1 }}
-                >
-                  {type === "NOTE" ? "Attestation" : "Link"}
-                </Button>
-              ))}
-            </Box>
+              <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+                {(["NOTE", "LINK", "FILE"] as const).map((type) => (
+                  <Button
+                    key={type}
+                    variant={evidenceType === type ? "contained" : "outlined"}
+                    size="small"
+                    onClick={() => {
+                      setEvidenceType(type);
+                      if (type !== "FILE") setSelectedFile(null);
+                    }}
+                    startIcon={
+                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                        {type === "NOTE" ? "description" : type === "FILE" ? "attach_file" : "link"}
+                      </span>
+                    }
+                    sx={{ flex: 1 }}
+                  >
+                    {type === "NOTE" ? "Attestation" : type === "FILE" ? "File" : "Link"}
+                  </Button>
+                ))}
+              </Box>
 
-            <TextField
-              fullWidth
-              label="Title"
-              name="title"
-              placeholder={evidenceType === "NOTE" ? "Attestation Statement" : "Evidence Link"}
-              sx={{ mb: 2 }}
-            />
-
-            {evidenceType === "LINK" && (
               <TextField
                 fullWidth
-                label="URL"
-                name="linkUrl"
-                type="url"
-                placeholder="https://..."
-                required
+                label="Title"
+                name="title"
+                placeholder={evidenceType === "NOTE" ? "Attestation Statement" : evidenceType === "FILE" ? "Document name" : "Evidence Link"}
                 sx={{ mb: 2 }}
               />
-            )}
 
-            {evidenceType === "NOTE" && (
-              <TextField
-                fullWidth
-                label="Attestation / Note"
-                name="noteContent"
-                multiline
-                rows={4}
-                placeholder="Enter attestation statement or compliance note..."
-                required
-                sx={{ mb: 2 }}
-              />
-            )}
+              {evidenceType === "LINK" && (
+                <TextField
+                  fullWidth
+                  label="URL"
+                  name="linkUrl"
+                  type="url"
+                  placeholder="https://..."
+                  required
+                  sx={{ mb: 2 }}
+                />
+              )}
+
+              {evidenceType === "NOTE" && (
+                <TextField
+                  fullWidth
+                  label="Attestation / Note"
+                  name="noteContent"
+                  multiline
+                  rows={4}
+                  placeholder="Enter attestation statement or compliance note..."
+                  required
+                  sx={{ mb: 2 }}
+                />
+              )}
+
+              {evidenceType === "FILE" && (
+                <Box sx={{ mb: 2 }}>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,.pdf,.doc,.docx,.txt"
+                    onChange={handleFileSelect}
+                    style={{ display: "none" }}
+                  />
+                  <Box
+                    onClick={() => fileInputRef.current?.click()}
+                    sx={{
+                      border: "2px dashed",
+                      borderColor: selectedFile ? "primary.main" : isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)",
+                      borderRadius: 2,
+                      p: 3,
+                      textAlign: "center",
+                      cursor: "pointer",
+                      bgcolor: selectedFile
+                        ? alpha(theme.palette.primary.main, 0.05)
+                        : isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)",
+                      "&:hover": {
+                        borderColor: "primary.main",
+                        bgcolor: alpha(theme.palette.primary.main, 0.05),
+                      },
+                    }}
+                  >
+                    {selectedFile ? (
+                      <Box>
+                        <span
+                          className="material-symbols-outlined"
+                          style={{ fontSize: 32, color: theme.palette.primary.main }}
+                        >
+                          check_circle
+                        </span>
+                        <Typography sx={{ fontWeight: 600, mt: 1 }}>
+                          {selectedFile.name}
+                        </Typography>
+                        <Typography sx={{ fontSize: "0.75rem", color: "text.secondary" }}>
+                          {formatFileSize(selectedFile.size)}
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Box>
+                        <span
+                          className="material-symbols-outlined"
+                          style={{ fontSize: 32, color: isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)" }}
+                        >
+                          cloud_upload
+                        </span>
+                        <Typography sx={{ mt: 1, color: "text.secondary" }}>
+                          Click to select a file
+                        </Typography>
+                        <Typography sx={{ fontSize: "0.75rem", color: "text.secondary" }}>
+                          Images, PDFs, Word docs, text files (max 50MB)
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                  {uploadProgress > 0 && uploadProgress < 100 && (
+                    <Box sx={{ mt: 2 }}>
+                      <LinearProgress variant="determinate" value={uploadProgress} />
+                      <Typography sx={{ fontSize: "0.75rem", color: "text.secondary", mt: 0.5, textAlign: "center" }}>
+                        Uploading... {uploadProgress}%
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+              )}
 
             <TextField
               fullWidth
