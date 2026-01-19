@@ -72,8 +72,6 @@ type Task = {
   completedAt: Date | null;
   requiresApproval: boolean;
   isHighRiskTask: boolean;
-  isEmployeeRequired: boolean;
-  assigneeType: "EMPLOYEE" | "ORG_USER" | null;
   evidenceRequirement: "REQUIRED" | "OPTIONAL" | "NONE";
   evidence: EvidenceItem[];
 };
@@ -423,11 +421,11 @@ export default function OffboardingDetailClient({
                 </Box>
                 <Box>
                   <Typography variant="caption" color="text.secondary">Scheduled Date</Typography>
-<Typography variant="body2" suppressHydrationWarning>
-                      {offboarding.scheduledDate
-                        ? new Date(offboarding.scheduledDate).toLocaleDateString("en-US")
-                        : "—"}
-                    </Typography>
+                  <Typography variant="body2">
+                    {offboarding.scheduledDate
+                      ? new Date(offboarding.scheduledDate).toLocaleDateString()
+                      : "—"}
+                  </Typography>
                 </Box>
                 {offboarding.riskReason && (
                   <Box>
@@ -523,35 +521,29 @@ export default function OffboardingDetailClient({
                       <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                         {tasks.map((task) => {
                           const hasRequiredEvidence = task.evidenceRequirement === "REQUIRED" && task.evidence.length === 0;
-                          const isEmployeeTask = task.assigneeType === "EMPLOYEE" || task.isEmployeeRequired;
-                          const canAdminComplete = !isEmployeeTask;
                           return (
                           <Box
                             key={task.id}
                             sx={{
                               p: 2,
                               borderRadius: 2,
-                              bgcolor: task.status === "COMPLETED" ? alpha("#22c55e", 0.05) : task.isHighRiskTask ? alpha("#ef4444", 0.05) : isEmployeeTask ? alpha("#8b5cf6", 0.03) : hasRequiredEvidence ? alpha("#f59e0b", 0.03) : "transparent",
+                              bgcolor: task.status === "COMPLETED" ? alpha("#22c55e", 0.05) : task.isHighRiskTask ? alpha("#ef4444", 0.05) : hasRequiredEvidence ? alpha("#f59e0b", 0.03) : "transparent",
                               border: "1px solid",
-                              borderColor: task.status === "COMPLETED" ? alpha("#22c55e", 0.2) : task.isHighRiskTask ? alpha("#ef4444", 0.2) : isEmployeeTask ? alpha("#8b5cf6", 0.2) : hasRequiredEvidence ? alpha("#f59e0b", 0.2) : "divider",
+                              borderColor: task.status === "COMPLETED" ? alpha("#22c55e", 0.2) : task.isHighRiskTask ? alpha("#ef4444", 0.2) : hasRequiredEvidence ? alpha("#f59e0b", 0.2) : "divider",
                             }}
                           >
                             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                              <Tooltip title={isEmployeeTask ? "This task must be completed by the employee via their portal" : ""}>
-                                <span>
-                                  <Checkbox
-                                    checked={task.status === "COMPLETED"}
-                                    disabled={!canUpdate || loading === task.id || offboarding.status === "COMPLETED" || offboarding.status === "CANCELLED" || !canAdminComplete || (task.requiresApproval && offboarding.approvals.some(a => a.task?.name === task.name && a.status === "PENDING")) || hasRequiredEvidence}
-                                    onChange={() => handleTaskToggle(task.id, task.status)}
-                                    sx={{
-                                      color: task.status === "COMPLETED" ? "success.main" : isEmployeeTask ? "action.disabled" : undefined,
-                                      "&.Mui-checked": { color: "success.main" },
-                                    }}
-                                  />
-                                </span>
-                              </Tooltip>
+                              <Checkbox
+                                checked={task.status === "COMPLETED"}
+                                disabled={!canUpdate || loading === task.id || offboarding.status === "COMPLETED" || offboarding.status === "CANCELLED" || (task.requiresApproval && offboarding.approvals.some(a => a.task?.name === task.name && a.status === "PENDING")) || hasRequiredEvidence}
+                                onChange={() => handleTaskToggle(task.id, task.status)}
+                                sx={{
+                                  color: task.status === "COMPLETED" ? "success.main" : undefined,
+                                  "&.Mui-checked": { color: "success.main" },
+                                }}
+                              />
                               <Box sx={{ flex: 1 }}>
-                                <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                                   <Typography
                                     fontWeight={600}
                                     sx={{
@@ -561,19 +553,6 @@ export default function OffboardingDetailClient({
                                   >
                                     {task.name}
                                   </Typography>
-                                  {isEmployeeTask && (
-                                    <Chip 
-                                      icon={<span className="material-symbols-outlined" style={{ fontSize: 14 }}>person</span>}
-                                      label="Employee Task" 
-                                      size="small" 
-                                      sx={{ 
-                                        height: 20, 
-                                        bgcolor: alpha("#8b5cf6", 0.1), 
-                                        color: "#8b5cf6",
-                                        '& .MuiChip-icon': { color: "#8b5cf6" }
-                                      }} 
-                                    />
-                                  )}
                                   {task.isHighRiskTask && (
                                     <Chip label="High Risk" size="small" color="error" sx={{ height: 20 }} />
                                   )}
@@ -594,11 +573,6 @@ export default function OffboardingDetailClient({
                                     {task.description}
                                   </Typography>
                                 )}
-                                {isEmployeeTask && task.status !== "COMPLETED" && (
-                                  <Typography variant="caption" sx={{ display: "block", color: "#8b5cf6", mt: 0.5 }}>
-                                    Awaiting completion via Employee Portal
-                                  </Typography>
-                                )}
                               </Box>
                               {task.completedAt && (
                                 <Typography variant="caption" color="success.main">
@@ -607,15 +581,14 @@ export default function OffboardingDetailClient({
                               )}
                             </Box>
                             <TaskEvidencePanel
-                                taskId={task.id}
-                                taskName={task.name}
-                                offboardingId={offboarding.id}
-                                evidenceRequirement={task.evidenceRequirement}
-                                evidence={task.evidence}
-                                taskCompleted={task.status === "COMPLETED"}
-                                offboardingCompleted={offboarding.status === "COMPLETED"}
-                                canEdit={canUpdate && !isEmployeeTask}
-                              />
+                              taskId={task.id}
+                              taskName={task.name}
+                              evidenceRequirement={task.evidenceRequirement}
+                              evidence={task.evidence}
+                              taskCompleted={task.status === "COMPLETED"}
+                              offboardingCompleted={offboarding.status === "COMPLETED"}
+                              canEdit={canUpdate}
+                            />
                           </Box>
                         )})}
                       </Box>

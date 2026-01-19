@@ -20,7 +20,6 @@ import {
   Select,
   MenuItem,
   FormControl,
-  Alert,
 } from "@mui/material";
 import { usePlatformContext } from "../layout";
 import { stitchTokens } from "@/theme/tokens";
@@ -34,7 +33,6 @@ type Organization = {
   status: "PENDING" | "ACTIVE" | "SUSPENDED" | "REJECTED";
   createdAt: string;
   approvedAt: string | null;
-  rejectionReason: string | null;
   _count: {
     employees: number;
     offboardings: number;
@@ -47,38 +45,36 @@ type Organization = {
 type ActionDialogState = {
   open: boolean;
   org: Organization | null;
-  action: "approve" | "suspend" | "reactivate" | "reject" | "recover" | null;
+  action: "approve" | "suspend" | "reactivate" | "reject" | null;
 };
 
-const STATUS_CONFIG: Record<string, { color: string; label: string; icon: string; description: string }> = {
-  PENDING: { color: "#f59e0b", label: "Pending", icon: "schedule", description: "Awaiting platform approval" },
-  ACTIVE: { color: "#22c55e", label: "Active", icon: "check_circle", description: "Fully operational" },
-  SUSPENDED: { color: "#dc2626", label: "Suspended", icon: "block", description: "Temporarily suspended" },
-  REJECTED: { color: "#6b7280", label: "Rejected", icon: "cancel", description: "Registration rejected" },
+const STATUS_CONFIG: Record<string, { color: string; label: string; icon: string }> = {
+  PENDING: { color: "#f59e0b", label: "Pending", icon: "schedule" },
+  ACTIVE: { color: "#22c55e", label: "Active", icon: "check_circle" },
+  SUSPENDED: { color: "#dc2626", label: "Suspended", icon: "block" },
+  REJECTED: { color: "#6b7280", label: "Rejected", icon: "cancel" },
 };
 
 function StatusBadge({ status }: { status: string }) {
   const config = STATUS_CONFIG[status] || STATUS_CONFIG.PENDING;
   return (
-    <Tooltip title={config.description}>
-      <Box
-        sx={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 0.75,
-          px: 1.5,
-          py: 0.5,
-          borderRadius: 1,
-          bgcolor: alpha(config.color, 0.1),
-          border: `1px solid ${alpha(config.color, 0.2)}`,
-        }}
-      >
-        <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: config.color }} />
-        <Typography sx={{ fontSize: t.typography.fontSize.xs, fontWeight: 600, color: config.color, textTransform: "uppercase" }}>
-          {config.label}
-        </Typography>
-      </Box>
-    </Tooltip>
+    <Box
+      sx={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 0.75,
+        px: 1.5,
+        py: 0.5,
+        borderRadius: 1,
+        bgcolor: alpha(config.color, 0.1),
+        border: `1px solid ${alpha(config.color, 0.2)}`,
+      }}
+    >
+      <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: config.color }} />
+      <Typography sx={{ fontSize: t.typography.fontSize.xs, fontWeight: 600, color: config.color, textTransform: "uppercase" }}>
+        {config.label}
+      </Typography>
+    </Box>
   );
 }
 
@@ -89,7 +85,7 @@ function OrgRow({
 }: {
   org: Organization;
   incidentMode: boolean;
-  onAction: (org: Organization, action: "approve" | "suspend" | "reactivate" | "reject" | "recover") => void;
+  onAction: (org: Organization, action: "approve" | "suspend" | "reactivate" | "reject") => void;
 }) {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
@@ -129,11 +125,6 @@ function OrgRow({
         <Typography sx={{ fontSize: t.typography.fontSize.xs, color: isDark ? "#71717a" : "#6b7280" }}>
           {org.slug} • Created {new Date(org.createdAt).toLocaleDateString()}
         </Typography>
-        {org.status === "REJECTED" && org.rejectionReason && (
-          <Typography sx={{ fontSize: t.typography.fontSize.xs, color: "#dc2626", mt: 0.5 }}>
-            Rejected: {org.rejectionReason}
-          </Typography>
-        )}
       </Box>
 
       <Box sx={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
@@ -223,13 +214,13 @@ function OrgRow({
           </Tooltip>
         )}
         {org.status === "REJECTED" && (
-          <Tooltip title="Recover Organization (approve after rejection)">
+          <Tooltip title="Reactivate Organization">
             <IconButton
               size="small"
-              onClick={() => onAction(org, "recover")}
-              sx={{ color: "#6366f1", "&:hover": { bgcolor: alpha("#6366f1", 0.1) } }}
+              onClick={() => onAction(org, "reactivate")}
+              sx={{ color: "#22c55e", "&:hover": { bgcolor: alpha("#22c55e", 0.1) } }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>undo</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>restart_alt</span>
             </IconButton>
           </Tooltip>
         )}
@@ -271,7 +262,7 @@ export default function OrganizationsPage() {
     fetchOrganizations();
   }, [statusFilter]);
 
-  const handleAction = (org: Organization, action: "approve" | "suspend" | "reactivate" | "reject" | "recover") => {
+  const handleAction = (org: Organization, action: "approve" | "suspend" | "reactivate" | "reject") => {
     setActionDialog({ open: true, org, action });
     setActionReason("");
   };
@@ -282,14 +273,12 @@ export default function OrganizationsPage() {
 
     setActionLoading(true);
     try {
-      const apiAction = actionDialog.action === "recover" ? "reactivate" : actionDialog.action;
-      
       const res = await fetch("/api/platform/organizations", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           organizationId: actionDialog.org.id,
-          action: apiAction,
+          action: actionDialog.action,
           reason: actionReason,
         }),
       });
@@ -309,81 +298,39 @@ export default function OrganizationsPage() {
     setActionLoading(false);
   };
 
-  const actionLabels: Record<string, { title: string; button: string; color: string; description: string }> = {
-    approve: { title: "Approve Organization", button: "Approve", color: "#22c55e", description: "Grant full platform access to this organization." },
-    suspend: { title: "Suspend Organization", button: "Suspend", color: "#f59e0b", description: "Temporarily revoke access. All users will be logged out but data is preserved." },
-    reactivate: { title: "Reactivate Organization", button: "Reactivate", color: "#22c55e", description: "Restore full platform access. Users can log in again." },
-    reject: { title: "Reject Organization", button: "Reject", color: "#dc2626", description: "Deny registration. The organization cannot access the platform." },
-    recover: { title: "Recover Rejected Organization", button: "Recover & Activate", color: "#6366f1", description: "Approve this previously rejected organization. They will gain full platform access." },
+  const actionLabels: Record<string, { title: string; button: string; color: string }> = {
+    approve: { title: "Approve Organization", button: "Approve", color: "#22c55e" },
+    suspend: { title: "Suspend Organization", button: "Suspend", color: "#f59e0b" },
+    reactivate: { title: "Reactivate Organization", button: "Reactivate", color: "#22c55e" },
+    reject: { title: "Reject Organization", button: "Reject", color: "#dc2626" },
   };
 
   const pendingCount = organizations.filter((o) => o.status === "PENDING").length;
-  const suspendedCount = organizations.filter((o) => o.status === "SUSPENDED").length;
-  const rejectedCount = organizations.filter((o) => o.status === "REJECTED").length;
 
   return (
     <Box>
       <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", mb: 4 }}>
         <Box>
           <Typography sx={{ fontSize: "1.5rem", fontWeight: 700, color: isDark ? "#fff" : "#0f172a", letterSpacing: "-0.02em", mb: 0.5 }}>
-            Organization Lifecycle Management
+            Organization Governance
           </Typography>
           <Typography sx={{ fontSize: t.typography.fontSize.sm, color: isDark ? "#71717a" : "#6b7280" }}>
-            Approve, suspend, reactivate, and recover tenant organizations
+            Approve, suspend, and monitor tenant organizations
           </Typography>
         </Box>
-        <Box sx={{ display: "flex", gap: 1 }}>
-          {pendingCount > 0 && (
-            <Chip
-              label={`${pendingCount} Pending`}
-              size="small"
-              sx={{
-                bgcolor: alpha("#f59e0b", 0.1),
-                color: "#f59e0b",
-                fontWeight: 600,
-                fontSize: t.typography.fontSize.xs,
-                border: `1px solid ${alpha("#f59e0b", 0.2)}`,
-              }}
-            />
-          )}
-          {suspendedCount > 0 && (
-            <Chip
-              label={`${suspendedCount} Suspended`}
-              size="small"
-              sx={{
-                bgcolor: alpha("#dc2626", 0.1),
-                color: "#dc2626",
-                fontWeight: 600,
-                fontSize: t.typography.fontSize.xs,
-                border: `1px solid ${alpha("#dc2626", 0.2)}`,
-              }}
-            />
-          )}
-          {rejectedCount > 0 && (
-            <Chip
-              label={`${rejectedCount} Rejected`}
-              size="small"
-              sx={{
-                bgcolor: alpha("#6b7280", 0.1),
-                color: "#6b7280",
-                fontWeight: 600,
-                fontSize: t.typography.fontSize.xs,
-                border: `1px solid ${alpha("#6b7280", 0.2)}`,
-              }}
-            />
-          )}
-        </Box>
+        {pendingCount > 0 && (
+          <Chip
+            label={`${pendingCount} Pending Approval`}
+            sx={{
+              bgcolor: alpha("#f59e0b", 0.1),
+              color: "#f59e0b",
+              fontWeight: 600,
+              fontSize: t.typography.fontSize.sm,
+              border: `1px solid ${alpha("#f59e0b", 0.2)}`,
+            }}
+          />
+        )}
       </Box>
-
-      <Alert 
-        severity="info" 
-        sx={{ mb: 3, borderRadius: 2 }}
-        icon={<span className="material-symbols-outlined" style={{ fontSize: 20 }}>info</span>}
-      >
-        <Typography sx={{ fontSize: t.typography.fontSize.sm }}>
-          <strong>Lifecycle States:</strong> PENDING → ACTIVE (approve) or REJECTED (reject) | ACTIVE → SUSPENDED (suspend) | SUSPENDED → ACTIVE (reactivate) | REJECTED → ACTIVE (recover)
-        </Typography>
-      </Alert>
 
       <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
         <TextField
@@ -479,7 +426,7 @@ export default function OrganizationsPage() {
                     className="material-symbols-outlined"
                     style={{ fontSize: 20, color: actionLabels[actionDialog.action].color }}
                   >
-                    {actionDialog.action === "approve" || actionDialog.action === "reactivate" || actionDialog.action === "recover" ? "check_circle" : "warning"}
+                    {actionDialog.action === "approve" || actionDialog.action === "reactivate" ? "check_circle" : "warning"}
                   </span>
                 </Box>
                 <Typography sx={{ fontSize: t.typography.fontSize.lg, fontWeight: 700 }}>
@@ -489,40 +436,22 @@ export default function OrganizationsPage() {
             </DialogTitle>
             <DialogContent>
               <Typography sx={{ fontSize: t.typography.fontSize.sm, color: isDark ? "#a1a1aa" : "#52525b", mb: 2 }}>
-                {actionLabels[actionDialog.action].description}
+                {actionDialog.action === "approve" && `Approve "${actionDialog.org?.name}" to grant access to the platform.`}
+                {actionDialog.action === "suspend" && `Suspend "${actionDialog.org?.name}" to temporarily revoke access. All users will be logged out.`}
+                {actionDialog.action === "reactivate" && `Reactivate "${actionDialog.org?.name}" to restore access to the platform.`}
+                {actionDialog.action === "reject" && `Reject "${actionDialog.org?.name}". This cannot be undone.`}
               </Typography>
-              
-              <Box sx={{ bgcolor: isDark ? "#27272a" : "#f4f4f5", p: 2, borderRadius: 1.5, mb: 2 }}>
-                <Typography sx={{ fontSize: t.typography.fontSize.xs, color: isDark ? "#71717a" : "#6b7280", mb: 0.5 }}>
-                  Organization
-                </Typography>
-                <Typography sx={{ fontSize: t.typography.fontSize.base, fontWeight: 600, color: isDark ? "#fff" : "#0f172a" }}>
-                  {actionDialog.org?.name}
-                </Typography>
-                <Typography sx={{ fontSize: t.typography.fontSize.xs, color: isDark ? "#71717a" : "#6b7280" }}>
-                  Current status: {actionDialog.org?.status}
-                </Typography>
-              </Box>
-
-              {actionDialog.action === "recover" && actionDialog.org?.rejectionReason && (
-                <Alert severity="warning" sx={{ mb: 2, borderRadius: 1.5 }}>
-                  <Typography sx={{ fontSize: t.typography.fontSize.xs }}>
-                    <strong>Original rejection reason:</strong> {actionDialog.org.rejectionReason}
-                  </Typography>
-                </Alert>
-              )}
-
               {(actionDialog.action === "suspend" || actionDialog.action === "reject") && (
                 <TextField
                   fullWidth
-                  label="Reason (required)"
+                  label="Reason"
                   value={actionReason}
                   onChange={(e) => setActionReason(e.target.value)}
                   placeholder={`Reason for ${actionDialog.action}...`}
                   multiline
                   rows={3}
                   required
-                  sx={{ mt: 1 }}
+                  sx={{ mt: 2 }}
                 />
               )}
               <Box
@@ -539,7 +468,7 @@ export default function OrganizationsPage() {
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 18, color: "#6366f1" }}>info</span>
                 <Typography sx={{ fontSize: t.typography.fontSize.xs, color: "#6366f1" }}>
-                  This action will be logged in the Platform Audit Log and affected users will be notified.
+                  This action will be logged in the Platform Audit Log.
                 </Typography>
               </Box>
             </DialogContent>

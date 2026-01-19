@@ -26,73 +26,7 @@ import {
   Select,
   MenuItem,
   Alert,
-  styled,
-  alpha,
 } from "@mui/material";
-
-// Custom styled buttons for a high-end look
-const ActionButton = styled(Button)(({ theme }) => ({
-  borderRadius: "12px",
-  padding: "8px 16px",
-  textTransform: "none",
-  fontWeight: 600,
-  border: `1px solid ${theme.palette.mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
-  backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
-  transition: "all 0.2s ease-in-out",
-  "&:hover": {
-    backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
-    transform: "translateY(-2px)",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-  },
-}));
-
-const PortalButton = styled(ActionButton)(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  gap: "12px",
-  padding: "6px 20px 6px 12px",
-  background: theme.palette.mode === "dark" 
-    ? "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%)"
-    : "linear-gradient(135deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.005) 100%)",
-  position: "relative",
-  overflow: "hidden",
-  "&::after": {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent)",
-    transform: "translateX(-100%)",
-    transition: "transform 0.5s ease-in-out",
-  },
-  "&:hover::after": {
-    transform: "translateX(100%)",
-  },
-}));
-
-const PortalBranding = styled(Box)({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "flex-start",
-  lineHeight: 1,
-});
-
-const PortalText = styled(Typography)({
-  fontSize: "0.7rem",
-  fontWeight: 800,
-  letterSpacing: "0.25em",
-  textTransform: "uppercase",
-  opacity: 0.5,
-  marginBottom: "2px",
-});
-
-const InviteText = styled(Typography)(({ theme }) => ({
-  fontSize: "0.875rem",
-  fontWeight: 600,
-  color: theme.palette.info.main,
-}));
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { updateEmployee } from "@/lib/actions/employees";
@@ -189,42 +123,34 @@ export default function EmployeeDetailClient({ employee, canEdit }: EmployeeDeta
             {employee.employeeId} • {employee.email}
           </Typography>
         </Box>
-          {canEdit && (
-            <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
-              <PortalButton
+        {canEdit && (
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Button
+                variant="outlined"
+                color="info"
+                startIcon={<span className="material-symbols-outlined">portal</span>}
                 onClick={() => setPortalInviteDialogOpen(true)}
               >
-                <PortalBranding>
-                  <PortalText>Portal</PortalText>
-                  <InviteText>Invite to Portal</InviteText>
-                </PortalBranding>
-              </PortalButton>
-
+                Invite to Portal
+              </Button>
               <Link href={`/app/employees/${employee.id}/security`} style={{ textDecoration: "none" }}>
-                <ActionButton
-                  startIcon={<span className="material-symbols-outlined" style={{ color: "#F59E0B" }}>shield</span>}
-                  sx={{ 
-                    color: "#F59E0B",
-                    "&:hover": { borderColor: alpha("#F59E0B", 0.5), backgroundColor: alpha("#F59E0B", 0.05) }
-                  }}
+                <Button
+                  variant="outlined"
+                  color="warning"
+                  startIcon={<span className="material-symbols-outlined">shield</span>}
                 >
                   Security
-                </ActionButton>
+                </Button>
               </Link>
-
-              <ActionButton
-                startIcon={<span className="material-symbols-outlined" style={{ color: "#10B981" }}>edit</span>}
+              <Button
+                variant="outlined"
+                startIcon={<span className="material-symbols-outlined">edit</span>}
                 onClick={() => setEditDialogOpen(true)}
-                sx={{ 
-                  color: "#10B981",
-                  "&:hover": { borderColor: alpha("#10B981", 0.5), backgroundColor: alpha("#10B981", 0.05) }
-                }}
               >
                 Edit
-              </ActionButton>
+              </Button>
             </Box>
           )}
-
       </Box>
 
       <Grid container spacing={3}>

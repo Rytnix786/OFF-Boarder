@@ -225,11 +225,7 @@ export async function getEmployeeOffboarding(session: EmployeePortalSession) {
       },
       tasks: {
         where: {
-          OR: [
-            { assignedToEmployeeId: session.employee.id },
-            { assigneeType: "EMPLOYEE" },
-            { isEmployeeRequired: true },
-          ],
+          assignedToEmployeeId: session.employee.id,
         },
         orderBy: { order: "asc" },
       },
@@ -269,16 +265,12 @@ export async function verifyEmployeeOwnership(
           },
         },
       });
-      if (!task) return false;
-      if (task.offboarding.organizationId !== session.organizationId) return false;
-      if (task.offboarding.employeeId !== session.employee.id) return false;
-      
-      const isAssignedToEmployee = 
-        task.assignedToEmployeeId === session.employee.id ||
-        task.assigneeType === "EMPLOYEE" ||
-        task.isEmployeeRequired === true;
-      
-      return isAssignedToEmployee;
+      return (
+        !!task &&
+        task.offboarding.employeeId === session.employee.id &&
+        task.offboarding.organizationId === session.organizationId &&
+        task.assignedToEmployeeId === session.employee.id
+      );
     }
     case "assetReturn": {
       const assetReturn = await prisma.assetReturn.findUnique({

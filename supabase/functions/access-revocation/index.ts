@@ -1,16 +1,14 @@
-/// <reference types="https://deno.land/x/types/index.d.ts" />
-// @ts-ignore - Deno types are provided by Supabase Edge Functions runtime
 import { corsHeaders, createSupabaseClient } from "../shared/supabase.ts";
 import { registry } from "../shared/connectors.ts";
 
 interface RevocationRequest {
-    employeeId: string;
-    organizationId: string;
-    connectorIds: string[];
+    employee_id: string;
+    company_id: string;
+    connector_ids: string[];
 }
 
-// @ts-ignore - Deno global is available in Supabase Edge Functions runtime
-Deno.serve(async (req: Request) => {
+Deno.serve(async (req) => {
+    // 1. Handle CORS Preflight
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders });
     }
@@ -23,14 +21,15 @@ Deno.serve(async (req: Request) => {
             });
         }
 
-        const { employeeId, organizationId, connectorIds }: RevocationRequest = await req.json();
+        const { employee_id, company_id, connector_ids }: RevocationRequest = await req.json();
 
         const supabase = createSupabaseClient();
 
+        // Fetch Employee
         const { data: employee, error: empError } = await supabase
-            .from('Employee')
-            .select('email, firstName, lastName')
-            .eq('id', employeeId)
+            .from('employees')
+            .select('email, full_name')
+            .eq('id', employee_id)
             .single();
 
         if (empError) {
@@ -42,19 +41,18 @@ Deno.serve(async (req: Request) => {
 
         const results = [];
 
-        for (const cid of (connectorIds || [])) {
+        for (const cid of (connector_ids || [])) {
             const connector = registry[cid];
             if (connector) {
                 const result = await connector.revokeAccess(employee.email);
 
-                await supabase.from('AuditLog').insert({
-                    organizationId,
-                    userId: null,
+                await supabase.from('audit_logs').insert({
+                    company_id,
+                    actor_id: 'system_bot',
                     action: `access_revoked_${cid}`,
-                    entityType: 'Employee',
-                    entityId: employeeId,
-                    metadata: result.proof,
-                    scope: 'ORGANIZATION'
+                    entity_type: 'employee',
+                    entity_id: employee_id,
+                    metadata: result.proof
                 });
 
                 results.push({ connector: cid, ...result });
@@ -68,9 +66,8 @@ Deno.serve(async (req: Request) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
 
-    } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        return new Response(JSON.stringify({ error: errorMessage }), {
+    } catch (error) {
+        return new Response(JSON.stringify({ error: error.message }), {
             status: 500,
             headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
