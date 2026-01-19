@@ -125,7 +125,7 @@ export const DEFAULT_WORKFLOW_TEMPLATES: DefaultWorkflowTemplate[] = [
 
 export const DEFAULT_WORKFLOW_TASKS = STANDARD_RESIGNATION_TASKS;
 
-export const HIGH_RISK_ADDITIONAL_TASKS = [
+export const HIGH_RISK_ADDITIONAL_TASKS: DefaultTask[] = [
   { name: "Immediate access revocation", description: "Revoke all system access immediately upon notification", category: "SECURITY", order: 0, defaultDueDays: 0, isHighRiskTask: true, requiresApproval: true },
   { name: "Security review", description: "Review all recent access logs and activities", category: "SECURITY", order: 1, defaultDueDays: 1, isHighRiskTask: true },
   { name: "Legal hold check", description: "Verify if any legal holds apply to employee data", category: "LEGAL", order: 2, defaultDueDays: 1, requiresApproval: true },
