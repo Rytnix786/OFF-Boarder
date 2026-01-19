@@ -421,11 +421,11 @@ export default function OffboardingDetailClient({
                 </Box>
                 <Box>
                   <Typography variant="caption" color="text.secondary">Scheduled Date</Typography>
-                  <Typography variant="body2">
-                    {offboarding.scheduledDate
-                      ? new Date(offboarding.scheduledDate).toLocaleDateString()
-                      : "—"}
-                  </Typography>
+<Typography variant="body2" suppressHydrationWarning>
+                      {offboarding.scheduledDate
+                        ? new Date(offboarding.scheduledDate).toLocaleDateString("en-US")
+                        : "—"}
+                    </Typography>
                 </Box>
                 {offboarding.riskReason && (
                   <Box>
