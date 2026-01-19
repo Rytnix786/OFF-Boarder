@@ -21,6 +21,50 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    const employeePortalInvite = await prisma.employeePortalInvite.findFirst({
+      where: {
+        email: { equals: email.toLowerCase(), mode: "insensitive" },
+        status: "PENDING",
+      },
+      include: {
+        organization: { select: { id: true, name: true, slug: true } },
+        employee: { select: { id: true, firstName: true, lastName: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (employeePortalInvite) {
+      if (new Date() > employeePortalInvite.expiresAt) {
+        await prisma.employeePortalInvite.update({
+          where: { id: employeePortalInvite.id },
+          data: { status: "EXPIRED" },
+        });
+        return NextResponse.json({
+          hasEmployeeInvite: false,
+          employeeInviteExpired: true,
+          organizationName: employeePortalInvite.organization.name,
+          employeeName: `${employeePortalInvite.employee.firstName} ${employeePortalInvite.employee.lastName}`,
+          message: `Your employee portal invitation to ${employeePortalInvite.organization.name} has expired. Please contact your administrator for a new invitation.`,
+        });
+      }
+
+      return NextResponse.json({
+        hasEmployeeInvite: true,
+        canCreateOrg: false,
+        employeeInvite: {
+          id: employeePortalInvite.id,
+          token: employeePortalInvite.token,
+          email: employeePortalInvite.email,
+          employeeId: employeePortalInvite.employee.id,
+          employeeName: `${employeePortalInvite.employee.firstName} ${employeePortalInvite.employee.lastName}`,
+          organizationId: employeePortalInvite.organizationId,
+          organizationName: employeePortalInvite.organization.name,
+          organizationSlug: employeePortalInvite.organization.slug,
+          expiresAt: employeePortalInvite.expiresAt,
+        },
+      });
+    }
+
     const invitation = await prisma.invitation.findFirst({
       where: {
         email: { equals: email.toLowerCase(), mode: "insensitive" },
