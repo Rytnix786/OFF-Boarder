@@ -3,14 +3,13 @@
 import { corsHeaders, createSupabaseClient } from "../shared/supabase.ts";
 
 interface ReturnRequest {
-    assignment_id: string;
-    company_id: string;
+    assetReturnId: string;
+    organizationId: string;
     condition: string;
 }
 
 // @ts-ignore - Deno global is available in Supabase Edge Functions runtime
 Deno.serve(async (req: Request) => {
-    // 1. Handle CORS Preflight
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders });
     }
@@ -23,57 +22,50 @@ Deno.serve(async (req: Request) => {
             });
         }
 
-        const { assignment_id, company_id, condition }: ReturnRequest = await req.json();
+        const { assetReturnId, organizationId, condition }: ReturnRequest = await req.json();
 
         const supabase = createSupabaseClient();
 
-        // 1. Mark assignment as returned
-        const { data: assignment, error: assignError } = await supabase
-            .from('asset_assignments')
+        const { data: assetReturn, error: returnError } = await supabase
+            .from('AssetReturn')
             .update({
-                returned_at: new Date().toISOString(),
-                condition_on_return: condition
+                returnedAt: new Date().toISOString(),
+                condition: condition,
+                status: 'RETURNED'
             })
-            .eq('id', assignment_id)
-            .eq('company_id', company_id)
-            .select()
+            .eq('id', assetReturnId)
+            .select('*, asset:Asset(*)')
             .single();
 
-        if (assignError || !assignment) {
-            return new Response(JSON.stringify({ error: assignError?.message || "Assignment not found" }), {
+        if (returnError || !assetReturn) {
+            return new Response(JSON.stringify({ error: returnError?.message || "Asset return not found" }), {
                 status: 400,
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             });
         }
 
-        // 2. Fetch specific asset info for the log
-        const { data: asset } = await supabase
-            .from('assets')
-            .select('name, serial_number')
-            .eq('id', assignment.asset_id)
-            .single();
-
-        // 3. Log to Audit Table (Automation)
-        await supabase.from('audit_logs').insert({
-            company_id,
-            actor_id: 'system_bot',
+        await supabase.from('AuditLog').insert({
+            organizationId,
+            userId: null,
             action: 'asset_returned',
-            entity_type: 'asset',
-            entity_id: assignment.asset_id,
+            entityType: 'Asset',
+            entityId: assetReturn.assetId,
             metadata: {
-                assignment_id,
+                assetReturnId,
                 condition,
-                asset_name: asset?.name,
-                serial: asset?.serial_number
-            }
+                assetName: assetReturn.asset?.name,
+                serialNumber: assetReturn.asset?.serialNumber
+            },
+            scope: 'ORGANIZATION'
         });
 
-        // 4. Queue Notification for HR/IT
-        await supabase.from('notifications').insert({
-            company_id,
+        await supabase.from('Notification').insert({
+            userId: '',
+            organizationId,
+            type: 'ASSET_RETURNED',
             title: 'Asset Returned',
-            content: `Asset ${asset?.name} (${asset?.serial_number}) has been returned in ${condition} condition.`,
-            status: 'unread'
+            message: `Asset ${assetReturn.asset?.name} (${assetReturn.asset?.serialNumber}) has been returned in ${condition} condition.`,
+            read: false
         });
 
         return new Response(JSON.stringify({ message: "Asset Return Processed" }), {

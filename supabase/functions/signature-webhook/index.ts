@@ -3,14 +3,15 @@
 import { corsHeaders, createSupabaseClient } from "../shared/supabase.ts";
 
 interface SignaturePayload {
-    signature_id: string;
+    signatureId: string;
     status: string;
-    signed_at?: string;
+    signedAt?: string;
+    offboardingId: string;
+    organizationId: string;
 }
 
 // @ts-ignore - Deno global is available in Supabase Edge Functions runtime
 Deno.serve(async (req: Request) => {
-    // 1. Handle CORS Preflight
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders });
     }
@@ -23,52 +24,33 @@ Deno.serve(async (req: Request) => {
             });
         }
 
-        const { signature_id, status, signed_at }: SignaturePayload = await req.json();
+        const { signatureId, status, signedAt, offboardingId, organizationId }: SignaturePayload = await req.json();
 
         const supabase = createSupabaseClient();
 
-        // 1. Update document status
-        const { data: doc, error: docError } = await supabase
-            .from('documents')
-            .update({
-                status: status === 'completed' ? 'signed' : 'declined',
-                signed_at: signed_at || new Date().toISOString()
-            })
-            .eq('external_signature_id', signature_id)
-            .select()
-            .single();
-
-        if (docError || !doc) {
-            return new Response(JSON.stringify({ error: docError?.message || "Document not found" }), {
-                status: 400,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            });
-        }
-
-        // 2. Audit the signature completion
-        await supabase.from('audit_logs').insert({
-            company_id: doc.company_id,
-            actor_id: 'external_signature_service',
+        await supabase.from('AuditLog').insert({
+            organizationId,
+            userId: null,
             action: `document_${status}`,
-            entity_type: 'document',
-            entity_id: doc.id,
-            metadata: { signature_id, status }
+            entityType: 'Offboarding',
+            entityId: offboardingId,
+            metadata: { signatureId, status, signedAt },
+            scope: 'ORGANIZATION'
         });
 
-        // 3. If signed, mark a related task as complete
         if (status === 'completed') {
             const { data: task } = await supabase
-                .from('tasks')
+                .from('OffboardingTask')
                 .select('id')
-                .eq('case_id', doc.case_id)
-                .ilike('title', `%Sign%${doc.title}%`)
+                .eq('offboardingId', offboardingId)
+                .ilike('name', '%Sign%')
                 .limit(1)
                 .single();
 
             if (task) {
-                await supabase.from('tasks').update({
-                    status: 'completed',
-                    completed_at: new Date().toISOString()
+                await supabase.from('OffboardingTask').update({
+                    status: 'COMPLETED',
+                    completedAt: new Date().toISOString()
                 }).eq('id', task.id);
             }
         }

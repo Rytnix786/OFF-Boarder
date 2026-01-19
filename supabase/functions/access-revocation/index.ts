@@ -4,14 +4,13 @@ import { corsHeaders, createSupabaseClient } from "../shared/supabase.ts";
 import { registry } from "../shared/connectors.ts";
 
 interface RevocationRequest {
-    employee_id: string;
-    company_id: string;
-    connector_ids: string[];
+    employeeId: string;
+    organizationId: string;
+    connectorIds: string[];
 }
 
 // @ts-ignore - Deno global is available in Supabase Edge Functions runtime
 Deno.serve(async (req: Request) => {
-    // 1. Handle CORS Preflight
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders });
     }
@@ -24,15 +23,14 @@ Deno.serve(async (req: Request) => {
             });
         }
 
-        const { employee_id, company_id, connector_ids }: RevocationRequest = await req.json();
+        const { employeeId, organizationId, connectorIds }: RevocationRequest = await req.json();
 
         const supabase = createSupabaseClient();
 
-        // Fetch Employee
         const { data: employee, error: empError } = await supabase
-            .from('employees')
-            .select('email, full_name')
-            .eq('id', employee_id)
+            .from('Employee')
+            .select('email, firstName, lastName')
+            .eq('id', employeeId)
             .single();
 
         if (empError) {
@@ -44,18 +42,19 @@ Deno.serve(async (req: Request) => {
 
         const results = [];
 
-        for (const cid of (connector_ids || [])) {
+        for (const cid of (connectorIds || [])) {
             const connector = registry[cid];
             if (connector) {
                 const result = await connector.revokeAccess(employee.email);
 
-                await supabase.from('audit_logs').insert({
-                    company_id,
-                    actor_id: 'system_bot',
+                await supabase.from('AuditLog').insert({
+                    organizationId,
+                    userId: null,
                     action: `access_revoked_${cid}`,
-                    entity_type: 'employee',
-                    entity_id: employee_id,
-                    metadata: result.proof
+                    entityType: 'Employee',
+                    entityId: employeeId,
+                    metadata: result.proof,
+                    scope: 'ORGANIZATION'
                 });
 
                 results.push({ connector: cid, ...result });
