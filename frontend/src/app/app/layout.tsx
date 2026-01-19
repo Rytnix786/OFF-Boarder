@@ -42,26 +42,28 @@ export default async function AppLayout({
       redirect("/org-blocked");
     }
 
-    // No blocked membership - check other cases
+    // Platform admins without org membership go to admin panel
     if (session.user.isPlatformAdmin) {
       redirect("/admin");
     }
     
+    // Check for pending orgs or join requests
     const pendingOrgs = await getUserPendingOrgs(session.user.id);
     if (pendingOrgs.length > 0) {
       redirect("/pending");
     }
     
-    redirect("/register");
+    // No memberships at all - user needs to create or join an org
+    redirect("/pending");
   }
 
-  // Double-check: If currentMembership exists but org is not ACTIVE
+  // Safety check: If currentMembership exists but org is not ACTIVE
   // This shouldn't happen with current getAuthSession logic, but adding for safety
   if (session.currentMembership.organization.status !== "ACTIVE") {
     redirect("/org-blocked");
   }
 
-  // Check membership status
+  // Check membership status - ensure user's membership is active
   if (session.currentMembership.status !== "ACTIVE") {
     redirect("/pending");
   }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Card, CardContent, Typography, Chip, Button, Divider, Alert } from "@mui/material";
+import { Box, Card, CardContent, Typography, Chip, Button, Divider, Alert, Stepper, Step, StepLabel } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { SignOutButton } from "./SignOutButton";
 import { SupportTicketModal } from "@/components/SupportTicketModal";
@@ -45,6 +45,18 @@ export function OrgBlockedContent({ org, userEmail }: OrgBlockedContentProps) {
     ? `Organization Suspended: ${org.name}` 
     : `Organization Rejected: ${org.name}`;
 
+  const suspendedSteps = [
+    { label: "Suspended", description: "Your organization is currently suspended" },
+    { label: "Under Review", description: "Platform admin reviewing your case" },
+    { label: "Reactivated", description: "Access restored when resolved" },
+  ];
+
+  const rejectedSteps = [
+    { label: "Rejected", description: "Registration was not approved" },
+    { label: "Appeal or Re-register", description: "Contact support or create new org" },
+    { label: "Approved", description: "Gain access upon approval" },
+  ];
+
   return (
     <>
       <Box
@@ -61,7 +73,7 @@ export function OrgBlockedContent({ org, userEmail }: OrgBlockedContentProps) {
         <Card 
           variant="outlined" 
           sx={{ 
-            maxWidth: 500, 
+            maxWidth: 560, 
             width: "100%", 
             borderRadius: 4,
             borderColor: isSuspended ? "warning.main" : "error.main",
@@ -102,7 +114,7 @@ export function OrgBlockedContent({ org, userEmail }: OrgBlockedContentProps) {
             />
 
             <Typography variant="h4" fontWeight={900} gutterBottom sx={{ letterSpacing: -0.5 }}>
-              Access Blocked
+              {isSuspended ? "Temporarily Blocked" : "Access Denied"}
             </Typography>
 
             <Typography variant="h6" color="text.secondary" sx={{ mb: 3 }}>
@@ -125,10 +137,20 @@ export function OrgBlockedContent({ org, userEmail }: OrgBlockedContentProps) {
                 }
               >
                 <Typography variant="subtitle2" fontWeight={700} gutterBottom>
-                  Reason
+                  Rejection Reason
                 </Typography>
                 <Typography variant="body2">
                   {org.rejectionReason}
+                </Typography>
+              </Alert>
+            ) : isSuspended ? (
+              <Alert 
+                severity="warning" 
+                sx={{ mb: 3, textAlign: "left", borderRadius: 2 }}
+              >
+                <Typography variant="body2">
+                  <strong>This is a temporary suspension.</strong> Your organization data is preserved. 
+                  A platform administrator can reactivate your organization once the issue is resolved.
                 </Typography>
               </Alert>
             ) : (
@@ -137,12 +159,26 @@ export function OrgBlockedContent({ org, userEmail }: OrgBlockedContentProps) {
                 sx={{ mb: 3, textAlign: "left", borderRadius: 2 }}
               >
                 <Typography variant="body2">
-                  {isSuspended 
-                    ? "Your organization has been temporarily suspended. This may be due to policy violations or administrative review."
-                    : "Your organization's registration was not approved by the platform administrators."}
+                  Your organization&apos;s registration was not approved. You can contact support to appeal 
+                  or register a new organization with updated information.
                 </Typography>
               </Alert>
             )}
+
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 2, textAlign: "left" }}>
+                Recovery Path
+              </Typography>
+              <Stepper activeStep={0} alternativeLabel sx={{ mb: 2 }}>
+                {(isSuspended ? suspendedSteps : rejectedSteps).map((step) => (
+                  <Step key={step.label}>
+                    <StepLabel>
+                      <Typography sx={{ fontSize: "0.75rem", fontWeight: 600 }}>{step.label}</Typography>
+                    </StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
+            </Box>
 
             <Box 
               sx={{ 
@@ -154,21 +190,24 @@ export function OrgBlockedContent({ org, userEmail }: OrgBlockedContentProps) {
               }}
             >
               <Typography variant="subtitle2" fontWeight={700} gutterBottom>
-                What can you do?
+                What you can do now
               </Typography>
               <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
                 <Typography component="li" variant="body2" sx={{ mb: 1 }}>
-                  Contact your organization administrator for more information
+                  <strong>Contact Support</strong> - Submit a ticket to appeal or get more information
                 </Typography>
                 {isSuspended && (
                   <Typography component="li" variant="body2" sx={{ mb: 1 }}>
-                    Wait for the suspension to be lifted by platform administrators
+                    <strong>Wait for Resolution</strong> - A platform admin will review and can reactivate your organization
+                  </Typography>
+                )}
+                {isRejected && (
+                  <Typography component="li" variant="body2" sx={{ mb: 1 }}>
+                    <strong>Register New Organization</strong> - Create a new organization with correct information
                   </Typography>
                 )}
                 <Typography component="li" variant="body2">
-                  {isRejected 
-                    ? "Register a new organization with correct information"
-                    : "Reach out to platform support if you believe this is an error"}
+                  <strong>Sign Out</strong> - If you have access to another organization, sign out and sign in again
                 </Typography>
               </Box>
             </Box>
@@ -189,7 +228,7 @@ export function OrgBlockedContent({ org, userEmail }: OrgBlockedContentProps) {
                 <span className="material-symbols-outlined">support_agent</span>
               }
             >
-              Contact Support
+              Contact Support to {isSuspended ? "Request Reactivation" : "Appeal Decision"}
             </Button>
 
             {isRejected && (
@@ -209,6 +248,13 @@ export function OrgBlockedContent({ org, userEmail }: OrgBlockedContentProps) {
               )}
 
             <Divider sx={{ my: 3 }} />
+            
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1, mb: 2 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16, color: "#6b7280" }}>info</span>
+              <Typography variant="caption" color="text.secondary">
+                This is a terminal state. You cannot access the application until resolved.
+              </Typography>
+            </Box>
             
             <SignOutButton />
           </CardContent>
