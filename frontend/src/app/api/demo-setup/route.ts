@@ -20,6 +20,12 @@ const DEMO_ACCOUNTS = [
     name: "Acme Member",
     isPlatformAdmin: false,
   },
+  {
+    email: "john.doe@acme.com",
+    name: "John Doe",
+    isPlatformAdmin: false,
+    isEmployee: true,
+  },
 ];
 
 export async function POST() {
@@ -352,6 +358,33 @@ export async function POST() {
     }
   }
 
+  const employeeUser = await prisma.user.findUnique({
+    where: { email: "john.doe@acme.com" },
+  });
+
+  if (employeeUser && offboardingEmployee) {
+    const existingLink = await prisma.employeeUserLink.findFirst({
+      where: {
+        organizationId: existingOrg.id,
+        employeeId: offboardingEmployee.id,
+      },
+    });
+
+    if (!existingLink) {
+      await prisma.employeeUserLink.create({
+        data: {
+          organizationId: existingOrg.id,
+          employeeId: offboardingEmployee.id,
+          userId: employeeUser.id,
+          portalType: "SUBJECT_PORTAL",
+          status: "VERIFIED",
+          verifiedAt: now,
+          updatedAt: now,
+        },
+      });
+    }
+  }
+
   return NextResponse.json({
     success: true,
     message: "Demo accounts created successfully",
@@ -360,12 +393,23 @@ export async function POST() {
       password: DEMO_PASSWORD,
       accounts: DEMO_ACCOUNTS.map((a) => ({
         email: a.email,
-        role: a.isPlatformAdmin ? "Platform Admin" : a.email.includes("owner") ? "Organization Owner" : "Organization Member",
+        role: a.isPlatformAdmin
+          ? "Platform Admin"
+          : (a as { isEmployee?: boolean }).isEmployee
+          ? "Employee Portal"
+          : a.email.includes("owner")
+          ? "Organization Owner"
+          : "Organization Member",
       })),
     },
     organization: {
       name: "Acme Corporation",
       slug: "acme-corp",
+    },
+    employeePortal: {
+      email: "john.doe@acme.com",
+      password: DEMO_PASSWORD,
+      url: "/app/employee",
     },
   });
 }
