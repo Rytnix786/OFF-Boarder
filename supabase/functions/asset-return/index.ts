@@ -1,15 +1,13 @@
-/// <reference types="https://deno.land/x/types/index.d.ts" />
-// @ts-ignore - Deno types are provided by Supabase Edge Functions runtime
 import { corsHeaders, createSupabaseClient } from "../shared/supabase.ts";
 
 interface ReturnRequest {
-    assetReturnId: string;
-    organizationId: string;
+    assignment_id: string;
+    company_id: string;
     condition: string;
 }
 
-// @ts-ignore - Deno global is available in Supabase Edge Functions runtime
-Deno.serve(async (req: Request) => {
+Deno.serve(async (req) => {
+    // 1. Handle CORS Preflight
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders });
     }
@@ -22,59 +20,65 @@ Deno.serve(async (req: Request) => {
             });
         }
 
-        const { assetReturnId, organizationId, condition }: ReturnRequest = await req.json();
+        const { assignment_id, company_id, condition }: ReturnRequest = await req.json();
 
         const supabase = createSupabaseClient();
 
-        const { data: assetReturn, error: returnError } = await supabase
-            .from('AssetReturn')
+        // 1. Mark assignment as returned
+        const { data: assignment, error: assignError } = await supabase
+            .from('asset_assignments')
             .update({
-                returnedAt: new Date().toISOString(),
-                condition: condition,
-                status: 'RETURNED'
+                returned_at: new Date().toISOString(),
+                condition_on_return: condition
             })
-            .eq('id', assetReturnId)
-            .select('*, asset:Asset(*)')
+            .eq('id', assignment_id)
+            .eq('company_id', company_id)
+            .select()
             .single();
 
-        if (returnError || !assetReturn) {
-            return new Response(JSON.stringify({ error: returnError?.message || "Asset return not found" }), {
+        if (assignError || !assignment) {
+            return new Response(JSON.stringify({ error: assignError?.message || "Assignment not found" }), {
                 status: 400,
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             });
         }
 
-        await supabase.from('AuditLog').insert({
-            organizationId,
-            userId: null,
+        // 2. Fetch specific asset info for the log
+        const { data: asset } = await supabase
+            .from('assets')
+            .select('name, serial_number')
+            .eq('id', assignment.asset_id)
+            .single();
+
+        // 3. Log to Audit Table (Automation)
+        await supabase.from('audit_logs').insert({
+            company_id,
+            actor_id: 'system_bot',
             action: 'asset_returned',
-            entityType: 'Asset',
-            entityId: assetReturn.assetId,
+            entity_type: 'asset',
+            entity_id: assignment.asset_id,
             metadata: {
-                assetReturnId,
+                assignment_id,
                 condition,
-                assetName: assetReturn.asset?.name,
-                serialNumber: assetReturn.asset?.serialNumber
-            },
-            scope: 'ORGANIZATION'
+                asset_name: asset?.name,
+                serial: asset?.serial_number
+            }
         });
 
-        await supabase.from('Notification').insert({
-            userId: '',
-            organizationId,
-            type: 'ASSET_RETURNED',
+        // 4. Queue Notification for HR/IT
+        await supabase.from('notifications').insert({
+            company_id,
             title: 'Asset Returned',
-            message: `Asset ${assetReturn.asset?.name} (${assetReturn.asset?.serialNumber}) has been returned in ${condition} condition.`,
-            read: false
+            content: `Asset ${asset?.name} (${asset?.serial_number}) has been returned in ${condition} condition.`,
+            status: 'unread'
         });
 
         return new Response(JSON.stringify({ message: "Asset Return Processed" }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
 
-    } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        return new Response(JSON.stringify({ error: errorMessage }), {
+    } catch (error) {
+        return new Response(JSON.stringify({ error: error.message }), {
             status: 500,
             headers: { ...corsHeaders, "Content-Type": "application/json" }
         });

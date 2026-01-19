@@ -48,11 +48,9 @@ function LoginContent() {
   const [loading, setLoading] = useState(false);
   const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isRedirecting) return;
     setError(null);
     setLoading(true);
 
@@ -65,7 +63,6 @@ function LoginContent() {
 
       if (error) {
           setError(error.message);
-          setLoading(false);
           return;
         }
 
@@ -86,24 +83,23 @@ function LoginContent() {
           }),
         });
 
-        setIsRedirecting(true);
-
-        let targetUrl = "/register";
         if (redirectUrl) {
-          targetUrl = redirectUrl;
-        } else if (checkData.isPlatformAdmin) {
-          targetUrl = "/admin";
-        } else if (checkData.hasOrganization) {
-          targetUrl = "/app";
-        } else if (checkData.hasEmployeePortalAccess) {
-          targetUrl = "/app/employee";
-        } else if (checkData.hasPendingOrg) {
-          targetUrl = "/pending";
+          window.location.href = redirectUrl;
+          return;
         }
-        
-        window.location.replace(targetUrl);
+      
+      if (checkData.isPlatformAdmin) {
+        window.location.href = "/admin";
+      } else if (checkData.hasOrganization) {
+        window.location.href = "/app";
+      } else if (checkData.hasPendingOrg) {
+        window.location.href = "/pending";
+      } else {
+        window.location.href = "/register";
+      }
     } catch (err) {
       setError("An unexpected error occurred");
+    } finally {
       setLoading(false);
     }
   };

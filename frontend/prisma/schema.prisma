@@ -338,35 +338,31 @@ model Offboarding {
 }
 
 model OffboardingTask {
-  id                     String              @id @default(cuid())
-  offboardingId          String
-  name                   String
-  description            String?
-  status                 TaskStatus          @default(PENDING)
-  dueDate                DateTime?
-  completedAt            DateTime?
-  completedBy            String?
-  createdAt              DateTime            @default(now())
-  updatedAt              DateTime            @updatedAt
-  category               String?
-  requiresApproval       Boolean             @default(false)
-  isHighRiskTask         Boolean             @default(false)
-  isEmployeeRequired     Boolean             @default(false)
-  order                  Int                 @default(0)
-  assignedToUserId       String?
-  assignedToEmployeeId   String?
-  assigneeType           TaskAssigneeType?
-  completedByActorType   TaskAssigneeType?
-  completedByEmployeeId  String?
-  evidenceRequirement    EvidenceRequirement @default(NONE)
-  approvals              Approval[]
-  offboarding            Offboarding         @relation(fields: [offboardingId], references: [id], onDelete: Cascade)
-  evidence               TaskEvidence[]
+  id                   String              @id @default(cuid())
+  offboardingId        String
+  name                 String
+  description          String?
+  status               TaskStatus          @default(PENDING)
+  dueDate              DateTime?
+  completedAt          DateTime?
+  completedBy          String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  category             String?
+  requiresApproval     Boolean             @default(false)
+  isHighRiskTask       Boolean             @default(false)
+  isEmployeeRequired   Boolean             @default(false)
+  order                Int                 @default(0)
+  assignedToUserId     String?
+  assignedToEmployeeId String?
+  evidenceRequirement  EvidenceRequirement @default(NONE)
+  approvals            Approval[]
+  offboarding          Offboarding         @relation(fields: [offboardingId], references: [id], onDelete: Cascade)
+  evidence             TaskEvidence[]
 
   @@index([offboardingId])
   @@index([assignedToUserId])
   @@index([assignedToEmployeeId])
-  @@index([assigneeType])
 }
 
 model Approval {
@@ -441,52 +437,20 @@ model AssetReturn {
 }
 
 model EvidencePack {
-  id                  String                  @id @default(cuid())
-  offboardingId       String                  @unique
-  generatedAt         DateTime                @default(now()) @db.Timestamp(6)
-  generatedBy         String?
-  checksum            String?
-  contentHash         String?
-  data                Json
-  accessLog           Json?
-  createdAt           DateTime                @default(now()) @db.Timestamp(6)
-  sealed              Boolean?                @default(false)
-  sealedAt            DateTime?
-  version             Int                     @default(1)
-  evidenceManifest    Json?
-  chainOfCustody      Json?
-  embeddedFilesCount  Int                     @default(0)
-  totalEvidenceItems  Int                     @default(0)
-  offboarding         Offboarding             @relation(fields: [offboardingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  generations         EvidencePackGeneration[]
+  id            String      @id @default(cuid())
+  offboardingId String      @unique
+  generatedAt   DateTime    @default(now()) @db.Timestamp(6)
+  generatedBy   String?
+  checksum      String?
+  data          Json
+  accessLog     Json?
+  createdAt     DateTime    @default(now()) @db.Timestamp(6)
+  sealed        Boolean?    @default(false)
+  sealedAt      DateTime?
+  version       Int         @default(1)
+  offboarding   Offboarding @relation(fields: [offboardingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([offboardingId])
-}
-
-model EvidencePackGeneration {
-  id               String       @id @default(cuid())
-  evidencePackId   String
-  version          Int
-  generatedAt      DateTime     @default(now()) @db.Timestamp(6)
-  generatedBy      String
-  generatorName    String?
-  generatorEmail   String?
-  ipAddress        String?
-  userAgent        String?
-  checksum         String
-  contentHash      String
-  fileSize         Int?
-  pageCount        Int?
-  evidenceItems    Json
-  embeddedFiles    Json?
-  chainOfCustody   Json
-  isAuditGrade     Boolean      @default(true)
-  createdAt        DateTime     @default(now()) @db.Timestamp(6)
-  evidencePack     EvidencePack @relation(fields: [evidencePackId], references: [id], onDelete: Cascade)
-
-  @@index([evidencePackId])
-  @@index([generatedAt])
-  @@index([generatedBy])
 }
 
 model TaskEvidence {
@@ -1039,11 +1003,6 @@ enum EvidenceType {
   LINK
   NOTE
   SYSTEM_PROOF
-}
-
-enum TaskAssigneeType {
-  EMPLOYEE
-  ORG_USER
 }
 
 model UserSession {

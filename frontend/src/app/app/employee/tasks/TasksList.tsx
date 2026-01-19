@@ -11,29 +11,10 @@ import {
   Alert,
 } from "@mui/material";
 import { completeEmployeeTask } from "@/lib/actions/employee-portal";
-
-type TaskEvidence = {
-  id: string;
-  type: string;
-  title: string | null;
-  fileName: string | null;
-  createdAt: Date;
-};
-
-type OffboardingTaskWithEvidence = {
-  id: string;
-  name: string;
-  description: string | null;
-  status: string;
-  category: string | null;
-  dueDate: Date | null;
-  completedAt: Date | null;
-  evidenceRequirement: string;
-  evidence: TaskEvidence[];
-};
+import type { OffboardingTask } from "@prisma/client";
 
 interface TasksListProps {
-  tasks: OffboardingTaskWithEvidence[];
+  tasks: OffboardingTask[];
 }
 
 export default function TasksList({ tasks }: TasksListProps) {
@@ -79,22 +60,11 @@ export default function TasksList({ tasks }: TasksListProps) {
         </Alert>
       )}
 
-      {tasks.length === 0 && (
-        <Alert severity="info">
-          No tasks assigned to you at this time.
-        </Alert>
-      )}
-
-      {tasks.map((task) => {
-        const requiresEvidence = task.evidenceRequirement === "REQUIRED";
-        const hasEvidence = task.evidence && task.evidence.length > 0;
-        const canComplete = !requiresEvidence || hasEvidence;
-        
-        return (
+      {tasks.map((task) => (
         <Paper key={task.id} sx={{ p: 3 }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <Box sx={{ flex: 1 }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1, flexWrap: "wrap" }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
                 <Typography variant="subtitle1" fontWeight={600}>
                   {task.name}
                 </Typography>
@@ -105,13 +75,6 @@ export default function TasksList({ tasks }: TasksListProps) {
                 />
                 {task.category && (
                   <Chip size="small" label={task.category} variant="outlined" />
-                )}
-                {requiresEvidence && (
-                  <Chip 
-                    size="small" 
-                    label={hasEvidence ? "Evidence Uploaded ✓" : "Evidence Required"} 
-                    color={hasEvidence ? "success" : "warning"}
-                  />
                 )}
               </Box>
               {task.description && (
@@ -131,18 +94,13 @@ export default function TasksList({ tasks }: TasksListProps) {
                   </Typography>
                 )}
               </Box>
-              {requiresEvidence && !hasEvidence && task.status !== "COMPLETED" && (
-                <Typography variant="caption" color="warning.main" sx={{ display: "block", mt: 1 }}>
-                  Please upload evidence before marking this task complete
-                </Typography>
-              )}
             </Box>
 
             {task.status !== "COMPLETED" && (
               <Button
                 variant="contained"
                 color="primary"
-                disabled={loadingTaskId === task.id || !canComplete}
+                disabled={loadingTaskId === task.id}
                 onClick={() => handleCompleteTask(task.id)}
                 startIcon={
                   loadingTaskId === task.id ? (
@@ -159,7 +117,7 @@ export default function TasksList({ tasks }: TasksListProps) {
             )}
           </Box>
         </Paper>
-      )})}
+      ))}
     </Box>
   );
 }

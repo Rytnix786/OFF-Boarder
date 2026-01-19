@@ -1,15 +1,13 @@
-/// <reference types="https://deno.land/x/types/index.d.ts" />
-// @ts-ignore - Deno types are provided by Supabase Edge Functions runtime
 import { corsHeaders, createSupabaseClient } from "../shared/supabase.ts";
 
 interface HRISRequest {
-    employeeId: string;
-    organizationId: string;
-    newStatus: 'ACTIVE' | 'OFFBOARDING' | 'TERMINATED' | 'ON_LEAVE' | 'ARCHIVED';
+    employee_id: string;
+    company_id: string;
+    new_status: 'active' | 'offboarding' | 'terminated';
 }
 
-// @ts-ignore - Deno global is available in Supabase Edge Functions runtime
-Deno.serve(async (req: Request) => {
+Deno.serve(async (req) => {
+    // 1. Handle CORS Preflight
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders });
     }
@@ -22,15 +20,15 @@ Deno.serve(async (req: Request) => {
             });
         }
 
-        const { employeeId, organizationId, newStatus }: HRISRequest = await req.json();
+        const { employee_id, company_id, new_status }: HRISRequest = await req.json();
 
         const supabase = createSupabaseClient();
 
         const { data, error } = await supabase
-            .from('Employee')
-            .update({ status: newStatus })
-            .eq('id', employeeId)
-            .eq('organizationId', organizationId)
+            .from('employees')
+            .update({ status: new_status })
+            .eq('id', employee_id)
+            .eq('company_id', company_id)
             .select();
 
         if (error || !data || data.length === 0) {
@@ -47,9 +45,8 @@ Deno.serve(async (req: Request) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
 
-    } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        return new Response(JSON.stringify({ error: errorMessage }), {
+    } catch (error) {
+        return new Response(JSON.stringify({ error: error.message }), {
             status: 500,
             headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
