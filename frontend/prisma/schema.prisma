@@ -1,0 +1,1337 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Organization {
+  id                       String                    @id @default(cuid())
+  name                     String
+  slug                     String                    @unique
+  logoUrl                  String?
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+  status                   OrgStatus                 @default(PENDING)
+  approvedAt               DateTime?
+  approvedBy               String?
+  rejectionReason          String?
+  analyticsSnapshots       AnalyticsSnapshot[]
+  assets                   Asset[]
+  auditLogs                AuditLog[]
+  blockedIPs               BlockedIP[]
+  customRoles              CustomRole[]
+  departments              Department[]
+  employees                Employee[]
+  employeeAttestations     EmployeeAttestation[]
+  employeePortalInvites    EmployeePortalInvite[]
+  employeeUserLinks        EmployeeUserLink[]
+  employeeSecurityProfiles EmployeeSecurityProfile[]
+  integrations             Integration[]
+  invitations              Invitation[]
+  jobTitles                JobTitle[]
+  joinRequests             JoinRequest[]
+  locations                Location[]
+  memberships              Membership[]
+  monitoringEvents         MonitoringEvent[]
+  offboardings             Offboarding[]
+  policyEnforcementLogs    PolicyEnforcementLog[]
+  securityPolicies         SecurityPolicy[]
+  userSessions             UserSession[]
+  workflowTemplates        WorkflowTemplate[]
+}
+
+model User {
+  id                            String                 @id @default(cuid())
+  supabaseId                    String                 @unique
+  email                         String                 @unique
+  name                          String?
+  avatarUrl                     String?
+  createdAt                     DateTime               @default(now())
+  updatedAt                     DateTime               @updatedAt
+  isPlatformAdmin               Boolean                @default(false)
+  passwordVersion               Int                    @default(1)
+  roleVersion                   Int                    @default(1)
+  lastPasswordChangeAt          DateTime?
+  forceReauthAt                 DateTime?
+  approvals                     Approval[]
+  assetReturnProofs             AssetReturnProof[]
+  auditLogs                     AuditLog[]
+  blockedIPs                    BlockedIP[]            @relation("BlockedIPCreator")
+  blockedAttempts               BlockedIPAttempt[]     @relation("BlockedAttemptUser")
+  employeeAttestations          EmployeeAttestation[]
+  acceptedEmployeePortalInvites EmployeePortalInvite[] @relation("EmployeeInviteAcceptedBy")
+  sentEmployeePortalInvites     EmployeePortalInvite[] @relation("EmployeeInvitedBy")
+  linkedByEmployeeUserLinks     EmployeeUserLink[]     @relation("LinkedByUser")
+  employeeUserLinks             EmployeeUserLink[]
+  acceptedInvitations           Invitation[]           @relation("AcceptedBy")
+  sentInvitations               Invitation[]           @relation("InvitedBy")
+  joinRequestsCreated           JoinRequest[]          @relation("JoinRequestRequester")
+  joinRequestsResolved          JoinRequest[]          @relation("JoinRequestResolver")
+  memberships                   Membership[]
+  sessions                      UserSession[]
+}
+
+model Membership {
+  id              String                     @id @default(cuid())
+  userId          String
+  organizationId  String
+  systemRole      SystemRole                 @default(CONTRIBUTOR)
+  requestedRole   SystemRole?
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
+  approvedAt      DateTime?
+  approvedBy      String?
+  invitedBy       String?
+  status          MembershipStatus           @default(PENDING)
+  organization    Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user            User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleAssignments MembershipRoleAssignment[]
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@index([organizationId])
+}
+
+model Invitation {
+  id               String           @id @default(cuid())
+  email            String
+  organizationId   String
+  systemRole       SystemRole       @default(CONTRIBUTOR)
+  customRoleId     String?
+  token            String           @unique
+  status           InvitationStatus @default(PENDING)
+  expiresAt        DateTime
+  invitedById      String
+  acceptedAt       DateTime?
+  acceptedByUserId String?
+  createdAt        DateTime         @default(now())
+  acceptedBy       User?            @relation("AcceptedBy", fields: [acceptedByUserId], references: [id])
+  customRole       CustomRole?      @relation(fields: [customRoleId], references: [id], onDelete: SetNull)
+  invitedBy        User             @relation("InvitedBy", fields: [invitedById], references: [id])
+  organization     Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([email])
+  @@index([token])
+  @@index([customRoleId])
+}
+
+model Integration {
+  id             String       @id @default(cuid())
+  organizationId String
+  type           String
+  name           String
+  status         String       @default("disconnected")
+  config         Json?
+  lastSyncAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, type])
+  @@index([organizationId])
+}
+
+model Department {
+  id             String       @id @default(cuid())
+  name           String
+  description    String?
+  organizationId String
+  parentId       String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  parent         Department?  @relation("DepartmentHierarchy", fields: [parentId], references: [id])
+  children       Department[] @relation("DepartmentHierarchy")
+  employees      Employee[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model JobTitle {
+  id             String       @id @default(cuid())
+  title          String
+  level          Int?
+  organizationId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  employees      Employee[]
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, title])
+  @@index([organizationId])
+}
+
+model Location {
+  id             String       @id @default(cuid())
+  name           String
+  address        String?
+  city           String?
+  country        String?
+  timezone       String?
+  organizationId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  employees      Employee[]
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model Employee {
+  id                    String                    @id @default(cuid())
+  employeeId            String
+  firstName             String
+  lastName              String
+  email                 String
+  phone                 String?
+  hireDate              DateTime?
+  status                EmployeeStatus            @default(ACTIVE)
+  organizationId        String
+  departmentId          String?
+  jobTitleId            String?
+  locationId            String?
+  managerId             String?
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+  archivedAt            DateTime?
+  archivedReason        String?
+  assets                Asset[]
+  blockedIPs            BlockedIP[]
+  department            Department?               @relation(fields: [departmentId], references: [id])
+  jobTitle              JobTitle?                 @relation(fields: [jobTitleId], references: [id])
+  location              Location?                 @relation(fields: [locationId], references: [id])
+  manager               Employee?                 @relation("EmployeeHierarchy", fields: [managerId], references: [id])
+  directReports         Employee[]                @relation("EmployeeHierarchy")
+  organization          Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employeeAttestations  EmployeeAttestation[]
+  employeePortalInvites EmployeePortalInvite[]
+  employeeUserLinks     EmployeeUserLink[]
+  offboardings          Offboarding[]
+  securityProfile       EmployeeSecurityProfile?
+
+  @@unique([organizationId, employeeId])
+  @@unique([organizationId, email])
+  @@index([organizationId])
+  @@index([departmentId])
+  @@index([managerId])
+}
+
+model Permission {
+  id              String                 @id @default(cuid())
+  code            String                 @unique
+  name            String
+  description     String?
+  category        String?
+  createdAt       DateTime               @default(now())
+  rolePermissions CustomRolePermission[]
+}
+
+model CustomRole {
+  id             String                     @id @default(cuid())
+  name           String
+  description    String?
+  organizationId String
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+  organization   Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  permissions    CustomRolePermission[]
+  assignments    MembershipRoleAssignment[]
+  invitations    Invitation[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model CustomRolePermission {
+  id           String     @id @default(cuid())
+  customRoleId String
+  permissionId String
+  createdAt    DateTime   @default(now())
+  customRole   CustomRole @relation(fields: [customRoleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([customRoleId, permissionId])
+}
+
+model MembershipRoleAssignment {
+  id           String     @id @default(cuid())
+  membershipId String
+  customRoleId String
+  createdAt    DateTime   @default(now())
+  customRole   CustomRole @relation(fields: [customRoleId], references: [id], onDelete: Cascade)
+  membership   Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+
+  @@unique([membershipId, customRoleId])
+}
+
+model AuditLog {
+  id             String        @id @default(cuid())
+  action         String
+  entityType     String
+  entityId       String?
+  oldData        Json?
+  newData        Json?
+  metadata       Json?
+  ipAddress      String?
+  userAgent      String?
+  organizationId String?
+  userId         String?
+  scope          String?       @default("ORGANIZATION")
+  createdAt      DateTime      @default(now())
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?         @relation(fields: [userId], references: [id])
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@index([scope])
+}
+
+model Offboarding {
+  id                  String                @id @default(cuid())
+  employeeId          String
+  organizationId      String
+  status              OffboardingStatus     @default(PENDING)
+  scheduledDate       DateTime?
+  completedDate       DateTime?
+  reason              String?
+  notes               String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  riskLevel           String?               @default("NORMAL")
+  riskReason          String?
+  riskAssessedAt      DateTime?             @db.Timestamp(6)
+  riskAssessedBy      String?
+  workflowTemplateId  String?
+  templateVersionUsed Json?
+  isLockedDown        Boolean?              @default(false)
+  lockedDownAt        DateTime?
+  lockedDownBy        String?
+  lockedDownReason    String?
+  isEscalated         Boolean?              @default(false)
+  escalatedAt         DateTime?
+  escalatedBy         String?
+  escalationReason    String?
+  requiredApprovals   Int?                  @default(1)
+  accessRevocations   AccessRevocation[]
+  approvals           Approval[]
+  assetReturns        AssetReturn[]
+  attestations        EmployeeAttestation[]
+  evidencePack        EvidencePack?
+  monitoringEvents    MonitoringEvent[]
+  employee            Employee              @relation(fields: [employeeId], references: [id])
+  organization        Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workflowTemplate    WorkflowTemplate?     @relation(fields: [workflowTemplateId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tasks               OffboardingTask[]
+  riskScore           RiskScore?
+
+  @@index([organizationId])
+  @@index([employeeId])
+  @@index([status])
+  @@index([riskLevel])
+}
+
+model OffboardingTask {
+  id                   String              @id @default(cuid())
+  offboardingId        String
+  name                 String
+  description          String?
+  status               TaskStatus          @default(PENDING)
+  dueDate              DateTime?
+  completedAt          DateTime?
+  completedBy          String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  category             String?
+  requiresApproval     Boolean             @default(false)
+  isHighRiskTask       Boolean             @default(false)
+  isEmployeeRequired   Boolean             @default(false)
+  order                Int                 @default(0)
+  assignedToUserId     String?
+  assignedToEmployeeId String?
+  evidenceRequirement  EvidenceRequirement @default(NONE)
+  approvals            Approval[]
+  offboarding          Offboarding         @relation(fields: [offboardingId], references: [id], onDelete: Cascade)
+  evidence             TaskEvidence[]
+
+  @@index([offboardingId])
+  @@index([assignedToUserId])
+  @@index([assignedToEmployeeId])
+}
+
+model Approval {
+  id              String           @id @default(cuid())
+  offboardingId   String
+  taskId          String?
+  type            ApprovalType     @default(TASK)
+  status          ApprovalStatus   @default(PENDING)
+  requiredCount   Int              @default(1)
+  approvalOrder   Int              @default(0)
+  approverId      String?
+  approvedAt      DateTime?        @db.Timestamp(6)
+  rejectedAt      DateTime?        @db.Timestamp(6)
+  rejectionReason String?
+  comments        String?
+  createdAt       DateTime         @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime         @default(now()) @updatedAt @db.Timestamp(6)
+  approver        User?            @relation(fields: [approverId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  offboarding     Offboarding      @relation(fields: [offboardingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  task            OffboardingTask? @relation(fields: [taskId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([offboardingId])
+  @@index([taskId])
+  @@index([status])
+}
+
+model Asset {
+  id             String        @id @default(cuid())
+  organizationId String
+  employeeId     String?
+  name           String
+  type           AssetType     @default(OTHER)
+  serialNumber   String?
+  assetTag       String?
+  description    String?
+  value          Float?
+  purchaseDate   DateTime?     @db.Timestamp(6)
+  status         AssetStatus   @default(ASSIGNED)
+  notes          String?
+  createdAt      DateTime      @default(now()) @db.Timestamp(6)
+  updatedAt      DateTime      @default(now()) @updatedAt @db.Timestamp(6)
+  employee       Employee?     @relation(fields: [employeeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  assetReturns   AssetReturn[]
+
+  @@index([organizationId])
+  @@index([employeeId])
+  @@index([status])
+  @@index([type])
+}
+
+model AssetReturn {
+  id              String             @id @default(cuid())
+  offboardingId   String
+  assetId         String
+  status          AssetReturnStatus  @default(PENDING)
+  returnedAt      DateTime?          @db.Timestamp(6)
+  receivedBy      String?
+  condition       String?
+  notes           String?
+  requiresReplace Boolean            @default(false)
+  createdAt       DateTime           @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime           @default(now()) @updatedAt @db.Timestamp(6)
+  asset           Asset              @relation(fields: [assetId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  offboarding     Offboarding        @relation(fields: [offboardingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  proofs          AssetReturnProof[]
+
+  @@unique([offboardingId, assetId])
+  @@index([offboardingId])
+  @@index([assetId])
+  @@index([status])
+}
+
+model EvidencePack {
+  id            String      @id @default(cuid())
+  offboardingId String      @unique
+  generatedAt   DateTime    @default(now()) @db.Timestamp(6)
+  generatedBy   String?
+  checksum      String?
+  data          Json
+  accessLog     Json?
+  createdAt     DateTime    @default(now()) @db.Timestamp(6)
+  sealed        Boolean?    @default(false)
+  sealedAt      DateTime?
+  version       Int         @default(1)
+  offboarding   Offboarding @relation(fields: [offboardingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([offboardingId])
+}
+
+model TaskEvidence {
+  id              String            @id @default(cuid())
+  taskId          String
+  offboardingId   String
+  organizationId  String
+  type            EvidenceType
+  title           String?
+  description     String?
+  fileName        String?
+  fileUrl         String?
+  fileSize        Int?
+  fileHash        String?
+  mimeType        String?
+  linkUrl         String?
+  noteContent     String?
+  systemProof     Json?
+  metadata        Json?
+  createdByUserId String
+  createdAt       DateTime          @default(now()) @db.Timestamp(6)
+  ipAddress       String?
+  userAgent       String?
+  isImmutable     Boolean           @default(false)
+  immutableAt     DateTime?
+  task            OffboardingTask   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([offboardingId])
+  @@index([organizationId])
+  @@index([createdByUserId])
+  @@index([type])
+}
+
+model RiskScore {
+  id             String      @id @default(cuid())
+  offboardingId  String      @unique
+  organizationId String
+  score          Int         @default(0)
+  level          RiskLevel   @default(NORMAL)
+  factors        Json
+  calculatedAt   DateTime    @default(now())
+  calculatedBy   String?
+  previousScore  Int?
+  previousLevel  RiskLevel?
+  changeReason   String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  offboarding    Offboarding @relation(fields: [offboardingId], references: [id], onDelete: Cascade)
+
+  @@index([offboardingId])
+  @@index([organizationId])
+  @@index([level])
+  @@index([score])
+}
+
+model SecurityEvent {
+  id             String            @id @default(cuid())
+  offboardingId  String?
+  organizationId String
+  employeeId     String?
+  eventType      SecurityEventType
+  description    String
+  ipAddress      String?
+  userAgent      String?
+  metadata       Json?
+  resolved       Boolean           @default(false)
+  resolvedAt     DateTime?
+  resolvedBy     String?
+  createdAt      DateTime          @default(now())
+
+  @@index([offboardingId])
+  @@index([organizationId])
+  @@index([employeeId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+model AccessRevocation {
+  id             String           @id @default(cuid())
+  offboardingId  String
+  organizationId String
+  systemName     String
+  systemType     String?
+  status         RevocationStatus @default(PENDING)
+  confirmedAt    DateTime?
+  confirmedBy    String?
+  failureReason  String?
+  notes          String?
+  isUrgent       Boolean          @default(false)
+  dueDate        DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  offboarding    Offboarding      @relation(fields: [offboardingId], references: [id], onDelete: Cascade)
+
+  @@index([offboardingId])
+  @@index([organizationId])
+  @@index([status])
+}
+
+model UserLockdown {
+  id             String    @id @default(cuid())
+  employeeId     String
+  organizationId String
+  offboardingId  String?
+  reason         String
+  lockedAt       DateTime  @default(now())
+  lockedBy       String
+  unlockedAt     DateTime?
+  unlockedBy     String?
+  unlockedReason String?
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([employeeId])
+  @@index([organizationId])
+  @@index([offboardingId])
+  @@index([isActive])
+}
+
+model MonitoringEvent {
+  id             String              @id @default(cuid())
+  offboardingId  String
+  organizationId String
+  eventType      MonitoringEventType
+  severity       MonitoringSeverity  @default(MEDIUM)
+  description    String
+  source         String?
+  ipAddress      String?
+  userAgent      String?
+  metadata       Json?
+  acknowledged   Boolean             @default(false)
+  acknowledgedBy String?
+  acknowledgedAt DateTime?           @db.Timestamp(6)
+  createdAt      DateTime            @default(now()) @db.Timestamp(6)
+  offboarding    Offboarding         @relation(fields: [offboardingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([offboardingId])
+  @@index([organizationId])
+  @@index([eventType])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+model WorkflowTemplate {
+  id             String                 @id @default(cuid())
+  organizationId String
+  name           String
+  description    String?
+  isDefault      Boolean                @default(false)
+  isActive       Boolean                @default(true)
+  version        Int                    @default(1)
+  config         Json
+  createdAt      DateTime               @default(now()) @db.Timestamp(6)
+  updatedAt      DateTime               @default(now()) @updatedAt @db.Timestamp(6)
+  offboardings   Offboarding[]
+  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  tasks          WorkflowTemplateTask[]
+
+  @@index([organizationId])
+  @@index([isDefault])
+}
+
+model WorkflowTemplateTask {
+  id                  String              @id @default(cuid())
+  workflowTemplateId  String
+  name                String
+  description         String?
+  category            String?
+  defaultDueDays      Int?
+  requiresApproval    Boolean             @default(false)
+  isHighRiskTask      Boolean             @default(false)
+  order               Int                 @default(0)
+  assigneeRole        String?
+  assigneeDepartment  String?
+  createdAt           DateTime            @default(now()) @db.Timestamp(6)
+  updatedAt           DateTime            @default(now()) @updatedAt @db.Timestamp(6)
+  isRequired          Boolean             @default(true)
+  evidenceRequirement EvidenceRequirement @default(NONE)
+  workflowTemplate    WorkflowTemplate    @relation(fields: [workflowTemplateId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([workflowTemplateId])
+}
+
+model BlockedIP {
+  id              String             @id @default(cuid())
+  ipAddress       String
+  scope           BlockScope         @default(ORGANIZATION)
+  organizationId  String?
+  employeeId      String?
+  offboardingOnly Boolean            @default(false)
+  reason          String?
+  expiresAt       DateTime?
+  isActive        Boolean            @default(true)
+  createdById     String
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  createdBy       User               @relation("BlockedIPCreator", fields: [createdById], references: [id])
+  organization    Organization?      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employee        Employee?          @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  attempts        BlockedIPAttempt[]
+
+  @@index([ipAddress])
+  @@index([organizationId])
+  @@index([employeeId])
+  @@index([scope])
+  @@index([isActive])
+}
+
+model BlockedIPAttempt {
+  id          String     @id @default(cuid())
+  ipAddress   String
+  blockedIPId String?
+  path        String?
+  method      String?
+  userId      String?
+  userAgent   String?
+  createdAt   DateTime   @default(now())
+  blockedIP   BlockedIP? @relation(fields: [blockedIPId], references: [id])
+  user        User?      @relation("BlockedAttemptUser", fields: [userId], references: [id])
+
+  @@index([ipAddress])
+  @@index([createdAt])
+}
+
+model EmployeeUserLink {
+  id             String                 @id @default(cuid())
+  organizationId String
+  employeeId     String
+  userId         String
+  portalType     PortalType             @default(SUBJECT_PORTAL)
+  status         EmployeeUserLinkStatus @default(PENDING_VERIFICATION)
+  linkedAt       DateTime               @default(now())
+  linkedByUserId String?
+  verifiedAt     DateTime?
+  revokedAt      DateTime?
+  revokedReason  String?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  employee       Employee               @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  linkedBy       User?                  @relation("LinkedByUser", fields: [linkedByUserId], references: [id])
+  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@unique([organizationId, employeeId])
+  @@index([userId])
+  @@index([employeeId])
+  @@index([status])
+}
+
+model EmployeePortalInvite {
+  id               String                     @id @default(cuid())
+  organizationId   String
+  employeeId       String
+  email            String
+  token            String                     @unique
+  portalType       PortalType                 @default(SUBJECT_PORTAL)
+  status           EmployeePortalInviteStatus @default(PENDING)
+  expiresAt        DateTime
+  invitedById      String
+  acceptedAt       DateTime?
+  acceptedByUserId String?
+  createdAt        DateTime                   @default(now())
+  acceptedBy       User?                      @relation("EmployeeInviteAcceptedBy", fields: [acceptedByUserId], references: [id])
+  employee         Employee                   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  invitedBy        User                       @relation("EmployeeInvitedBy", fields: [invitedById], references: [id])
+  organization     Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([employeeId])
+  @@index([email])
+  @@index([token])
+}
+
+model EmployeeAttestation {
+  id             String       @id @default(cuid())
+  offboardingId  String
+  employeeId     String
+  organizationId String
+  statement      String
+  signedAt       DateTime     @default(now())
+  signedByUserId String
+  ipAddress      String?
+  userAgent      String?
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+  employee       Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  offboarding    Offboarding  @relation(fields: [offboardingId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  signedBy       User         @relation(fields: [signedByUserId], references: [id])
+
+  @@unique([offboardingId, employeeId])
+  @@index([offboardingId])
+  @@index([employeeId])
+  @@index([organizationId])
+}
+
+model AssetReturnProof {
+  id             String         @id @default(cuid())
+  assetReturnId  String
+  type           AssetProofType
+  fileName       String?
+  fileUrl        String?
+  trackingNumber String?
+  description    String?
+  uploadedById   String
+  uploadedAt     DateTime       @default(now())
+  createdAt      DateTime       @default(now())
+  assetReturn    AssetReturn    @relation(fields: [assetReturnId], references: [id], onDelete: Cascade)
+  uploadedBy     User           @relation(fields: [uploadedById], references: [id])
+
+  @@index([assetReturnId])
+}
+
+model AnalyticsSnapshot {
+  id                          String       @id @default(cuid())
+  organizationId              String
+  snapshotDate                DateTime     @default(dbgenerated("CURRENT_DATE")) @db.Date
+  totalOffboardings           Int          @default(0)
+  activeOffboardings          Int          @default(0)
+  completedOffboardings       Int          @default(0)
+  cancelledOffboardings       Int          @default(0)
+  pendingOffboardings         Int          @default(0)
+  inProgressOffboardings      Int          @default(0)
+  pendingApprovalOffboardings Int          @default(0)
+  normalRiskCount             Int          @default(0)
+  highRiskCount               Int          @default(0)
+  criticalRiskCount           Int          @default(0)
+  completedThisMonth          Int          @default(0)
+  overdueTasks                Int          @default(0)
+  averageCompletionDays       Float        @default(0)
+  monthlyTrend                Json?
+  createdAt                   DateTime     @default(now())
+  updatedAt                   DateTime     @default(now()) @updatedAt
+  organization                Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([organizationId, snapshotDate])
+  @@index([organizationId])
+}
+
+model Notification {
+  id             String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  userId         String
+  organizationId String
+  type           String
+  title          String
+  message        String
+  link           String?
+  read           Boolean  @default(false)
+  createdAt      DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([organizationId])
+  @@index([read])
+  @@index([userId])
+  @@index([userId, organizationId, createdAt(sort: Desc)])
+}
+
+enum SystemRole {
+  OWNER
+  ADMIN
+  CONTRIBUTOR
+  AUDITOR
+}
+
+enum OrgStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum MembershipStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  ON_LEAVE
+  TERMINATED
+  OFFBOARDING
+  ARCHIVED
+}
+
+enum RiskLevel {
+  NORMAL
+  HIGH
+  CRITICAL
+}
+
+enum OffboardingStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  PENDING_APPROVAL
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+  BLOCKED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ApprovalType {
+  TASK
+  OFFBOARDING
+  HIGH_RISK
+}
+
+enum AssetStatus {
+  ASSIGNED
+  PENDING_RETURN
+  RETURNED
+  LOST
+  DAMAGED
+  WRITTEN_OFF
+}
+
+enum AssetType {
+  LAPTOP
+  PHONE
+  TABLET
+  MONITOR
+  KEYBOARD
+  MOUSE
+  HEADSET
+  ACCESS_CARD
+  KEYS
+  VEHICLE
+  OTHER
+}
+
+enum AssetReturnStatus {
+  PENDING
+  RETURNED
+  NOT_RETURNED
+  LOST
+  DAMAGED
+}
+
+enum SecurityEventType {
+  LOGIN_ATTEMPT
+  BLOCKED_LOGIN
+  BLOCKED_IP
+  PASSWORD_RESET
+  SESSION_REVOKED
+  ACCESS_REVOKED
+  SUSPICIOUS_ACTIVITY
+  LOCKDOWN_TRIGGERED
+  IP_BANNED
+  IP_UNBANNED
+  EVIDENCE_PACK_REQUESTED
+  EVIDENCE_PACK_SEALED
+  ESCALATION_TRIGGERED
+  HIGH_RISK_MARKED
+  NEW_IP_LOGIN
+  NEW_COUNTRY_LOGIN
+  FAILED_LOGIN_ATTEMPTS
+  POST_OFFBOARDING_LOGIN
+  POST_REVOCATION_ACTION
+  ACCOUNT_SUSPENDED
+  ACCOUNT_LOCKED
+  ACCOUNT_UNLOCKED
+  FORCE_LOGOUT
+  SECURITY_PROFILE_VIEWED
+}
+
+enum RevocationStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+  SKIPPED
+}
+
+enum MonitoringEventType {
+  LOGIN_ATTEMPT
+  ACCESS_ATTEMPT
+  DATA_ACCESS
+  INTEGRATION_ACTIVITY
+  SUSPICIOUS_ACTIVITY
+  ALERT
+}
+
+enum MonitoringSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum BlockScope {
+  GLOBAL
+  ORGANIZATION
+  EMPLOYEE
+}
+
+enum EmployeeUserLinkStatus {
+  PENDING_VERIFICATION
+  VERIFIED
+  REVOKED
+}
+
+enum EmployeePortalInviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+enum PortalType {
+  SUBJECT_PORTAL
+  CONTRIBUTOR_PORTAL
+}
+
+enum AssetProofType {
+  SHIPPING_RECEIPT
+  TRACKING_NUMBER
+  PHOTO
+  OTHER
+}
+
+enum EvidenceRequirement {
+  REQUIRED
+  OPTIONAL
+  NONE
+}
+
+enum EvidenceType {
+  FILE
+  LINK
+  NOTE
+  SYSTEM_PROOF
+}
+
+model UserSession {
+  id               String        @id @default(cuid())
+  userId           String
+  organizationId   String?
+  sessionToken     String        @unique
+  refreshToken     String?       @unique
+  deviceId         String?
+  deviceName       String?
+  browserName      String?
+  browserVersion   String?
+  osName           String?
+  osVersion        String?
+  ipAddress        String?
+  userAgent        String?
+  city             String?
+  country          String?
+  authMethod       String?       @default("password")
+  rememberDevice   Boolean       @default(false)
+  lastActiveAt     DateTime?     @default(now())
+  expiresAt        DateTime?
+  refreshExpiresAt DateTime?
+  revokedAt        DateTime?
+  revokedBy        String?
+  revokedReason    String?
+  passwordVersion  Int?          @default(1)
+  roleVersion      Int?          @default(1)
+  isCurrent        Boolean       @default(false)
+  createdAt        DateTime      @default(now())
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([sessionToken])
+  @@index([refreshToken])
+  @@index([deviceId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+}
+
+model EmployeeSecurityProfile {
+  id                String       @id @default(cuid())
+  employeeId        String       @unique
+  organizationId    String
+  isHighRisk        Boolean      @default(false)
+  highRiskReason    String?
+  highRiskMarkedAt  DateTime?
+  highRiskMarkedBy  String?
+  isSuspended       Boolean      @default(false)
+  suspendedReason   String?
+  suspendedAt       DateTime?
+  suspendedBy       String?
+  suspendedUntil    DateTime?
+  isLocked          Boolean      @default(false)
+  lockedReason      String?
+  lockedAt          DateTime?
+  lockedBy          String?
+  lastLoginAt       DateTime?
+  lastLoginIp       String?
+  lastLoginCity     String?
+  lastLoginCountry  String?
+  lastLoginMethod   String?
+  knownIPs          Json?        @default("[]")
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  employee          Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@index([organizationId])
+  @@index([isHighRisk])
+  @@index([isSuspended])
+  @@index([isLocked])
+}
+
+model SecurityPolicy {
+  id              String       @id @default(cuid())
+  organizationId  String
+  policyType      String
+  name            String
+  description     String?
+  config          Json         @default("{}")
+  isActive        Boolean      @default(true)
+  scope           String       @default("ORG_WIDE")
+  category        String       @default("OFFBOARDING_ENFORCEMENT")
+  severity        String       @default("MEDIUM")
+  lastTriggeredAt DateTime?
+  triggerCount    Int          @default(0)
+  createdBy       String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  enforcementLogs PolicyEnforcementLog[]
+
+  @@unique([organizationId, policyType])
+  @@index([organizationId])
+  @@index([policyType])
+  @@index([isActive])
+  @@index([category])
+}
+
+model PolicyEnforcementLog {
+  id             String         @id
+  organizationId String
+  policyId       String
+  policyType     String
+  action         String
+  status         String         @default("TRIGGERED")
+  targetType     String
+  targetId       String?
+  targetName     String?
+  triggeredBy    String?
+  details        Json           @default("{}")
+  bypassedBy     String?
+  bypassReason   String?
+  createdAt      DateTime       @default(now())
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  policy         SecurityPolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([policyId])
+  @@index([createdAt])
+}
+
+model PlatformStatus {
+  id              String         @id @default(cuid())
+  status          PlatformHealth @default(OPERATIONAL)
+  message         String?
+  incidentMode    Boolean        @default(false)
+  incidentStarted DateTime?
+  incidentEndedAt DateTime?
+  incidentReason  String?
+  updatedBy       String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([status])
+}
+
+model GlobalSecurityPolicy {
+  id               String   @id @default(cuid())
+  policyType       String   @unique
+  name             String
+  description      String?
+  config           Json     @default("{}")
+  isActive         Boolean  @default(true)
+  isMandatory      Boolean  @default(false)
+  canBeWeakened    Boolean  @default(false)
+  severity         String   @default("MEDIUM")
+  createdBy        String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([policyType])
+  @@index([isActive])
+}
+
+model PlatformAuditLog {
+  id             String   @id @default(cuid())
+  action         String
+  entityType     String
+  entityId       String?
+  organizationId String?
+  targetOrgName  String?
+  oldData        Json?
+  newData        Json?
+  metadata       Json?
+  ipAddress      String?
+  userAgent      String?
+  userId         String?
+  userName       String?
+  severity       String   @default("INFO")
+  createdAt      DateTime @default(now())
+
+  @@index([action])
+  @@index([entityType])
+  @@index([organizationId])
+  @@index([userId])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+model PlatformSignal {
+  id             String         @id @default(cuid())
+  signalType     SignalType
+  severity       SignalSeverity @default(MEDIUM)
+  title          String
+  description    String?
+  organizationId String?
+  metadata       Json?
+  acknowledged   Boolean        @default(false)
+  acknowledgedBy String?
+  acknowledgedAt DateTime?
+  resolvedAt     DateTime?
+  resolvedBy     String?
+  resolution     String?
+  createdAt      DateTime       @default(now())
+
+  @@index([signalType])
+  @@index([severity])
+  @@index([acknowledged])
+  @@index([createdAt])
+}
+
+enum PlatformHealth {
+  OPERATIONAL
+  DEGRADED
+  INCIDENT
+  MAINTENANCE
+}
+
+enum SignalType {
+  AUTH_SPIKE
+  IP_BLOCK_TRIGGERED
+  SUSPICIOUS_ACTIVITY
+  APPROVAL_BYPASS_ATTEMPT
+  HIGH_RISK_OFFBOARDING
+  ORG_COMPLIANCE_ISSUE
+  POLICY_VIOLATION
+  SYSTEM_ANOMALY
+}
+
+enum SignalSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model JoinRequest {
+  id                 String            @id @default(cuid())
+  organizationId     String
+  requesterUserId    String
+  requesterEmail     String
+  requestedRole      JoinRequestRole
+  status             JoinRequestStatus @default(REQUESTED_MEMBER)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  expiresAt          DateTime
+  resolvedAt         DateTime?
+  resolvedByUserId   String?
+  resolutionReason   String?
+  policyEvalResult   PolicyEvalResult?
+  policyEvalReason   String?
+  escalatedAt        DateTime?
+  escalationReason   String?
+  organization       Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  requester          User              @relation("JoinRequestRequester", fields: [requesterUserId], references: [id], onDelete: Cascade)
+  resolvedBy         User?             @relation("JoinRequestResolver", fields: [resolvedByUserId], references: [id])
+
+  @@unique([organizationId, requesterUserId])
+  @@index([organizationId])
+  @@index([requesterUserId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+enum JoinRequestRole {
+  CONTRIBUTOR
+  ADMIN
+}
+
+enum JoinRequestStatus {
+  REQUESTED_MEMBER
+  REQUESTED_ADMIN
+  APPROVED
+  DENIED
+  EXPIRED
+}
+
+enum PolicyEvalResult {
+  ALLOW
+  DENY
+  REQUIRES_SPONSOR
+  REQUIRES_MFA
+}
+
+model SupportTicket {
+  id             String              @id @default(cuid())
+  ticketNumber   String              @unique
+  organizationId String?
+  userId         String?
+  email          String
+  category       SupportCategory
+  subject        String
+  message        String
+  status         SupportTicketStatus @default(OPEN)
+  priority       SupportPriority     @default(MEDIUM)
+  context        Json?
+  assignedTo     String?
+  resolvedAt     DateTime?
+  resolvedBy     String?
+  resolution     String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([status])
+  @@index([category])
+  @@index([createdAt])
+  @@index([ticketNumber])
+}
+
+enum SupportCategory {
+  ACCOUNT_ACCESS
+  ORGANIZATION_BLOCKED
+  ORGANIZATION_SUSPENDED
+  ORGANIZATION_REJECTED
+  BILLING
+  TECHNICAL_ISSUE
+  FEATURE_REQUEST
+  SECURITY_CONCERN
+  OTHER
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_ON_USER
+  RESOLVED
+  CLOSED
+}
+
+enum SupportPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
