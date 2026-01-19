@@ -420,13 +420,13 @@ export default function OffboardingDetailClient({
                   <Typography variant="body2">{offboarding.reason || "—"}</Typography>
                 </Box>
                 <Box>
-                  <Typography variant="caption" color="text.secondary">Scheduled Date</Typography>
-                  <Typography variant="body2">
-                    {offboarding.scheduledDate
-                      ? new Date(offboarding.scheduledDate).toLocaleDateString()
-                      : "—"}
-                  </Typography>
-                </Box>
+                    <Typography variant="caption" color="text.secondary">Scheduled Date</Typography>
+                    <Typography variant="body2">
+                      {offboarding.scheduledDate
+                        ? new Date(offboarding.scheduledDate).toLocaleDateString("en-US")
+                        : "—"}
+                    </Typography>
+                  </Box>
                 {offboarding.riskReason && (
                   <Box>
                     <Typography variant="caption" color="text.secondary">Risk Reason</Typography>
@@ -725,9 +725,9 @@ export default function OffboardingDetailClient({
                             )}
                           </Box>
                           <Typography sx={{ mt: 1 }}>{event.description}</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {new Date(event.createdAt).toLocaleString()} {event.source && `• ${event.source}`}
-                          </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {new Date(event.createdAt).toLocaleString("en-US")} {event.source && `• ${event.source}`}
+                            </Typography>
                         </Box>
                       ))}
                     </Box>
