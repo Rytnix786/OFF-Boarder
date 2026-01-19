@@ -1,6 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const IP_CHECK_CACHE_TTL_MS = 5 * 60 * 1000;
+const IP_CHECK_COOKIE_NAME = "_ip_ck";
+
 function getClientIPFromRequest(request: NextRequest): string {
   const forwardedFor = request.headers.get("x-forwarded-for");
   if (forwardedFor) {
@@ -17,7 +20,7 @@ function getClientIPFromRequest(request: NextRequest): string {
 async function checkIPBlocked(
   request: NextRequest,
   ipAddress: string
-): Promise<boolean> {
+): Promise<{ blocked: boolean; shouldCache: boolean }> {
   try {
     const baseUrl = request.nextUrl.origin;
     const response = await fetch(`${baseUrl}/api/blocked-ips/check`, {
@@ -31,11 +34,26 @@ async function checkIPBlocked(
       }),
     });
     const data = await response.json();
-    return data.blocked === true;
+    return { blocked: data.blocked === true, shouldCache: true };
   } catch (error) {
     console.error("IP block check failed:", error);
-    return false;
+    return { blocked: false, shouldCache: false };
   }
+}
+
+function getCachedIPCheck(request: NextRequest, ipAddress: string): { valid: boolean; allowed: boolean } {
+  const cookie = request.cookies.get(IP_CHECK_COOKIE_NAME);
+  if (!cookie?.value) return { valid: false, allowed: false };
+  
+  try {
+    const { ip, ts, ok } = JSON.parse(cookie.value);
+    if (ip === ipAddress && Date.now() - ts < IP_CHECK_CACHE_TTL_MS) {
+      return { valid: true, allowed: ok };
+    }
+  } catch {
+    // Invalid cookie
+  }
+  return { valid: false, allowed: false };
 }
 
 export async function updateSession(request: NextRequest) {
@@ -55,27 +73,48 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/invitations");
 
-  if (isBlockCheckRequired) {
-    const isBlocked = await checkIPBlocked(request, ipAddress);
-    if (isBlocked) {
-      return new NextResponse(
-        JSON.stringify({ error: "Access denied" }),
-        {
-          status: 403,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-  }
-
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-pathname", pathname);
 
   let supabaseResponse = NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
+    request: { headers: requestHeaders },
   });
+
+  if (isBlockCheckRequired) {
+    const cached = getCachedIPCheck(request, ipAddress);
+    
+    if (cached.valid) {
+      if (!cached.allowed) {
+        return new NextResponse(
+          JSON.stringify({ error: "Access denied" }),
+          { status: 403, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      const { blocked, shouldCache } = await checkIPBlocked(request, ipAddress);
+      
+      if (blocked) {
+        return new NextResponse(
+          JSON.stringify({ error: "Access denied" }),
+          { status: 403, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      
+      if (shouldCache) {
+        supabaseResponse.cookies.set(IP_CHECK_COOKIE_NAME, JSON.stringify({
+          ip: ipAddress,
+          ts: Date.now(),
+          ok: true,
+        }), {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: IP_CHECK_CACHE_TTL_MS / 1000,
+          path: "/",
+        });
+      }
+    }
+  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -90,9 +129,7 @@ export async function updateSession(request: NextRequest) {
               request.cookies.set(name, value)
             );
             supabaseResponse = NextResponse.next({
-              request: {
-                headers: requestHeaders,
-              },
+              request: { headers: requestHeaders },
             });
             cookiesToSet.forEach(({ name, value, options }) =>
               supabaseResponse.cookies.set(name, value, options)
@@ -113,46 +150,32 @@ export async function updateSession(request: NextRequest) {
         user = data.user;
       }
     } catch {
-      // Auth check failed silently - user is not authenticated
+      // Auth check failed silently
     }
   }
 
   const isAuthPage = pathname === "/login" || pathname === "/register";
   const isProtectedRoute = pathname.startsWith("/app");
   const isPlatformAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/platform");
-  
-  // Terminal state pages - these are accessible to authenticated users regardless of org status
-  // They handle their own auth checks and display appropriate UI based on org state
-  const isTerminalStatePage = 
-    pathname === "/org-blocked" || 
-    pathname === "/pending";
+  const isTerminalStatePage = pathname === "/org-blocked" || pathname === "/pending";
 
-  // Unauthenticated users trying to access protected routes -> login
   if (!user && (isProtectedRoute || isPlatformAdminRoute)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // Unauthenticated users on terminal state pages -> login
-  // (they shouldn't be on these pages without being logged in)
   if (!user && isTerminalStatePage) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // Authenticated users on auth pages -> redirect to app (let app layout handle org status)
-  // This prevents login loops - authenticated users should not be on login/register
   if (user && isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/app";
     return NextResponse.redirect(url);
   }
-
-  // Important: Do NOT redirect users away from terminal state pages
-  // These pages handle their own logic to determine what to show
-  // and will redirect to /app if the user has an active org
 
   return supabaseResponse;
 }

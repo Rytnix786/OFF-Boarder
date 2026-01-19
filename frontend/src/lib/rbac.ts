@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { SystemRole, PortalType } from "@prisma/client";
 import { AuthSession } from "./auth";
@@ -19,7 +20,7 @@ export type UserContext = {
   portalType: PortalType | null;
 };
 
-export async function getUserPermissions(session: AuthSession): Promise<PermissionCode[]> {
+export const getUserPermissions = cache(async (session: AuthSession): Promise<PermissionCode[]> => {
   if (!session.currentMembership) return [];
 
   const systemPerms = getSystemRolePermissions(session.currentMembership.systemRole);
@@ -40,7 +41,7 @@ export async function getUserPermissions(session: AuthSession): Promise<Permissi
   );
 
   return [...new Set([...systemPerms, ...customPerms])];
-}
+});
 
 export async function hasPermission(session: AuthSession, permission: PermissionCode): Promise<boolean> {
   const permissions = await getUserPermissions(session);
