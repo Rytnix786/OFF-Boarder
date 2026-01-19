@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Box,
   Paper,
@@ -19,6 +19,8 @@ import {
   Select,
   MenuItem,
   Divider,
+  LinearProgress,
+  IconButton,
 } from "@mui/material";
 import { uploadAssetReturnProof } from "@/lib/actions/employee-portal";
 import type { Asset, AssetReturn, AssetReturnProof, AssetProofType } from "@prisma/client";
@@ -40,6 +42,9 @@ export default function AssetsList({ assetReturns }: AssetsListProps) {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleOpenUpload = (assetReturn: AssetReturnWithRelations) => {
     setSelectedAssetReturn(assetReturn);
@@ -47,6 +52,8 @@ export default function AssetsList({ assetReturns }: AssetsListProps) {
     setProofType("TRACKING_NUMBER");
     setTrackingNumber("");
     setDescription("");
+    setSelectedFile(null);
+    setUploadProgress(0);
     setError(null);
   };
 
@@ -55,22 +62,57 @@ export default function AssetsList({ assetReturns }: AssetsListProps) {
 
     setLoading(true);
     setError(null);
+    setUploadProgress(0);
 
     try {
+      let fileUrl: string | undefined;
+      let fileName: string | undefined;
+
+      if ((proofType === "PHOTO" || proofType === "SHIPPING_RECEIPT") && selectedFile) {
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", selectedFile);
+        uploadFormData.append("assetReturnId", selectedAssetReturn.id);
+
+        setUploadProgress(10);
+        const uploadResponse = await fetch("/api/upload/asset-proof", {
+          method: "POST",
+          body: uploadFormData,
+        });
+
+        setUploadProgress(60);
+        const uploadResult = await uploadResponse.json();
+
+        if (!uploadResponse.ok || uploadResult.error) {
+          setError(uploadResult.error || "Failed to upload file");
+          setLoading(false);
+          return;
+        }
+
+        setUploadProgress(80);
+        fileUrl = uploadResult.fileUrl;
+        fileName = uploadResult.fileName;
+      }
+
       const result = await uploadAssetReturnProof(selectedAssetReturn.id, proofType, {
         trackingNumber: proofType === "TRACKING_NUMBER" ? trackingNumber : undefined,
+        fileUrl,
+        fileName,
         description,
       });
+
+      setUploadProgress(100);
 
       if (!result.success) {
         setError(result.error || "Failed to upload proof");
       } else {
         setUploadDialogOpen(false);
+        setSelectedFile(null);
       }
     } catch {
       setError("An unexpected error occurred");
     } finally {
       setLoading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -182,37 +224,60 @@ export default function AssetsList({ assetReturns }: AssetsListProps) {
                 Submitted Proofs
               </Typography>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                {ar.proofs.map((proof) => (
-                  <Box
-                    key={proof.id}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      p: 1,
-                      bgcolor: "action.hover",
-                      borderRadius: 1,
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                      {proof.type === "TRACKING_NUMBER"
-                        ? "local_shipping"
-                        : proof.type === "SHIPPING_RECEIPT"
-                        ? "receipt"
-                        : proof.type === "PHOTO"
-                        ? "photo"
-                        : "description"}
-                    </span>
-                    <Typography variant="body2">
-                      {proof.type.replace("_", " ")}
-                      {proof.trackingNumber && `: ${proof.trackingNumber}`}
-                      {proof.description && ` - ${proof.description}`}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ ml: "auto" }}>
-                      {new Date(proof.uploadedAt).toLocaleDateString()}
-                    </Typography>
-                  </Box>
-                ))}
+                  {ar.proofs.map((proof) => (
+                    <Box
+                      key={proof.id}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        p: 1,
+                        bgcolor: "action.hover",
+                        borderRadius: 1,
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                        {proof.type === "TRACKING_NUMBER"
+                          ? "local_shipping"
+                          : proof.type === "SHIPPING_RECEIPT"
+                          ? "receipt"
+                          : proof.type === "PHOTO"
+                          ? "photo"
+                          : "description"}
+                      </span>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="body2">
+                          {proof.type.replace("_", " ")}
+                          {proof.trackingNumber && `: ${proof.trackingNumber}`}
+                          {proof.description && ` - ${proof.description}`}
+                        </Typography>
+                        {proof.fileUrl && (
+                          <Typography
+                            component="a"
+                            href={proof.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "primary.main",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 0.5,
+                              "&:hover": { textDecoration: "underline" },
+                            }}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                              download
+                            </span>
+                            {proof.fileName || "View File"}
+                          </Typography>
+                        )}
+                      </Box>
+                      <Typography variant="caption" color="text.secondary">
+                        {new Date(proof.uploadedAt).toLocaleDateString()}
+                      </Typography>
+                    </Box>
+                  ))}
               </Box>
             </>
           )}
@@ -235,31 +300,97 @@ export default function AssetsList({ assetReturns }: AssetsListProps) {
           )}
 
           <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Proof Type</InputLabel>
-            <Select
-              value={proofType}
-              label="Proof Type"
-              onChange={(e) => setProofType(e.target.value as AssetProofType)}
-            >
-              <MenuItem value="TRACKING_NUMBER">Tracking Number</MenuItem>
-              <MenuItem value="SHIPPING_RECEIPT">Shipping Receipt</MenuItem>
-              <MenuItem value="PHOTO">Photo</MenuItem>
-              <MenuItem value="OTHER">Other</MenuItem>
-            </Select>
-          </FormControl>
+              <InputLabel>Proof Type</InputLabel>
+              <Select
+                value={proofType}
+                label="Proof Type"
+                onChange={(e) => {
+                  setProofType(e.target.value as AssetProofType);
+                  setSelectedFile(null);
+                }}
+              >
+                <MenuItem value="TRACKING_NUMBER">Tracking Number</MenuItem>
+                <MenuItem value="SHIPPING_RECEIPT">Shipping Receipt</MenuItem>
+                <MenuItem value="PHOTO">Photo</MenuItem>
+                <MenuItem value="OTHER">Other</MenuItem>
+              </Select>
+            </FormControl>
 
-          {proofType === "TRACKING_NUMBER" && (
+            {proofType === "TRACKING_NUMBER" && (
+              <TextField
+                fullWidth
+                label="Tracking Number"
+                value={trackingNumber}
+                onChange={(e) => setTrackingNumber(e.target.value)}
+                sx={{ mb: 2 }}
+                placeholder="Enter shipping tracking number"
+              />
+            )}
+
+            {(proofType === "PHOTO" || proofType === "SHIPPING_RECEIPT") && (
+              <Box sx={{ mb: 2 }}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,.pdf"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      if (file.size > 50 * 1024 * 1024) {
+                        setError("File size exceeds 50MB limit");
+                        return;
+                      }
+                      setSelectedFile(file);
+                      setError(null);
+                    }
+                  }}
+                />
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={() => fileInputRef.current?.click()}
+                  startIcon={
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                      upload_file
+                    </span>
+                  }
+                  sx={{ 
+                    py: 2, 
+                    borderStyle: "dashed",
+                    borderColor: selectedFile ? "success.main" : undefined,
+                    bgcolor: selectedFile ? "rgba(34, 197, 94, 0.05)" : undefined,
+                  }}
+                >
+                  {selectedFile ? selectedFile.name : proofType === "PHOTO" ? "Upload Photo" : "Upload Receipt"}
+                </Button>
+                {selectedFile && (
+                  <Box sx={{ display: "flex", alignItems: "center", mt: 1, gap: 1 }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 16, color: "#22c55e" }}>
+                      check_circle
+                    </span>
+                    <Typography sx={{ fontSize: "0.75rem", color: "text.secondary", flex: 1 }}>
+                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                    </Typography>
+                    <IconButton
+                      size="small"
+                      onClick={() => setSelectedFile(null)}
+                      sx={{ width: 24, height: 24 }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
+                    </IconButton>
+                  </Box>
+                )}
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <LinearProgress variant="determinate" value={uploadProgress} sx={{ mt: 1 }} />
+                )}
+                <Typography sx={{ fontSize: "0.7rem", color: "text.secondary", mt: 1 }}>
+                  Supported: Images and PDFs (max 50MB)
+                </Typography>
+              </Box>
+            )}
+
             <TextField
-              fullWidth
-              label="Tracking Number"
-              value={trackingNumber}
-              onChange={(e) => setTrackingNumber(e.target.value)}
-              sx={{ mb: 2 }}
-              placeholder="Enter shipping tracking number"
-            />
-          )}
-
-          <TextField
             fullWidth
             label="Description (Optional)"
             value={description}
@@ -269,17 +400,17 @@ export default function AssetsList({ assetReturns }: AssetsListProps) {
             placeholder="Add any additional details about the return"
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setUploadDialogOpen(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleUploadProof}
-            disabled={loading || (proofType === "TRACKING_NUMBER" && !trackingNumber)}
-            startIcon={loading ? <CircularProgress size={16} /> : null}
-          >
-            {loading ? "Uploading..." : "Upload Proof"}
-          </Button>
-        </DialogActions>
+          <DialogActions>
+            <Button onClick={() => setUploadDialogOpen(false)}>Cancel</Button>
+            <Button
+              variant="contained"
+              onClick={handleUploadProof}
+              disabled={loading || (proofType === "TRACKING_NUMBER" && !trackingNumber) || ((proofType === "PHOTO" || proofType === "SHIPPING_RECEIPT") && !selectedFile)}
+              startIcon={loading ? <CircularProgress size={16} /> : null}
+            >
+              {loading ? "Uploading..." : "Upload Proof"}
+            </Button>
+          </DialogActions>
       </Dialog>
     </Box>
   );
