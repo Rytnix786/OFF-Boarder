@@ -33,6 +33,7 @@ export default function RootLayout({
       </head>
       <body
         className={`${robotoFlex.variable} ${manrope.variable} antialiased`}
+        suppressHydrationWarning
       >
         <ThemeRegistry>
           {children}
