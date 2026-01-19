@@ -76,7 +76,7 @@ export async function createOffboarding(formData: FormData) {
     template = await ensureDefaultWorkflowTemplate(orgId);
   }
 
-  const templateWithTasks = template as typeof template & { tasks?: { name: string; description: string | null; category: string | null; defaultDueDays: number | null; requiresApproval: boolean; isHighRiskTask: boolean; evidenceRequirement?: "REQUIRED" | "OPTIONAL" | "NONE" }[] };
+  const templateWithTasks = template as typeof template & { tasks?: { name: string; description: string | null; category: string | null; defaultDueDays: number | null; requiresApproval: boolean; isHighRiskTask: boolean; isEmployeeRequired?: boolean; evidenceRequirement?: "REQUIRED" | "OPTIONAL" | "NONE" }[] };
   const templateTasks = templateWithTasks.tasks || [];
   const allTasks = [...templateTasks];
 
@@ -89,6 +89,7 @@ export async function createOffboarding(formData: FormData) {
       defaultDueDays: t.defaultDueDays ?? null,
       requiresApproval: t.requiresApproval || false,
       isHighRiskTask: t.isHighRiskTask || false,
+      isEmployeeRequired: t.isEmployeeRequired || false,
       evidenceRequirement: ("evidenceRequirement" in t ? t.evidenceRequirement : "OPTIONAL") as "REQUIRED" | "OPTIONAL" | "NONE",
     })));
   }
@@ -126,6 +127,8 @@ export async function createOffboarding(formData: FormData) {
             : dueDate,
           requiresApproval: task.requiresApproval || false,
           isHighRiskTask: task.isHighRiskTask || false,
+          isEmployeeRequired: task.isEmployeeRequired || false,
+          assignedToEmployeeId: task.isEmployeeRequired ? employeeId : null,
           evidenceRequirement: task.evidenceRequirement || "NONE",
         })),
       },
@@ -410,6 +413,22 @@ export async function updateOffboardingTask(taskId: string, status: "PENDING" | 
 
   const { isUserOffboardingSubject, getUserLinkedEmployeeId } = await import("@/lib/rbac");
   const isSubject = await isUserOffboardingSubject(session.user.id, orgId, task.offboardingId);
+  
+  if (task.assignedToEmployeeId && task.isEmployeeRequired) {
+    if (!isSubject) {
+      await createAuditLog(session, orgId, {
+        action: "task.completion_blocked",
+        entityType: "OffboardingTask",
+        entityId: taskId,
+        metadata: {
+          reason: "Admin cannot complete employee-assigned tasks",
+          taskName: task.name,
+          assignedToEmployeeId: task.assignedToEmployeeId,
+        },
+      });
+      return { error: "INVARIANT: This task is assigned to the employee and can only be completed by them through the Employee Portal" };
+    }
+  }
   
   if (isSubject) {
     if (!task.isEmployeeRequired) {

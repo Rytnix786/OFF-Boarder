@@ -5,25 +5,33 @@ import { getUserPermissions } from "@/lib/rbac";
 import { canAccessRoute, getFirstAccessibleRoute } from "@/lib/navigation";
 import AppShell from "@/components/app/AppShell";
 import { prisma } from "@/lib/prisma";
+import { getEmployeePortalSession } from "@/lib/employee-auth";
 
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getAuthSession();
   const headersList = await headers();
   const pathname = headersList.get("x-pathname") || "";
+
+  const isEmployeePortalPath = pathname.startsWith("/app/employee");
+
+  if (isEmployeePortalPath) {
+    const employeeSession = await getEmployeePortalSession();
+    if (!employeeSession) {
+      redirect("/login?redirect=/app/employee");
+    }
+    return <>{children}</>;
+  }
+
+  const session = await getAuthSession();
 
   if (!session) {
     redirect("/login");
   }
 
-  // Check if user has a membership in SUSPENDED or REJECTED org
-  // This needs to happen before the currentMembership check to avoid redirect loops
   if (!session.currentMembership) {
-    // Check for blocked org membership directly from DB
-    // (since getAuthSession filters out non-ACTIVE org memberships)
     const blockedMembership = await prisma.membership.findFirst({
       where: {
         userId: session.user.id,
@@ -38,13 +46,23 @@ export default async function AppLayout({
     });
 
     if (blockedMembership) {
-      // User has membership in a blocked org - send to org-blocked page
       redirect("/org-blocked");
     }
 
-    // No blocked membership - check other cases
     if (session.user.isPlatformAdmin) {
       redirect("/admin");
+    }
+    
+    const employeeLink = await prisma.employeeUserLink.findFirst({
+      where: {
+        userId: session.user.id,
+        status: "VERIFIED",
+        organization: { status: "ACTIVE" },
+      },
+    });
+    
+    if (employeeLink) {
+      redirect("/app/employee");
     }
     
     const pendingOrgs = await getUserPendingOrgs(session.user.id);
@@ -55,13 +73,10 @@ export default async function AppLayout({
     redirect("/register");
   }
 
-  // Double-check: If currentMembership exists but org is not ACTIVE
-  // This shouldn't happen with current getAuthSession logic, but adding for safety
   if (session.currentMembership.organization.status !== "ACTIVE") {
     redirect("/org-blocked");
   }
 
-  // Check membership status
   if (session.currentMembership.status !== "ACTIVE") {
     redirect("/pending");
   }

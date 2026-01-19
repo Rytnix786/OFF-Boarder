@@ -1,11 +1,11 @@
-import { getEmployeeTasks } from "@/lib/actions/employee-portal";
+import { getEmployeeTasksWithEvidence } from "@/lib/actions/employee-portal";
 import { requireEmployeeOffboarding } from "@/lib/employee-auth";
 import TasksList from "./TasksList";
 import { Box, Typography, Alert } from "@mui/material";
 
 export default async function EmployeeTasksPage() {
   await requireEmployeeOffboarding();
-  const tasks = await getEmployeeTasks();
+  const tasks = await getEmployeeTasksWithEvidence();
 
   const pendingTasks = tasks.filter((t) => t.status === "PENDING" || t.status === "IN_PROGRESS");
   const completedTasks = tasks.filter((t) => t.status === "COMPLETED");
