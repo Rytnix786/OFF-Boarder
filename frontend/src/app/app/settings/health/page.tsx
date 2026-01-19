@@ -1,6 +1,6 @@
 import { requireAuth } from "@/lib/auth.server";
-import { getUserPermissions } from "@/lib/rbac";
-import { prisma } from "@/lib/prisma";
+import { getUserPermissions } from "@/lib/rbac.server";
+import { prisma } from "@/lib/prisma.server";
 import HealthCheckClient from "./HealthCheckClient";
 
 type HealthCheck = {

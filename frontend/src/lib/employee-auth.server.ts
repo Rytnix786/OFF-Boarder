@@ -1,5 +1,5 @@
 import "server-only";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { getSupabaseUser } from "@/lib/auth.server";
 import { redirect } from "next/navigation";
 import { EmployeeUserLinkStatus, EmployeeStatus, RiskLevel } from "@prisma/client";

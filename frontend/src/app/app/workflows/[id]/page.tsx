@@ -1,7 +1,7 @@
 import { requireActiveOrg } from "@/lib/auth.server";
-import { requirePermission } from "@/lib/rbac";
+import { requirePermission } from "@/lib/rbac.server";
 import { getWorkflowTemplate } from "@/lib/actions/workflows";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { notFound } from "next/navigation";
 import WorkflowDetailClient from "./WorkflowDetailClient";
 

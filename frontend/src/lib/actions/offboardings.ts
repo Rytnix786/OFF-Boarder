@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { requireActiveOrg } from "@/lib/auth.server";
 import { 
   requirePermission, 
@@ -12,8 +12,8 @@ import {
   isAuditor,
   isContributor,
   InvariantViolationError
-} from "@/lib/rbac";
-import { createAuditLog } from "@/lib/audit";
+} from "@/lib/rbac.server";
+import { createAuditLog } from "@/lib/audit.server";
 import { createNotificationForOrgMembers } from "@/lib/notifications";
 import { revalidatePath } from "next/cache";
 import { RiskLevel } from "@prisma/client";
@@ -200,7 +200,7 @@ export async function createOffboarding(formData: FormData) {
     employeeId
   );
 
-  const { invalidateOrgCache, refreshAnalyticsSnapshot } = await import("@/lib/cache");
+  const { invalidateOrgCache, refreshAnalyticsSnapshot } = await import("@/lib/cache.server");
   invalidateOrgCache(orgId);
   refreshAnalyticsSnapshot(orgId).catch(() => {});
 
@@ -277,7 +277,7 @@ export async function updateOffboarding(offboardingId: string, formData: FormDat
     newData: { status: data.status },
   });
 
-  const { invalidateOrgCache, refreshAnalyticsSnapshot } = await import("@/lib/cache");
+  const { invalidateOrgCache, refreshAnalyticsSnapshot } = await import("@/lib/cache.server");
   invalidateOrgCache(orgId);
   if (data.status === "COMPLETED" || data.status === "CANCELLED") {
     refreshAnalyticsSnapshot(orgId).catch(() => {});
@@ -411,22 +411,14 @@ export async function updateOffboardingTask(taskId: string, status: "PENDING" | 
     return { error: "Task not found" };
   }
 
-  const { isUserOffboardingSubject, getUserLinkedEmployeeId } = await import("@/lib/rbac");
+  const { isUserOffboardingSubject, getUserLinkedEmployeeId } = await import("@/lib/rbac.server");
   const isSubject = await isUserOffboardingSubject(session.user.id, orgId, task.offboardingId);
   
-  if (task.assignedToEmployeeId && task.isEmployeeRequired) {
+  if (task.isEmployeeRequired && status === "COMPLETED") {
     if (!isSubject) {
-      await createAuditLog(session, orgId, {
-        action: "task.completion_blocked",
-        entityType: "OffboardingTask",
-        entityId: taskId,
-        metadata: {
-          reason: "Admin cannot complete employee-assigned tasks",
-          taskName: task.name,
-          assignedToEmployeeId: task.assignedToEmployeeId,
-        },
-      });
-      return { error: "INVARIANT: This task is assigned to the employee and can only be completed by them through the Employee Portal" };
+      return { 
+        error: "INVARIANT: This task is assigned to the employee and can only be completed by them through the Employee Portal." 
+      };
     }
   }
   
@@ -460,6 +452,7 @@ export async function updateOffboardingTask(taskId: string, status: "PENDING" | 
       status,
       completedAt: status === "COMPLETED" ? new Date() : null,
       completedBy: status === "COMPLETED" ? session.user.id : null,
+      isVerified: status === "COMPLETED" ? !task.isEmployeeRequired : false, // Auto-verify if admin completes it (non-employee task)
     },
   });
 
@@ -544,7 +537,7 @@ export async function updateOffboardingTask(taskId: string, status: "PENDING" | 
       );
     }
 
-  const { invalidateOrgCache, refreshAnalyticsSnapshot } = await import("@/lib/cache");
+  const { invalidateOrgCache, refreshAnalyticsSnapshot } = await import("@/lib/cache.server");
   invalidateOrgCache(orgId);
   if (offboardingStatus === "COMPLETED") {
     refreshAnalyticsSnapshot(orgId).catch(() => {});
@@ -599,7 +592,7 @@ export async function cancelOffboarding(offboardingId: string) {
     oldData: { employeeName: `${offboarding.employee.firstName} ${offboarding.employee.lastName}` },
   });
 
-  const { invalidateOrgCache, refreshAnalyticsSnapshot } = await import("@/lib/cache");
+  const { invalidateOrgCache, refreshAnalyticsSnapshot } = await import("@/lib/cache.server");
   invalidateOrgCache(orgId);
   refreshAnalyticsSnapshot(orgId).catch(() => {});
 
@@ -613,7 +606,7 @@ export async function getOffboardings(options?: { status?: string; riskLevel?: s
 
   const orgId = session.currentOrgId!;
   
-  const { getExcludedOffboardingIdsForUser } = await import("@/lib/rbac");
+  const { getExcludedOffboardingIdsForUser } = await import("@/lib/rbac.server");
   const excludedIds = await getExcludedOffboardingIdsForUser(session.user.id, orgId);
   
   const where: Record<string, unknown> = { 
@@ -659,7 +652,7 @@ export async function getOffboarding(offboardingId: string) {
 
   const orgId = session.currentOrgId!;
   
-  const { isUserOffboardingSubject } = await import("@/lib/rbac");
+  const { isUserOffboardingSubject } = await import("@/lib/rbac.server");
   const isSubject = await isUserOffboardingSubject(session.user.id, orgId, offboardingId);
   if (isSubject) {
     return null;
@@ -707,6 +700,6 @@ export async function getOffboardingAnalytics() {
   const session = await requireActiveOrg();
   await requirePermission(session, "offboarding:read");
 
-  const { getAnalyticsSnapshot } = await import("@/lib/cache");
+  const { getAnalyticsSnapshot } = await import("@/lib/cache.server");
   return getAnalyticsSnapshot(session.currentOrgId!);
 }

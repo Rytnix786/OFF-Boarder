@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { requirePlatformAdmin, getCurrentPlatformAdmin } from "@/lib/platform-auth";
 
 const DEFAULT_POLICIES = [

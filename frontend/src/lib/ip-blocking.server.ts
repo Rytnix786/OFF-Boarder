@@ -1,5 +1,5 @@
 import "server-only";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { BlockScope, Prisma } from "@prisma/client";
 import { headers } from "next/headers";
 

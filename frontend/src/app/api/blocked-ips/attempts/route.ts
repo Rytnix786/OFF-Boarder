@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth.server";
-import { getBlockedIPAttempts } from "@/lib/ip-blocking";
+import { getBlockedIPAttempts } from "@/lib/ip-blocking.server";
 import { BlockScope } from "@prisma/client";
 
 export async function GET(request: NextRequest) {
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
   const offset = parseInt(searchParams.get("offset") || "0");
 
   if (blockedIPId) {
-    const { prisma } = await import("@/lib/prisma");
+    const { prisma } = await import("@/lib/prisma.server");
     const blockedIP = await prisma.blockedIP.findUnique({
       where: { id: blockedIPId },
     });

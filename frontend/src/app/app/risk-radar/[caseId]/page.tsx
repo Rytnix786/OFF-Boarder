@@ -1,5 +1,5 @@
 import { requireActiveOrg } from "@/lib/auth.server";
-import { requirePermission, isUserOffboardingSubject } from "@/lib/rbac";
+import { requirePermission, isUserOffboardingSubject } from "@/lib/rbac.server";
 import { getRiskRadarCaseDetail } from "@/lib/actions/risk-radar";
 import { notFound, redirect } from "next/navigation";
 import RiskCaseDetailClient from "./RiskCaseDetailClient";

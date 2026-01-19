@@ -1,10 +1,10 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { requireActiveOrg } from "@/lib/auth.server";
-import { requirePermission, isUserOffboardingSubject } from "@/lib/rbac";
+import { requirePermission, isUserOffboardingSubject } from "@/lib/rbac.server";
 import { AuthSession } from "@/lib/auth";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog } from "@/lib/audit.server";
 import { revalidatePath } from "next/cache";
 import crypto from "crypto";
 import { headers } from "next/headers";

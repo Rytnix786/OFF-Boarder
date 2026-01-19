@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { requireActiveOrg } from "@/lib/auth.server";
-import { requirePermission } from "@/lib/rbac";
-import { createAuditLog } from "@/lib/audit";
+import { requirePermission } from "@/lib/rbac.server";
+import { createAuditLog } from "@/lib/audit.server";
 
 export async function GET(request: NextRequest) {
   try {

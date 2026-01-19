@@ -1,7 +1,7 @@
 import { requireActiveOrg } from "@/lib/auth.server";
-import { requirePermission } from "@/lib/rbac";
+import { requirePermission } from "@/lib/rbac.server";
 import { getRiskRadarDashboard } from "@/lib/actions/risk-radar";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import RiskRadarClient from "./RiskRadarClient";
 
 export default async function RiskRadarPage({

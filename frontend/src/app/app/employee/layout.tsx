@@ -1,4 +1,4 @@
-import { requireEmployeePortalAuth } from "@/lib/employee-auth";
+import { requireEmployeePortalAuth } from "@/lib/employee-auth.server";
 import EmployeePortalShell from "@/components/app/EmployeePortalShell";
 
 export default async function EmployeePortalLayout({

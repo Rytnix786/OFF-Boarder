@@ -1,5 +1,5 @@
 import { requireActiveOrg } from "@/lib/auth.server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { Box, Typography, Card, CardContent, Grid, Chip, Table, TableHead, TableRow, TableCell, TableBody, Paper, Button } from "@mui/material";
 import Link from "next/link";
 import { ReportFilters } from "../ReportFilters";

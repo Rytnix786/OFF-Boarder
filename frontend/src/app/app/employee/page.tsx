@@ -1,4 +1,4 @@
-import { requireEmployeePortalAuth, getEmployeeOffboarding } from "@/lib/employee-auth";
+import { requireEmployeePortalAuth, getEmployeeOffboarding } from "@/lib/employee-auth.server";
 import { EmployeeDashboard } from "@/components/dashboards";
 
 export default async function EmployeeDashboardPage() {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireEmployeeOffboarding } from "@/lib/employee-auth";
+import { requireEmployeeOffboarding } from "@/lib/employee-auth.server";
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
 

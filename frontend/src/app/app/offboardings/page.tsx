@@ -1,6 +1,6 @@
 import { requireActiveOrg } from "@/lib/auth.server";
-import { requirePermission, getExcludedOffboardingIdsForUser } from "@/lib/rbac";
-import { prisma } from "@/lib/prisma";
+import { requirePermission, getExcludedOffboardingIdsForUser } from "@/lib/rbac.server";
+import { prisma } from "@/lib/prisma.server";
 import OffboardingsClient from "./OffboardingsClient";
 import { Suspense } from "react";
 import { Box, CircularProgress } from "@mui/material";

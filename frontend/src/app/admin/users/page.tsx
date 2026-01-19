@@ -1,5 +1,5 @@
 import { requirePlatformAdmin } from "@/lib/auth.server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import UsersClient from "./UsersClient";
 
 export default async function AdminUsersPage() {

@@ -23,7 +23,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ColorModeContext } from "@/theme/ThemeRegistry";
 import { createClient } from "@/lib/supabase/client";
-import type { EmployeePortalSession } from "@/lib/employee-auth";
+import type { EmployeePortalSession } from "@/lib/employee-auth.server";
 
 const SIDEBAR_WIDTH = 280;
 

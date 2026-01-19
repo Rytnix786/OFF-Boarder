@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
 import { requireActiveOrg } from "@/lib/auth.server";
-import { computePortalContext } from "@/lib/portal-context";
+import { computePortalContext } from "@/lib/portal-context.server";
 import { 
   getEmployeeRequiredTasksForSubject, 
   getAssignedTasksForContributor 
-} from "@/lib/portal-context";
-import { canAccessPortal } from "@/lib/rbac";
-import { prisma } from "@/lib/prisma";
+} from "@/lib/portal-context.server";
+import { canAccessPortal } from "@/lib/rbac.server";
+import { prisma } from "@/lib/prisma.server";
 import { PortalTaskList } from "./portal-task-list";
 
 export default async function PortalPage() {

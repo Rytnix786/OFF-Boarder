@@ -40,6 +40,7 @@ import {
   cancelOffboarding, 
   updateOffboardingRisk 
 } from "@/lib/actions/offboardings";
+import { verifyPortalTask } from "@/lib/actions/portal-tasks";
 import { submitApproval } from "@/lib/actions/approvals";
 import { updateAssetReturnForOffboarding as updateAssetReturn } from "@/lib/actions/assets";
 import { generateEvidencePack, exportEvidencePackAsJSON } from "@/lib/actions/evidence";
@@ -72,6 +73,9 @@ type Task = {
   completedAt: Date | null;
   requiresApproval: boolean;
   isHighRiskTask: boolean;
+  isEmployeeRequired: boolean;
+  isVerified: boolean;
+  verifiedAt: Date | null;
   evidenceRequirement: "REQUIRED" | "OPTIONAL" | "NONE";
   evidence: EvidenceItem[];
 };
@@ -175,6 +179,18 @@ export default function OffboardingDetailClient({
     const result = await updateOffboardingTask(taskId, newStatus);
     if (result.error) {
       setSnackbar({ open: true, message: result.error, severity: "error" });
+    }
+    router.refresh();
+    setLoading(null);
+  };
+
+  const handleVerifyTask = async (taskId: string) => {
+    setLoading(`verify-${taskId}`);
+    const result = await verifyPortalTask(taskId);
+    if (result.error) {
+      setSnackbar({ open: true, message: result.error, severity: "error" });
+    } else {
+      setSnackbar({ open: true, message: "Task verified", severity: "success" });
     }
     router.refresh();
     setLoading(null);
@@ -519,67 +535,91 @@ export default function OffboardingDetailClient({
                         {category}
                       </Typography>
                       <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                        {tasks.map((task) => {
-                          const hasRequiredEvidence = task.evidenceRequirement === "REQUIRED" && task.evidence.length === 0;
-                          return (
-                          <Box
-                            key={task.id}
-                            sx={{
-                              p: 2,
-                              borderRadius: 2,
-                              bgcolor: task.status === "COMPLETED" ? alpha("#22c55e", 0.05) : task.isHighRiskTask ? alpha("#ef4444", 0.05) : hasRequiredEvidence ? alpha("#f59e0b", 0.03) : "transparent",
-                              border: "1px solid",
-                              borderColor: task.status === "COMPLETED" ? alpha("#22c55e", 0.2) : task.isHighRiskTask ? alpha("#ef4444", 0.2) : hasRequiredEvidence ? alpha("#f59e0b", 0.2) : "divider",
-                            }}
-                          >
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                              <Checkbox
-                                checked={task.status === "COMPLETED"}
-                                disabled={!canUpdate || loading === task.id || offboarding.status === "COMPLETED" || offboarding.status === "CANCELLED" || (task.requiresApproval && offboarding.approvals.some(a => a.task?.name === task.name && a.status === "PENDING")) || hasRequiredEvidence}
-                                onChange={() => handleTaskToggle(task.id, task.status)}
-                                sx={{
-                                  color: task.status === "COMPLETED" ? "success.main" : undefined,
-                                  "&.Mui-checked": { color: "success.main" },
-                                }}
-                              />
-                              <Box sx={{ flex: 1 }}>
-                                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                  <Typography
-                                    fontWeight={600}
-                                    sx={{
-                                      textDecoration: task.status === "COMPLETED" ? "line-through" : "none",
-                                      color: task.status === "COMPLETED" ? "text.secondary" : "text.primary",
-                                    }}
-                                  >
-                                    {task.name}
-                                  </Typography>
-                                  {task.isHighRiskTask && (
-                                    <Chip label="High Risk" size="small" color="error" sx={{ height: 20 }} />
-                                  )}
-                                  {task.requiresApproval && (
-                                    <Chip label="Requires Approval" size="small" color="warning" sx={{ height: 20 }} />
-                                  )}
-                                  {task.evidenceRequirement === "REQUIRED" && (
-                                    <Chip 
-                                      label={task.evidence.length > 0 ? "Evidence ✓" : "Evidence Required"} 
-                                      size="small" 
-                                      color={task.evidence.length > 0 ? "success" : "warning"} 
-                                      sx={{ height: 20 }} 
+                          {tasks.map((task) => {
+                            const hasRequiredEvidence = task.evidenceRequirement === "REQUIRED" && task.evidence.length === 0;
+                            const isAdminBlocked = task.isEmployeeRequired && task.status !== "COMPLETED";
+                            
+                            return (
+                            <Box
+                              key={task.id}
+                              sx={{
+                                p: 2,
+                                borderRadius: 2,
+                                bgcolor: task.status === "COMPLETED" ? alpha("#22c55e", 0.05) : task.isHighRiskTask ? alpha("#ef4444", 0.05) : hasRequiredEvidence ? alpha("#f59e0b", 0.03) : "transparent",
+                                border: "1px solid",
+                                borderColor: task.status === "COMPLETED" ? alpha("#22c55e", 0.2) : task.isHighRiskTask ? alpha("#ef4444", 0.2) : hasRequiredEvidence ? alpha("#f59e0b", 0.2) : "divider",
+                              }}
+                            >
+                              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                                <Tooltip title={isAdminBlocked ? "Must be completed by employee" : ""}>
+                                  <span>
+                                    <Checkbox
+                                      checked={task.status === "COMPLETED"}
+                                      disabled={!canUpdate || loading === task.id || offboarding.status === "COMPLETED" || offboarding.status === "CANCELLED" || (task.requiresApproval && offboarding.approvals.some(a => a.task?.name === task.name && a.status === "PENDING")) || hasRequiredEvidence || isAdminBlocked}
+                                      onChange={() => handleTaskToggle(task.id, task.status)}
+                                      sx={{
+                                        color: task.status === "COMPLETED" ? "success.main" : undefined,
+                                        "&.Mui-checked": { color: "success.main" },
+                                      }}
                                     />
+                                  </span>
+                                </Tooltip>
+                                <Box sx={{ flex: 1 }}>
+                                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                    <Typography
+                                      fontWeight={600}
+                                      sx={{
+                                        textDecoration: task.status === "COMPLETED" ? "line-through" : "none",
+                                        color: task.status === "COMPLETED" ? "text.secondary" : "text.primary",
+                                      }}
+                                    >
+                                      {task.name}
+                                    </Typography>
+                                    {task.isHighRiskTask && (
+                                      <Chip label="High Risk" size="small" color="error" sx={{ height: 20 }} />
+                                    )}
+                                    {task.isEmployeeRequired && (
+                                      <Chip label="Employee Action" size="small" variant="outlined" sx={{ height: 20 }} />
+                                    )}
+                                    {task.isVerified ? (
+                                      <Chip label="Verified ✓" size="small" color="success" sx={{ height: 20, fontWeight: 700 }} />
+                                    ) : task.status === "COMPLETED" && task.isEmployeeRequired && (
+                                      <Button 
+                                        size="small" 
+                                        variant="contained" 
+                                        color="primary"
+                                        onClick={() => handleVerifyTask(task.id)}
+                                        disabled={loading === `verify-${task.id}`}
+                                        sx={{ height: 24, fontSize: "0.65rem", py: 0 }}
+                                      >
+                                        Verify Completion
+                                      </Button>
+                                    )}
+                                    {task.requiresApproval && (
+                                      <Chip label="Requires Approval" size="small" color="warning" sx={{ height: 20 }} />
+                                    )}
+                                    {task.evidenceRequirement === "REQUIRED" && (
+                                      <Chip 
+                                        label={task.evidence.length > 0 ? "Evidence ✓" : "Evidence Required"} 
+                                        size="small" 
+                                        color={task.evidence.length > 0 ? "success" : "warning"} 
+                                        sx={{ height: 20 }} 
+                                      />
+                                    )}
+                                  </Box>
+                                  {task.description && (
+                                    <Typography variant="caption" color="text.secondary">
+                                      {task.description}
+                                    </Typography>
                                   )}
                                 </Box>
-                                {task.description && (
-                                  <Typography variant="caption" color="text.secondary">
-                                    {task.description}
+                                {task.completedAt && (
+                                  <Typography variant="caption" color="success.main">
+                                    Completed {new Date(task.completedAt).toLocaleDateString("en-US")}
                                   </Typography>
                                 )}
                               </Box>
-                              {task.completedAt && (
-                                <Typography variant="caption" color="success.main">
-                                  Completed {new Date(task.completedAt).toLocaleDateString("en-US")}
-                                </Typography>
-                              )}
-                            </Box>
+
                             <TaskEvidencePanel
                               taskId={task.id}
                               taskName={task.name}

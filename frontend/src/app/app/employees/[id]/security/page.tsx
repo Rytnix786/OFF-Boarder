@@ -1,6 +1,6 @@
 import { requireActiveOrg } from "@/lib/auth.server";
-import { requirePermission, isAdmin } from "@/lib/rbac";
-import { prisma } from "@/lib/prisma";
+import { requirePermission, isAdmin } from "@/lib/rbac.server";
+import { prisma } from "@/lib/prisma.server";
 import { notFound } from "next/navigation";
 import {
   getEmployeeSecurityProfile,

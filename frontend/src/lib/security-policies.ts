@@ -1,9 +1,9 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { AuthSession } from "@/lib/auth-types";
-import { createAuditLog } from "@/lib/audit";
-import { getClientIP } from "@/lib/ip-blocking";
+import { createAuditLog } from "@/lib/audit.server";
+import { getClientIP } from "@/lib/ip-blocking.server";
 import { Prisma } from "@prisma/client";
 import {
   PolicyCategory,

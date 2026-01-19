@@ -1,5 +1,5 @@
 import { requireActiveOrg } from "@/lib/auth.server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { BlockScope } from "@prisma/client";
 import { getSecurityPolicies } from "@/lib/security-policies";
 import SecuritySettingsClient from "./SecuritySettingsClient";

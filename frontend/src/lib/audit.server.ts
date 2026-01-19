@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { AuthSession } from "./auth";
 import { Prisma } from "@prisma/client";
 

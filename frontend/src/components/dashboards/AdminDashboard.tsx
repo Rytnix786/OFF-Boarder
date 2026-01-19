@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { AuthSession } from "@/lib/auth-types";
 import { Box, Typography, Card, CardContent, Grid, Button, Chip, Avatar, alpha, LinearProgress } from "@mui/material";
 import Link from "next/link";

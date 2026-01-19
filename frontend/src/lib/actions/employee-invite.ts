@@ -1,8 +1,8 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { requireActiveOrg } from "@/lib/auth.server";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog } from "@/lib/audit.server";
 import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
 import { PortalType } from "@prisma/client";

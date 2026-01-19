@@ -1,5 +1,5 @@
 import { requireActiveOrg } from "@/lib/auth.server";
-import { requirePermission } from "@/lib/rbac";
+import { requirePermission } from "@/lib/rbac.server";
 import { getOrgStructure } from "@/lib/actions/organization";
 import StructureClient from "./StructureClient";
 

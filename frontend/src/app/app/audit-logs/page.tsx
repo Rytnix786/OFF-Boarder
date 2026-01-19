@@ -1,6 +1,6 @@
 import { requireActiveOrg } from "@/lib/auth.server";
-import { requirePermission } from "@/lib/rbac";
-import { getAuditLogs } from "@/lib/audit";
+import { requirePermission } from "@/lib/rbac.server";
+import { getAuditLogs } from "@/lib/audit.server";
 import AuditLogsClient from "./AuditLogsClient";
 
 export default async function AuditLogsPage() {

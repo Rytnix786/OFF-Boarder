@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { requireAuth } from "@/lib/auth.server";
-import { isAdmin } from "@/lib/rbac";
+import { isAdmin } from "@/lib/rbac.server";
 import { EmployeeStatus } from "@prisma/client";
 
 export async function POST(request: NextRequest) {

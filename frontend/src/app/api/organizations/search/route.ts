@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 
 // Public endpoint - allows unauthenticated users to search for active organizations
 // Used during registration flow for "Join Existing Organization" feature
