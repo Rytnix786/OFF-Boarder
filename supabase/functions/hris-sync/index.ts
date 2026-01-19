@@ -3,14 +3,13 @@
 import { corsHeaders, createSupabaseClient } from "../shared/supabase.ts";
 
 interface HRISRequest {
-    employee_id: string;
-    company_id: string;
-    new_status: 'active' | 'offboarding' | 'terminated';
+    employeeId: string;
+    organizationId: string;
+    newStatus: 'ACTIVE' | 'OFFBOARDING' | 'TERMINATED' | 'ON_LEAVE' | 'ARCHIVED';
 }
 
 // @ts-ignore - Deno global is available in Supabase Edge Functions runtime
 Deno.serve(async (req: Request) => {
-    // 1. Handle CORS Preflight
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders });
     }
@@ -23,15 +22,15 @@ Deno.serve(async (req: Request) => {
             });
         }
 
-        const { employee_id, company_id, new_status }: HRISRequest = await req.json();
+        const { employeeId, organizationId, newStatus }: HRISRequest = await req.json();
 
         const supabase = createSupabaseClient();
 
         const { data, error } = await supabase
-            .from('employees')
-            .update({ status: new_status })
-            .eq('id', employee_id)
-            .eq('company_id', company_id)
+            .from('Employee')
+            .update({ status: newStatus })
+            .eq('id', employeeId)
+            .eq('organizationId', organizationId)
             .select();
 
         if (error || !data || data.length === 0) {
