@@ -338,31 +338,35 @@ model Offboarding {
 }
 
 model OffboardingTask {
-  id                   String              @id @default(cuid())
-  offboardingId        String
-  name                 String
-  description          String?
-  status               TaskStatus          @default(PENDING)
-  dueDate              DateTime?
-  completedAt          DateTime?
-  completedBy          String?
-  createdAt            DateTime            @default(now())
-  updatedAt            DateTime            @updatedAt
-  category             String?
-  requiresApproval     Boolean             @default(false)
-  isHighRiskTask       Boolean             @default(false)
-  isEmployeeRequired   Boolean             @default(false)
-  order                Int                 @default(0)
-  assignedToUserId     String?
-  assignedToEmployeeId String?
-  evidenceRequirement  EvidenceRequirement @default(NONE)
-  approvals            Approval[]
-  offboarding          Offboarding         @relation(fields: [offboardingId], references: [id], onDelete: Cascade)
-  evidence             TaskEvidence[]
+  id                     String              @id @default(cuid())
+  offboardingId          String
+  name                   String
+  description            String?
+  status                 TaskStatus          @default(PENDING)
+  dueDate                DateTime?
+  completedAt            DateTime?
+  completedBy            String?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  category               String?
+  requiresApproval       Boolean             @default(false)
+  isHighRiskTask         Boolean             @default(false)
+  isEmployeeRequired     Boolean             @default(false)
+  order                  Int                 @default(0)
+  assignedToUserId       String?
+  assignedToEmployeeId   String?
+  assigneeType           TaskAssigneeType?
+  completedByActorType   TaskAssigneeType?
+  completedByEmployeeId  String?
+  evidenceRequirement    EvidenceRequirement @default(NONE)
+  approvals              Approval[]
+  offboarding            Offboarding         @relation(fields: [offboardingId], references: [id], onDelete: Cascade)
+  evidence               TaskEvidence[]
 
   @@index([offboardingId])
   @@index([assignedToUserId])
   @@index([assignedToEmployeeId])
+  @@index([assigneeType])
 }
 
 model Approval {
@@ -1035,6 +1039,11 @@ enum EvidenceType {
   LINK
   NOTE
   SYSTEM_PROOF
+}
+
+enum TaskAssigneeType {
+  EMPLOYEE
+  ORG_USER
 }
 
 model UserSession {

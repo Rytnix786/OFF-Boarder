@@ -795,7 +795,7 @@ export async function GET(
             version: currentVersion,
             ipAddress,
           },
-        },
+        } as any,
       },
       create: {
         offboardingId,
