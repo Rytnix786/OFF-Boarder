@@ -143,13 +143,18 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
 
   const employee = await prisma.employee.findFirst({
     where: { id: employeeId, organizationId: orgId },
+    include: {
+      department: { select: { id: true, name: true } },
+      jobTitle: { select: { id: true, title: true } },
+      location: { select: { id: true, name: true } },
+      managerMembership: { select: { id: true, user: { select: { name: true, email: true } } } },
+    },
   });
 
   if (!employee) {
     return { error: "Employee not found" };
   }
 
-  const oldData = { ...employee };
   const data = {
     firstName: formData.get("firstName") as string || employee.firstName,
     lastName: formData.get("lastName") as string || employee.lastName,
@@ -163,43 +168,52 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
     status: formData.get("status") as "ACTIVE" | "ON_LEAVE" | "TERMINATED" | "OFFBOARDING" || employee.status,
   };
 
+  let newDepartment = null;
+  let newJobTitle = null;
+  let newLocation = null;
+  let newManager = null;
+
   if (data.departmentId) {
-    const dept = await prisma.department.findFirst({
+    newDepartment = await prisma.department.findFirst({
       where: { id: data.departmentId, organizationId: orgId },
+      select: { id: true, name: true },
     });
-    if (!dept) {
+    if (!newDepartment) {
       return { error: "Invalid department selected" };
     }
   }
 
   if (data.jobTitleId) {
-    const jt = await prisma.jobTitle.findFirst({
+    newJobTitle = await prisma.jobTitle.findFirst({
       where: { id: data.jobTitleId, organizationId: orgId },
+      select: { id: true, title: true },
     });
-    if (!jt) {
+    if (!newJobTitle) {
       return { error: "Invalid job title selected" };
     }
   }
 
   if (data.locationId) {
-    const loc = await prisma.location.findFirst({
+    newLocation = await prisma.location.findFirst({
       where: { id: data.locationId, organizationId: orgId },
+      select: { id: true, name: true },
     });
-    if (!loc) {
+    if (!newLocation) {
       return { error: "Invalid location selected" };
     }
   }
 
   if (data.managerMembershipId) {
-    const mgr = await prisma.membership.findFirst({
+    newManager = await prisma.membership.findFirst({
       where: { 
         id: data.managerMembershipId, 
         organizationId: orgId,
         status: "ACTIVE",
         systemRole: { in: ["OWNER", "ADMIN", "CONTRIBUTOR"] },
       },
+      select: { id: true, user: { select: { name: true, email: true } } },
     });
-    if (!mgr) {
+    if (!newManager) {
       return { error: "Invalid manager selected - must be an active org member" };
     }
   }
@@ -209,12 +223,61 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
     data,
   });
 
+  const structureChanges: { field: string; from: string | null; to: string | null }[] = [];
+  
+  if (employee.departmentId !== data.departmentId) {
+    structureChanges.push({
+      field: "department",
+      from: employee.department?.name || null,
+      to: newDepartment?.name || null,
+    });
+  }
+  
+  if (employee.jobTitleId !== data.jobTitleId) {
+    structureChanges.push({
+      field: "jobTitle",
+      from: employee.jobTitle?.title || null,
+      to: newJobTitle?.title || null,
+    });
+  }
+  
+  if (employee.locationId !== data.locationId) {
+    structureChanges.push({
+      field: "location",
+      from: employee.location?.name || null,
+      to: newLocation?.name || null,
+    });
+  }
+  
+  if (employee.managerMembershipId !== data.managerMembershipId) {
+    structureChanges.push({
+      field: "manager",
+      from: employee.managerMembership?.user?.name || employee.managerMembership?.user?.email || null,
+      to: newManager?.user?.name || newManager?.user?.email || null,
+    });
+  }
+
   await createAuditLog(session, orgId, {
     action: "employee.updated",
     entityType: "Employee",
     entityId: employeeId,
-    oldData: { name: `${oldData.firstName} ${oldData.lastName}`, status: oldData.status },
-    newData: { name: `${data.firstName} ${data.lastName}`, status: data.status },
+    oldData: { 
+      name: `${employee.firstName} ${employee.lastName}`, 
+      status: employee.status,
+      department: employee.department?.name || null,
+      jobTitle: employee.jobTitle?.title || null,
+      location: employee.location?.name || null,
+      manager: employee.managerMembership?.user?.name || employee.managerMembership?.user?.email || null,
+    },
+    newData: { 
+      name: `${data.firstName} ${data.lastName}`, 
+      status: data.status,
+      department: newDepartment?.name || null,
+      jobTitle: newJobTitle?.title || null,
+      location: newLocation?.name || null,
+      manager: newManager?.user?.name || newManager?.user?.email || null,
+    },
+    metadata: structureChanges.length > 0 ? { structureChanges } : undefined,
   });
 
   revalidatePath("/app/employees");
