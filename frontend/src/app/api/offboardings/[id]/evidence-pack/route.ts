@@ -37,16 +37,16 @@ export async function GET(
     const orgId = session.currentOrgId!;
 
     const offboarding = await prisma.offboarding.findFirst({
-      where: { id: offboardingId, organizationId: orgId },
-      include: {
-        employee: {
-          include: {
-            department: true,
-            jobTitle: true,
-            location: true,
-            manager: { select: { firstName: true, lastName: true, email: true } },
+        where: { id: offboardingId, organizationId: orgId },
+        include: {
+          employee: {
+            include: {
+              department: true,
+              jobTitle: true,
+              location: true,
+              managerMembership: { select: { user: { select: { name: true, email: true } } } },
+            },
           },
-        },
         tasks: {
           orderBy: { order: "asc" },
           include: {

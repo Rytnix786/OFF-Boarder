@@ -666,7 +666,7 @@ export async function getOffboarding(offboardingId: string) {
           department: true,
           jobTitle: true,
           location: true,
-          manager: { select: { id: true, firstName: true, lastName: true } },
+          managerMembership: { select: { id: true, user: { select: { name: true, email: true } } } },
           assets: true,
         },
       },

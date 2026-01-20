@@ -29,7 +29,7 @@ export default async function EmployeeDirectoryReport({ searchParams }: PageProp
         department: { select: { name: true } },
         location: { select: { name: true } },
         jobTitle: { select: { title: true } },
-        manager: { select: { firstName: true, lastName: true } },
+        managerMembership: { select: { user: { select: { name: true } } } },
       },
       orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
       take: 200,
@@ -164,9 +164,7 @@ export default async function EmployeeDirectoryReport({ searchParams }: PageProp
                     <TableCell>{employee.jobTitle?.title || "-"}</TableCell>
                     <TableCell>{employee.location?.name || "-"}</TableCell>
                     <TableCell>
-                      {employee.manager
-                        ? `${employee.manager.firstName} ${employee.manager.lastName}`
-                        : "-"}
+                      {employee.managerMembership?.user?.name || "-"}
                     </TableCell>
                     <TableCell>
                       <Chip

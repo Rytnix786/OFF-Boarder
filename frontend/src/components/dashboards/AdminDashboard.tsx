@@ -121,7 +121,7 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
     prisma.assetReturn.count({
       where: {
         offboarding: { organizationId: orgId, status: { in: ["PENDING", "IN_PROGRESS", "COMPLETED"] } },
-        status: { in: ["PENDING", "NOT_RETURNED", "LOST"] },
+        status: { in: ["PENDING", "MISSING", "DAMAGED"] },
       },
     }),
     prisma.offboarding.count({
@@ -191,7 +191,7 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
     prisma.assetReturn.findMany({
       where: {
         offboarding: { organizationId: orgId },
-        status: { in: ["NOT_RETURNED", "LOST"] },
+        status: { in: ["MISSING", "DAMAGED"] },
       },
       include: {
         asset: { select: { name: true, type: true } },
