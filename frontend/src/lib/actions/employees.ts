@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma.server";
 import { requireActiveOrg } from "@/lib/auth.server";
+import { requirePermission } from "@/lib/rbac.server";
 import { createAuditLog } from "@/lib/audit.server";
 import { revalidatePath } from "next/cache";
 import { randomBytes } from "crypto";
@@ -27,6 +28,42 @@ export async function createEmployee(formData: FormData) {
 
   if (!data.employeeId || !data.firstName || !data.lastName || !data.email) {
     return { error: "Employee ID, first name, last name, and email are required" };
+  }
+
+  if (data.departmentId) {
+    const dept = await prisma.department.findFirst({
+      where: { id: data.departmentId, organizationId: orgId },
+    });
+    if (!dept) {
+      return { error: "Invalid department selected" };
+    }
+  }
+
+  if (data.jobTitleId) {
+    const jt = await prisma.jobTitle.findFirst({
+      where: { id: data.jobTitleId, organizationId: orgId },
+    });
+    if (!jt) {
+      return { error: "Invalid job title selected" };
+    }
+  }
+
+  if (data.locationId) {
+    const loc = await prisma.location.findFirst({
+      where: { id: data.locationId, organizationId: orgId },
+    });
+    if (!loc) {
+      return { error: "Invalid location selected" };
+    }
+  }
+
+  if (data.managerId) {
+    const mgr = await prisma.employee.findFirst({
+      where: { id: data.managerId, organizationId: orgId },
+    });
+    if (!mgr) {
+      return { error: "Invalid manager selected" };
+    }
   }
 
   const existing = await prisma.employee.findFirst({
@@ -120,6 +157,42 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
     managerId: formData.get("managerId") as string || null,
     status: formData.get("status") as "ACTIVE" | "ON_LEAVE" | "TERMINATED" | "OFFBOARDING" || employee.status,
   };
+
+  if (data.departmentId) {
+    const dept = await prisma.department.findFirst({
+      where: { id: data.departmentId, organizationId: orgId },
+    });
+    if (!dept) {
+      return { error: "Invalid department selected" };
+    }
+  }
+
+  if (data.jobTitleId) {
+    const jt = await prisma.jobTitle.findFirst({
+      where: { id: data.jobTitleId, organizationId: orgId },
+    });
+    if (!jt) {
+      return { error: "Invalid job title selected" };
+    }
+  }
+
+  if (data.locationId) {
+    const loc = await prisma.location.findFirst({
+      where: { id: data.locationId, organizationId: orgId },
+    });
+    if (!loc) {
+      return { error: "Invalid location selected" };
+    }
+  }
+
+  if (data.managerId) {
+    const mgr = await prisma.employee.findFirst({
+      where: { id: data.managerId, organizationId: orgId },
+    });
+    if (!mgr) {
+      return { error: "Invalid manager selected" };
+    }
+  }
 
   const updated = await prisma.employee.update({
     where: { id: employeeId },
