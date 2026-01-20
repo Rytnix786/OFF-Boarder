@@ -30,7 +30,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AuthSession } from "@/lib/auth-types";
 import { ColorModeContext } from "@/theme/ThemeRegistry";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, clearRememberMe } from "@/lib/supabase/client";
 import {
   MODULE_SECTIONS,
   SETTINGS_SECTIONS,
@@ -175,12 +175,13 @@ export default function AppShell({ session, userPermissions, children }: AppShel
   };
 
   const handleSignOut = async () => {
-    setProfileMenuAnchor(null);
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
-  };
+      setProfileMenuAnchor(null);
+      clearRememberMe();
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.push("/login");
+      router.refresh();
+    };
 
   const handleOrgSwitch = (orgSlug: string) => {
     setOrgMenuAnchor(null);

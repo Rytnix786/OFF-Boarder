@@ -22,7 +22,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ColorModeContext } from "@/theme/ThemeRegistry";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, clearRememberMe } from "@/lib/supabase/client";
 import type { EmployeePortalSession } from "@/lib/employee-auth.server";
 
 const SIDEBAR_WIDTH = 280;
@@ -47,11 +47,12 @@ export default function EmployeePortalShell({ session, children }: EmployeePorta
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
 
   const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
-  };
+      clearRememberMe();
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.push("/login");
+      router.refresh();
+    };
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>

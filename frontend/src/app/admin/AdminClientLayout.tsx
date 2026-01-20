@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AuthSession } from "@/lib/auth-types";
 import AdminProfileMenu from "./AdminProfileMenu";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, clearRememberMe } from "@/lib/supabase/client";
 
 type PlatformContextType = {
   incidentMode: boolean;
@@ -198,9 +198,10 @@ export default function AdminLayout({ children, session }: { children: React.Rea
     try {
       setSigningOut(true);
       await fetch("/api/platform/auth/sign-out", { method: "POST" }).catch(() => {});
-      const supabase = createClient();
-      await supabase.auth.signOut();
-      localStorage.clear();
+        clearRememberMe();
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        localStorage.clear();
       window.location.href = "/login";
     } catch (error) {
       console.error("Sign out failed", error);
