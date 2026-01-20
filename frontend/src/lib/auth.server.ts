@@ -7,12 +7,29 @@ import type { MembershipWithOrg, AuthSession } from "@/lib/auth-types";
 
 export type { AuthUser, MembershipWithOrg, AuthSession } from "@/lib/auth-types";
 
+export class AuthError extends Error {
+  constructor(message: string, public code: "UNAUTHENTICATED" | "UNAUTHORIZED" | "NO_ORG") {
+    super(message);
+    this.name = "AuthError";
+  }
+}
+
 async function getCurrentPathname(): Promise<string | null> {
   try {
     const headersList = await headers();
     return headersList.get("x-pathname");
   } catch {
     return null;
+  }
+}
+
+async function isServerAction(): Promise<boolean> {
+  try {
+    const headersList = await headers();
+    const nextAction = headersList.get("next-action");
+    return !!nextAction;
+  } catch {
+    return false;
   }
 }
 
@@ -94,6 +111,10 @@ export async function getAuthSession(orgSlug?: string): Promise<AuthSession | nu
 export async function requireAuth(orgSlug?: string): Promise<AuthSession> {
   const session = await getAuthSession(orgSlug);
   if (!session) {
+    const inServerAction = await isServerAction();
+    if (inServerAction) {
+      throw new AuthError("Session expired. Please refresh the page.", "UNAUTHENTICATED");
+    }
     const pathname = await getCurrentPathname();
     if (pathname && pathname !== "/login") {
       redirect(`/login?redirect=${encodeURIComponent(pathname)}`);
@@ -114,9 +135,17 @@ export async function requirePlatformAdmin(): Promise<AuthSession> {
 export async function requireActiveOrg(orgSlug?: string): Promise<AuthSession> {
   const session = await requireAuth(orgSlug);
   if (!session.currentMembership) {
+    const inServerAction = await isServerAction();
+    if (inServerAction) {
+      throw new AuthError("No active organization membership.", "NO_ORG");
+    }
     redirect("/pending");
   }
   if (session.currentMembership.organization.status !== "ACTIVE") {
+    const inServerAction = await isServerAction();
+    if (inServerAction) {
+      throw new AuthError("Organization is not active.", "NO_ORG");
+    }
     redirect("/pending");
   }
   return session;
