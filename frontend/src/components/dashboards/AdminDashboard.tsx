@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma.server";
 import { AuthSession } from "@/lib/auth-types";
 import { Box, Typography, Card, CardContent, Grid, Button, Chip, Avatar, alpha, LinearProgress } from "@mui/material";
 import Link from "next/link";
+import { getOnboardingStatus } from "@/lib/actions/onboarding-checklist";
+import { OnboardingChecklist } from "./OnboardingChecklist";
 
 interface AdminDashboardProps {
   session: AuthSession;
@@ -88,6 +90,7 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
     recentAuditLogs,
     activePolicies,
     totalWorkflows,
+    onboardingStatus,
   ] = await Promise.all([
     prisma.offboarding.count({
       where: { organizationId: orgId, status: { in: ["PENDING", "IN_PROGRESS", "PENDING_APPROVAL"] } },
@@ -262,6 +265,7 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
     }),
     prisma.securityPolicy.count({ where: { organizationId: orgId, isActive: true } }),
     prisma.workflowTemplate.count({ where: { organizationId: orgId, isActive: true } }),
+    getOnboardingStatus(orgId),
   ]);
 
   const { posture } = calculateRiskPosture(
@@ -295,17 +299,25 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
     return diff;
   };
 
-    return (
-      <Box sx={{ maxWidth: 1400, mx: "auto" }}>
-          {/* PAGE HEADER */}
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="overline" sx={{ fontWeight: 600, color: "text.secondary", letterSpacing: 1.5, fontSize: "0.6875rem" }}>
-                {session.currentMembership?.organization.name} · Production
+    const isOwner = session.currentMembership?.systemRole === "OWNER";
+    const orgName = session.currentMembership?.organization.name || "Organization";
+
+      return (
+        <Box sx={{ maxWidth: 1400, mx: "auto" }}>
+            {/* PAGE HEADER */}
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="overline" sx={{ fontWeight: 600, color: "text.secondary", letterSpacing: 1.5, fontSize: "0.6875rem" }}>
+                  {session.currentMembership?.organization.name} · Production
+                </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: "text.primary", letterSpacing: -0.5 }}>
+                Command Center
               </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: "text.primary", letterSpacing: -0.5 }}>
-              Command Center
-            </Typography>
-          </Box>
+            </Box>
+
+          {/* ONBOARDING CHECKLIST - Owner Only */}
+          {isOwner && !onboardingStatus.isComplete && (
+            <OnboardingChecklist status={onboardingStatus} orgName={orgName} />
+          )}
 
         {/* ═══════════════════════════════════════════════════════════════════════════════════════
             STATUS VERDICT
