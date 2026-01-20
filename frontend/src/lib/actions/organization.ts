@@ -689,7 +689,48 @@ export async function getOrgTypeForStructure() {
   return { orgType: normalizedType, preset };
 }
 
-export async function applyStructurePreset() {
+export async function getUnusedStructureItems() {
+  const session = await requireActiveOrg();
+  const orgId = session.currentOrgId!;
+
+  const [departments, jobTitles, locations] = await Promise.all([
+    prisma.department.findMany({
+      where: { organizationId: orgId },
+      include: { _count: { select: { employees: true } } },
+    }),
+    prisma.jobTitle.findMany({
+      where: { organizationId: orgId },
+      include: { _count: { select: { employees: true } } },
+    }),
+    prisma.location.findMany({
+      where: { organizationId: orgId },
+      include: { _count: { select: { employees: true } } },
+    }),
+  ]);
+
+  const unusedDepartments = departments.filter(d => d._count.employees === 0);
+  const unusedJobTitles = jobTitles.filter(t => t._count.employees === 0);
+  const unusedLocations = locations.filter(l => l._count.employees === 0);
+
+  const usedDepartments = departments.filter(d => d._count.employees > 0);
+  const usedJobTitles = jobTitles.filter(t => t._count.employees > 0);
+  const usedLocations = locations.filter(l => l._count.employees > 0);
+
+  return {
+    unused: {
+      departments: unusedDepartments.map(d => ({ id: d.id, name: d.name })),
+      jobTitles: unusedJobTitles.map(t => ({ id: t.id, title: t.title })),
+      locations: unusedLocations.map(l => ({ id: l.id, name: l.name })),
+    },
+    used: {
+      departments: usedDepartments.map(d => ({ id: d.id, name: d.name, count: d._count.employees })),
+      jobTitles: usedJobTitles.map(t => ({ id: t.id, title: t.title, count: t._count.employees })),
+      locations: usedLocations.map(l => ({ id: l.id, name: l.name, count: l._count.employees })),
+    },
+  };
+}
+
+export async function applyStructurePreset(mode: "merge" | "replace" = "merge") {
   const session = await requireActiveOrg();
   const orgId = session.currentOrgId!;
   const userRole = session.currentMembership?.systemRole;
@@ -714,6 +755,82 @@ export async function applyStructurePreset() {
     return { error: "No preset available for this organization type" };
   }
 
+  const results = {
+    departmentsAdded: 0,
+    jobTitlesAdded: 0,
+    locationsAdded: 0,
+    departmentsRemoved: 0,
+    jobTitlesRemoved: 0,
+    locationsRemoved: 0,
+    itemsPreserved: {
+      departments: [] as string[],
+      jobTitles: [] as string[],
+      locations: [] as string[],
+    },
+  };
+
+  if (mode === "replace") {
+    const [allDepts, allTitles, allLocs] = await Promise.all([
+      prisma.department.findMany({
+        where: { organizationId: orgId },
+        include: { _count: { select: { employees: true } } },
+      }),
+      prisma.jobTitle.findMany({
+        where: { organizationId: orgId },
+        include: { _count: { select: { employees: true } } },
+      }),
+      prisma.location.findMany({
+        where: { organizationId: orgId },
+        include: { _count: { select: { employees: true } } },
+      }),
+    ]);
+
+    const presetDeptNames = new Set(preset.departments.map(d => d.name.toLowerCase()));
+    const presetTitleNames = new Set(preset.jobTitles.map(t => t.title.toLowerCase()));
+    const presetLocNames = new Set(preset.locations.map(l => l.name.toLowerCase()));
+
+    const deptsToRemove = allDepts.filter(d => 
+      !presetDeptNames.has(d.name.toLowerCase()) && d._count.employees === 0
+    );
+    const titlesToRemove = allTitles.filter(t => 
+      !presetTitleNames.has(t.title.toLowerCase()) && t._count.employees === 0
+    );
+    const locsToRemove = allLocs.filter(l => 
+      !presetLocNames.has(l.name.toLowerCase()) && l._count.employees === 0
+    );
+
+    results.itemsPreserved.departments = allDepts
+      .filter(d => !presetDeptNames.has(d.name.toLowerCase()) && d._count.employees > 0)
+      .map(d => d.name);
+    results.itemsPreserved.jobTitles = allTitles
+      .filter(t => !presetTitleNames.has(t.title.toLowerCase()) && t._count.employees > 0)
+      .map(t => t.title);
+    results.itemsPreserved.locations = allLocs
+      .filter(l => !presetLocNames.has(l.name.toLowerCase()) && l._count.employees > 0)
+      .map(l => l.name);
+
+    if (deptsToRemove.length > 0) {
+      await prisma.department.deleteMany({
+        where: { id: { in: deptsToRemove.map(d => d.id) } },
+      });
+      results.departmentsRemoved = deptsToRemove.length;
+    }
+
+    if (titlesToRemove.length > 0) {
+      await prisma.jobTitle.deleteMany({
+        where: { id: { in: titlesToRemove.map(t => t.id) } },
+      });
+      results.jobTitlesRemoved = titlesToRemove.length;
+    }
+
+    if (locsToRemove.length > 0) {
+      await prisma.location.deleteMany({
+        where: { id: { in: locsToRemove.map(l => l.id) } },
+      });
+      results.locationsRemoved = locsToRemove.length;
+    }
+  }
+
   const [existingDepts, existingTitles, existingLocs] = await Promise.all([
     prisma.department.findMany({ where: { organizationId: orgId }, select: { name: true } }),
     prisma.jobTitle.findMany({ where: { organizationId: orgId }, select: { title: true } }),
@@ -727,12 +844,6 @@ export async function applyStructurePreset() {
   const newDepts = preset.departments.filter(d => !existingDeptNames.has(d.name.toLowerCase()));
   const newTitles = preset.jobTitles.filter(t => !existingTitleNames.has(t.title.toLowerCase()));
   const newLocs = preset.locations.filter(l => !existingLocNames.has(l.name.toLowerCase()));
-
-  const results = {
-    departmentsAdded: 0,
-    jobTitlesAdded: 0,
-    locationsAdded: 0,
-  };
 
   if (newDepts.length > 0) {
     await prisma.department.createMany({
@@ -774,11 +885,13 @@ export async function applyStructurePreset() {
     entityId: orgId,
     newData: {
       orgType: normalizedType,
+      mode,
       ...results,
     },
     metadata: {
       preset: normalizedType,
       appliedByRole: userRole,
+      mode,
     },
   });
 

@@ -22,6 +22,10 @@ import {
   Alert,
   Collapse,
   CircularProgress,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  alpha,
 } from "@mui/material";
 import {
   createDepartment,
@@ -71,6 +75,9 @@ export default function StructureClient({
   const [showPresets, setShowPresets] = useState(false);
   const [applyingPreset, setApplyingPreset] = useState(false);
   const [presetSuccess, setPresetSuccess] = useState<string | null>(null);
+  const [applyModeDialog, setApplyModeDialog] = useState(false);
+  const [applyMode, setApplyMode] = useState<"merge" | "replace">("merge");
+  const [preservedWarning, setPreservedWarning] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -134,25 +141,58 @@ export default function StructureClient({
     setApplyingPreset(true);
     setPresetSuccess(null);
     setError(null);
+    setPreservedWarning(null);
 
-    const result = await applyStructurePreset();
+    const result = await applyStructurePreset(applyMode);
 
     if (result.error) {
       setError(result.error);
     } else if ('success' in result && result.success) {
-      const parts = [];
-      if ('departmentsAdded' in result && result.departmentsAdded > 0) parts.push(`${result.departmentsAdded} departments`);
-      if ('jobTitlesAdded' in result && result.jobTitlesAdded > 0) parts.push(`${result.jobTitlesAdded} job titles`);
-      if ('locationsAdded' in result && result.locationsAdded > 0) parts.push(`${result.locationsAdded} locations`);
+      const addedParts = [];
+      const removedParts = [];
       
-      if (parts.length > 0) {
-        setPresetSuccess(`Added ${parts.join(", ")}`);
+      if ('departmentsAdded' in result && result.departmentsAdded > 0) addedParts.push(`${result.departmentsAdded} departments`);
+      if ('jobTitlesAdded' in result && result.jobTitlesAdded > 0) addedParts.push(`${result.jobTitlesAdded} job titles`);
+      if ('locationsAdded' in result && result.locationsAdded > 0) addedParts.push(`${result.locationsAdded} locations`);
+      
+      if ('departmentsRemoved' in result && result.departmentsRemoved > 0) removedParts.push(`${result.departmentsRemoved} departments`);
+      if ('jobTitlesRemoved' in result && result.jobTitlesRemoved > 0) removedParts.push(`${result.jobTitlesRemoved} job titles`);
+      if ('locationsRemoved' in result && result.locationsRemoved > 0) removedParts.push(`${result.locationsRemoved} locations`);
+      
+      const messages = [];
+      if (addedParts.length > 0) messages.push(`Added ${addedParts.join(", ")}`);
+      if (removedParts.length > 0) messages.push(`Removed ${removedParts.join(", ")}`);
+      
+      if (messages.length > 0) {
+        setPresetSuccess(messages.join(". "));
       } else {
         setPresetSuccess("All recommended items already exist");
       }
+
+      if ('itemsPreserved' in result && result.itemsPreserved) {
+        const preserved = result.itemsPreserved;
+        const preservedList = [];
+        if (preserved.departments?.length > 0) preservedList.push(`Departments: ${preserved.departments.join(", ")}`);
+        if (preserved.jobTitles?.length > 0) preservedList.push(`Job Titles: ${preserved.jobTitles.join(", ")}`);
+        if (preserved.locations?.length > 0) preservedList.push(`Locations: ${preserved.locations.join(", ")}`);
+        
+        if (preservedList.length > 0) {
+          setPreservedWarning(`Some items were preserved because they are in use by employees: ${preservedList.join("; ")}`);
+        }
+      }
+      
       router.refresh();
     }
     setApplyingPreset(false);
+    setApplyModeDialog(false);
+  };
+
+  const openApplyDialog = () => {
+    setApplyModeDialog(true);
+    setApplyMode("merge");
+    setError(null);
+    setPresetSuccess(null);
+    setPreservedWarning(null);
   };
 
   const existingDeptNames = new Set(departments.map(d => d.name.toLowerCase()));
@@ -193,28 +233,33 @@ export default function StructureClient({
                 </Box>
               </Box>
               <Box sx={{ display: "flex", gap: 1 }}>
-                <Button 
-                  variant="outlined" 
-                  size="small"
-                  onClick={() => setShowPresets(!showPresets)}
-                >
-                  {showPresets ? "Hide Preview" : "Preview"}
-                </Button>
-                <Button 
-                  variant="contained" 
-                  size="small"
-                  onClick={handleApplyPreset}
-                  disabled={applyingPreset || !hasNewPresetItems}
-                  startIcon={applyingPreset ? <CircularProgress size={16} color="inherit" /> : null}
-                >
-                  {applyingPreset ? "Applying..." : "Apply Recommended Structure"}
-                </Button>
-              </Box>
+                  <Button 
+                    variant="outlined" 
+                    size="small"
+                    onClick={() => setShowPresets(!showPresets)}
+                  >
+                    {showPresets ? "Hide Preview" : "Preview"}
+                  </Button>
+                  <Button 
+                    variant="contained" 
+                    size="small"
+                    onClick={openApplyDialog}
+                    disabled={applyingPreset}
+                  >
+                    Apply Structure
+                  </Button>
+                </Box>
             </Box>
 
             {presetSuccess && (
               <Alert severity="success" sx={{ mt: 2, borderRadius: 2 }}>
                 {presetSuccess}
+              </Alert>
+            )}
+
+            {preservedWarning && (
+              <Alert severity="warning" sx={{ mt: 2, borderRadius: 2 }}>
+                {preservedWarning}
               </Alert>
             )}
 
@@ -470,7 +515,92 @@ export default function StructureClient({
             <Button type="submit" variant="contained" disabled={loading}>{loading ? "Saving..." : "Save"}</Button>
           </DialogActions>
         </form>
-      </Dialog>
-    </Box>
-  );
-}
+        </Dialog>
+
+        <Dialog open={applyModeDialog} onClose={() => setApplyModeDialog(false)} maxWidth="sm" fullWidth>
+          <DialogTitle fontWeight={700}>Apply Structure Preset</DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Choose how to apply the recommended structure for {orgType ? getOrgTypeLabel(orgType) : "your organization"}:
+            </Typography>
+            
+            <RadioGroup
+              value={applyMode}
+              onChange={(e) => setApplyMode(e.target.value as "merge" | "replace")}
+            >
+              <Box
+                sx={{
+                  border: "1px solid",
+                  borderColor: applyMode === "merge" ? "primary.main" : "divider",
+                  borderRadius: 2,
+                  p: 2,
+                  mb: 1.5,
+                  cursor: "pointer",
+                  bgcolor: applyMode === "merge" ? alpha("#1976d2", 0.04) : "transparent",
+                }}
+                onClick={() => setApplyMode("merge")}
+              >
+                <FormControlLabel
+                  value="merge"
+                  control={<Radio />}
+                  label={
+                    <Box>
+                      <Typography fontWeight={600}>Merge (Default)</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Add missing items from the preset. Keeps all existing items.
+                      </Typography>
+                    </Box>
+                  }
+                  sx={{ m: 0, alignItems: "flex-start" }}
+                />
+              </Box>
+
+              <Box
+                sx={{
+                  border: "1px solid",
+                  borderColor: applyMode === "replace" ? "warning.main" : "divider",
+                  borderRadius: 2,
+                  p: 2,
+                  cursor: "pointer",
+                  bgcolor: applyMode === "replace" ? alpha("#ed6c02", 0.04) : "transparent",
+                }}
+                onClick={() => setApplyMode("replace")}
+              >
+                <FormControlLabel
+                  value="replace"
+                  control={<Radio color="warning" />}
+                  label={
+                    <Box>
+                      <Typography fontWeight={600}>Replace (Safe)</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Remove unused items not in the preset, then add new items. Items assigned to employees are preserved.
+                      </Typography>
+                    </Box>
+                  }
+                  sx={{ m: 0, alignItems: "flex-start" }}
+                />
+              </Box>
+            </RadioGroup>
+
+            {applyMode === "replace" && (
+              <Alert severity="info" sx={{ mt: 2, borderRadius: 2 }}>
+                Items currently assigned to employees will not be deleted. You will see a list of preserved items after applying.
+              </Alert>
+            )}
+          </DialogContent>
+          <DialogActions sx={{ p: 2 }}>
+            <Button onClick={() => setApplyModeDialog(false)}>Cancel</Button>
+            <Button
+              variant="contained"
+              color={applyMode === "replace" ? "warning" : "primary"}
+              onClick={handleApplyPreset}
+              disabled={applyingPreset}
+              startIcon={applyingPreset ? <CircularProgress size={16} color="inherit" /> : null}
+            >
+              {applyingPreset ? "Applying..." : applyMode === "merge" ? "Merge Structure" : "Replace Structure"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+    );
+  }
