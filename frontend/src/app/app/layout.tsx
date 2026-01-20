@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { getAuthSession, getUserPendingOrgs, getSupabaseUser } from "@/lib/auth.server";
+import { getAuthSession, getUserPendingOrgs } from "@/lib/auth.server";
 import { getUserPermissions } from "@/lib/rbac.server";
 import { canAccessRoute, getFirstAccessibleRoute } from "@/lib/navigation";
 import AppShell from "@/components/app/AppShell";
@@ -28,10 +28,6 @@ export default async function AppLayout({
   const session = await getAuthSession();
 
   if (!session) {
-    const supabaseUser = await getSupabaseUser();
-    if (supabaseUser) {
-      redirect("/register");
-    }
     redirect("/login");
   }
 
