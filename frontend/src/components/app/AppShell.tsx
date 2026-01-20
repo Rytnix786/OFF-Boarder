@@ -42,6 +42,7 @@ import {
 import { PermissionCode } from "@/lib/permissions";
 import { SystemRole } from "@prisma/client";
 import { stitchTokens } from "@/theme/tokens";
+import CommandPalette from "./CommandPalette";
 
 const t = stitchTokens;
 
@@ -115,6 +116,7 @@ export default function AppShell({ session, userPermissions, children }: AppShel
   const [notificationAnchor, setNotificationAnchor] = useState<null | HTMLElement>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
   const role = session.currentMembership?.systemRole as SystemRole;
   const navSections = filterSectionsByPermissions(MODULE_SECTIONS, userPermissions);
@@ -142,6 +144,17 @@ export default function AppShell({ session, userPermissions, children }: AppShel
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setCommandPaletteOpen(true);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   const handleMarkAllRead = async () => {
@@ -277,12 +290,12 @@ export default function AppShell({ session, userPermissions, children }: AppShel
 
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <AppBar position="sticky" elevation={0} sx={{ bgcolor: isDark ? alpha(t.colors.background.void, 0.9) : alpha(t.colors.background.lightPaper, 0.95), backdropFilter: "blur(8px)", borderBottom: `1px solid ${isDark ? t.colors.border.subtle : t.colors.border.light}`, color: "text.primary" }}>
-          <Toolbar sx={{ height: 56, px: { xs: 2, md: 3 }, gap: 2 }}>
-            <Search>
-              <SearchIconWrapper><span className="material-symbols-outlined" style={{ fontSize: 18 }}>search</span></SearchIconWrapper>
-              <StyledInputBase placeholder="Search..." inputProps={{ "aria-label": "search" }} />
-              <Typography variant="caption" sx={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: "text.disabled", fontSize: "0.6875rem", fontWeight: 600, bgcolor: isDark ? t.colors.background.surfaceLight : "#E2E8F0", px: 0.75, py: 0.25, borderRadius: 0.75 }}>⌘K</Typography>
-            </Search>
+            <Toolbar sx={{ height: 56, px: { xs: 2, md: 3 }, gap: 2 }}>
+              <Search onClick={() => setCommandPaletteOpen(true)} sx={{ cursor: "pointer" }}>
+                <SearchIconWrapper><span className="material-symbols-outlined" style={{ fontSize: 18 }}>search</span></SearchIconWrapper>
+                <StyledInputBase placeholder="Search..." inputProps={{ "aria-label": "search" }} readOnly sx={{ pointerEvents: "none" }} />
+                <Typography variant="caption" sx={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: "text.disabled", fontSize: "0.6875rem", fontWeight: 600, bgcolor: isDark ? t.colors.background.surfaceLight : "#E2E8F0", px: 0.75, py: 0.25, borderRadius: 0.75 }}>⌘K</Typography>
+              </Search>
             <Box sx={{ flexGrow: 1 }} />
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
 <IconButton size="small" onClick={colorMode.toggleColorMode} sx={{ width: 32, height: 32, color: isDark ? t.colors.icon.default.dark : t.colors.icon.default.light, "&:hover": { bgcolor: isDark ? t.colors.glass.hover : "#F1F5F9" } }}>
@@ -362,6 +375,8 @@ export default function AppShell({ session, userPermissions, children }: AppShel
 
         <Box component="main" sx={{ flex: 1, p: { xs: 2, md: 3 }, bgcolor: isDark ? "transparent" : "#FAFBFC" }}>{children}</Box>
       </Box>
+
+      <CommandPalette open={commandPaletteOpen} onClose={() => setCommandPaletteOpen(false)} />
     </Box>
   );
 }
