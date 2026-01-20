@@ -317,12 +317,11 @@ function RegisterContent() {
       
       if (!signedIn) {
         setError("Account created but unable to sign in automatically. Please sign in manually.");
-        router.push("/login");
+        window.location.href = "/login";
         return;
       }
 
-      router.push(data.redirectTo || "/pending");
-      router.refresh();
+      window.location.href = "/auth/redirect";
     } catch {
       setError("An unexpected error occurred");
     } finally {

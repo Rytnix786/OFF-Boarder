@@ -68,62 +68,11 @@ function LoginContent() {
           return;
         }
 
-        const checkRes = await fetch("/api/auth/check-user");
-          const checkData = await checkRes.json();
-          
-          console.log("[login] check-user response:", checkData);
-
-          let targetOrgId = null;
-          if (checkData.hasOrganization && checkData.organizations?.length > 0) {
-            targetOrgId = checkData.organizations[0].id;
-          }
-
-          await fetch("/api/sessions", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                rememberDevice,
-                organizationId: targetOrgId,
-              }),
-            });
-
-            if (redirectUrl) {
-              const isEmployeeRedirect = redirectUrl.startsWith("/app/employee");
-              const isAppRedirect = redirectUrl.startsWith("/app") && !isEmployeeRedirect;
-              const isAdminRedirect = redirectUrl.startsWith("/admin");
-              
-              if (isEmployeeRedirect && checkData.hasEmployeePortalAccess) {
-                console.log("[login] Redirecting to employee portal (validated):", redirectUrl);
-                window.location.href = redirectUrl;
-                return;
-              } else if (isAppRedirect && checkData.hasOrganization) {
-                console.log("[login] Redirecting to app (validated):", redirectUrl);
-                window.location.href = redirectUrl;
-                return;
-              } else if (isAdminRedirect && checkData.isPlatformAdmin) {
-                console.log("[login] Redirecting to admin (validated):", redirectUrl);
-                window.location.href = redirectUrl;
-                return;
-              }
-              console.log("[login] Redirect URL not valid for user access, falling back to default routing");
-            }
-          
-            if (checkData.isPlatformAdmin) {
-              console.log("[login] Redirecting to /admin (isPlatformAdmin)");
-              window.location.href = "/admin";
-            } else if (checkData.hasOrganization) {
-              console.log("[login] Redirecting to /app (hasOrganization)");
-              window.location.href = "/app";
-            } else if (checkData.hasEmployeePortalAccess) {
-              console.log("[login] Redirecting to /app/employee (hasEmployeePortalAccess)");
-              window.location.href = "/app/employee";
-            } else if (checkData.hasPendingOrg) {
-              console.log("[login] Redirecting to /pending (hasPendingOrg)");
-              window.location.href = "/pending";
-            } else {
-              console.log("[login] Redirecting to /register (no access)");
-              window.location.href = "/register";
-            }
+        if (redirectUrl) {
+          window.location.href = redirectUrl;
+        } else {
+          window.location.href = "/auth/redirect";
+        }
     } catch (err) {
       setError("An unexpected error occurred");
     } finally {
