@@ -13,55 +13,17 @@ export function OnboardingChecklist({ status, orgName }: OnboardingChecklistProp
 
   if (isComplete) {
     return (
-      <Card
-        variant="outlined"
-        sx={{
-          mb: 4,
-          borderRadius: 2.5,
-          bgcolor: alpha("#059669", 0.04),
-          borderColor: alpha("#059669", 0.2),
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: 4,
-            height: "100%",
-            bgcolor: "#059669",
-          }}
-        />
-        <CardContent sx={{ py: 2.5, px: 3, "&:last-child": { pb: 2.5 } }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: 2,
-                bgcolor: alpha("#059669", 0.12),
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 22, color: "#059669" }}>
-                check_circle
-              </span>
-            </Box>
-            <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#059669" }}>
-                Setup Complete
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {orgName} is fully configured and ready for offboarding operations.
-              </Typography>
-            </Box>
-          </Box>
-        </CardContent>
-      </Card>
+      <Box sx={{ mb: 4, display: "flex", alignItems: "center", gap: 1.5, px: 2, py: 1, borderRadius: 2, bgcolor: alpha("#059669", 0.05), border: "1px solid", borderColor: alpha("#059669", 0.1) }}>
+        <span className="material-symbols-outlined" style={{ fontSize: 18, color: "#059669" }}>
+          check_circle
+        </span>
+        <Typography variant="caption" sx={{ fontWeight: 700, color: "#059669", letterSpacing: 0.5 }}>
+          ORGANIZATION ONBOARDING COMPLETE
+        </Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+          · {orgName} is fully operational
+        </Typography>
+      </Box>
     );
   }
 

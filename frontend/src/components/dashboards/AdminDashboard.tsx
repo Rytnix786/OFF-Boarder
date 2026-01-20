@@ -1063,39 +1063,39 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
                       Governed system controls. All actions logged.
                     </Typography>
                       <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                          <Link href="/app/offboardings" style={{ textDecoration: "none", color: "inherit" }}>
-                            <Box
-                              sx={{
-                                p: 1.5,
-                                borderRadius: 1.5,
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 2,
-                                border: "1px solid",
-                                borderColor: "divider",
-                                transition: "all 100ms ease-out",
-                                "&:hover": { 
-                                  bgcolor: alpha("#3b82f6", 0.04), 
-                                  borderColor: alpha("#3b82f6", 0.2),
-                                  "& .control-icon": { color: alpha("#3b82f6", 0.8) },
-                                  "& .control-chevron": { transform: "translateX(2px)", color: alpha("#3b82f6", 0.7) },
-                                },
-                                "&:active": { 
-                                  bgcolor: alpha("#3b82f6", 0.08),
-                                  transform: "scale(0.995)",
-                                },
-                                "&:focus-visible": {
-                                  outline: "2px solid",
-                                  outlineColor: "primary.main",
-                                  outlineOffset: 1,
-                                },
-                              }}
-                            >
-                              <span className="material-symbols-outlined control-icon icon-row" style={{ fontSize: 18, transition: "color 100ms ease-out" }}>person_remove</span>
-                              <Typography variant="body2" sx={{ flex: 1, fontWeight: 600, color: "text.primary" }}>Initiate Offboarding</Typography>
-                              <span className="material-symbols-outlined control-chevron icon-muted" style={{ fontSize: 16, transition: "transform 100ms ease-out, color 100ms ease-out" }}>chevron_right</span>
-                            </Box>
-                          </Link>
+                            <Link href="/app/offboardings" style={{ textDecoration: "none", color: "inherit" }}>
+                              <Box
+                                sx={{
+                                  p: 1.5,
+                                  borderRadius: 1.5,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 2,
+                                  border: "1px solid",
+                                  borderColor: !onboardingStatus.isComplete ? alpha("#d97706", 0.3) : "divider",
+                                  bgcolor: !onboardingStatus.isComplete ? alpha("#d97706", 0.02) : "transparent",
+                                  transition: "all 100ms ease-out",
+                                  "&:hover": { 
+                                    bgcolor: !onboardingStatus.isComplete ? alpha("#d97706", 0.05) : alpha("#3b82f6", 0.04), 
+                                    borderColor: !onboardingStatus.isComplete ? alpha("#d97706", 0.5) : alpha("#3b82f6", 0.2),
+                                    "& .control-icon": { color: !onboardingStatus.isComplete ? "#d97706" : alpha("#3b82f6", 0.8) },
+                                    "& .control-chevron": { transform: "translateX(2px)", color: !onboardingStatus.isComplete ? "#d97706" : alpha("#3b82f6", 0.7) },
+                                  },
+                                }}
+                              >
+                                <span className="material-symbols-outlined control-icon icon-row" style={{ fontSize: 18, color: !onboardingStatus.isComplete ? "#d97706" : "inherit" }}>person_remove</span>
+                                <Box sx={{ flex: 1 }}>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, color: "text.primary" }}>Initiate Offboarding</Typography>
+                                  {!onboardingStatus.isComplete && (
+                                    <Typography variant="caption" sx={{ color: "#d97706", fontWeight: 700, fontSize: "0.625rem", display: "block", mt: -0.25 }}>
+                                      COMPLETE ONBOARDING FIRST
+                                    </Typography>
+                                  )}
+                                </Box>
+                                <span className="material-symbols-outlined control-chevron icon-muted" style={{ fontSize: 16 }}>chevron_right</span>
+                              </Box>
+                            </Link>
+
     
                           <Link href="/app/employees" style={{ textDecoration: "none", color: "inherit" }}>
                             <Box
