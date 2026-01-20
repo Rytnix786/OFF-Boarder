@@ -383,32 +383,8 @@ export async function updateOrganization(formData: FormData) {
   return { success: true, organization: updated };
 }
 
-const VALID_TIMEZONES = [
-  "Pacific/Midway", "Pacific/Honolulu", "America/Anchorage", "America/Los_Angeles",
-  "America/Tijuana", "America/Denver", "America/Phoenix", "America/Chihuahua",
-  "America/Chicago", "America/Mexico_City", "America/Regina", "America/Guatemala",
-  "America/New_York", "America/Bogota", "America/Indiana/Indianapolis", "America/Caracas",
-  "America/Halifax", "America/Santiago", "America/La_Paz", "America/St_Johns",
-  "America/Sao_Paulo", "America/Argentina/Buenos_Aires", "America/Montevideo",
-  "Atlantic/South_Georgia", "Atlantic/Azores", "Atlantic/Cape_Verde", "UTC",
-  "Europe/London", "Africa/Casablanca", "Europe/Paris", "Europe/Amsterdam",
-  "Europe/Belgrade", "Africa/Lagos", "Europe/Athens", "Europe/Helsinki",
-  "Africa/Cairo", "Africa/Johannesburg", "Asia/Jerusalem", "Europe/Moscow",
-  "Asia/Kuwait", "Africa/Nairobi", "Asia/Baghdad", "Asia/Tehran", "Asia/Dubai",
-  "Asia/Baku", "Asia/Tbilisi", "Asia/Kabul", "Asia/Karachi", "Asia/Tashkent",
-  "Asia/Yekaterinburg", "Asia/Kolkata", "Asia/Colombo", "Asia/Kathmandu",
-  "Asia/Dhaka", "Asia/Almaty", "Asia/Yangon", "Asia/Bangkok", "Asia/Krasnoyarsk",
-  "Asia/Shanghai", "Asia/Singapore", "Asia/Taipei", "Australia/Perth", "Asia/Irkutsk",
-  "Asia/Tokyo", "Asia/Seoul", "Asia/Yakutsk", "Australia/Adelaide", "Australia/Darwin",
-  "Australia/Sydney", "Australia/Brisbane", "Pacific/Guam", "Asia/Vladivostok",
-  "Pacific/Noumea", "Asia/Magadan", "Pacific/Auckland", "Pacific/Fiji",
-  "Asia/Kamchatka", "Pacific/Tongatapu", "Pacific/Apia", "Pacific/Kiritimati",
-];
-
-const VALID_ORG_TYPES = [
-  "technology", "healthcare", "finance", "education", "manufacturing",
-  "retail", "consulting", "government", "nonprofit", "other",
-];
+import { isValidTimezone } from "@/lib/data/timezones";
+import { isValidOrgType } from "@/lib/data/organization-types";
 
 export async function updateOrganizationProfile(formData: FormData) {
   const session = await requireActiveOrg();
@@ -447,11 +423,11 @@ export async function updateOrganizationProfile(formData: FormData) {
     return { error: "Primary location cannot exceed 200 characters" };
   }
 
-  if (timezone && !VALID_TIMEZONES.includes(timezone)) {
+  if (timezone && !isValidTimezone(timezone)) {
     return { error: "Invalid timezone selected" };
   }
 
-  if (organizationType && !VALID_ORG_TYPES.includes(organizationType)) {
+  if (organizationType && !isValidOrgType(organizationType)) {
     return { error: "Invalid organization type selected" };
   }
 
@@ -588,7 +564,7 @@ export async function rejectOrganization(orgId: string, reason: string) {
 }
 
 export async function suspendOrganization(orgId: string) {
-  const session = await requirePlatformAdmin();
+  await requirePlatformAdmin();
 
   await prisma.organization.update({
     where: { id: orgId },
@@ -689,4 +665,125 @@ export async function getAllOrganizations() {
     },
     orderBy: { createdAt: "desc" },
   });
+}
+
+import { getPresetForOrgType } from "@/lib/data/structure-presets";
+import { normalizeOrgType } from "@/lib/data/organization-types";
+
+export async function getOrgTypeForStructure() {
+  const session = await requireActiveOrg();
+  const orgId = session.currentOrgId!;
+
+  const org = await prisma.organization.findUnique({
+    where: { id: orgId },
+    select: { organizationType: true },
+  });
+
+  if (!org) {
+    return { orgType: null, preset: null };
+  }
+
+  const normalizedType = normalizeOrgType(org.organizationType);
+  const preset = getPresetForOrgType(normalizedType);
+
+  return { orgType: normalizedType, preset };
+}
+
+export async function applyStructurePreset() {
+  const session = await requireActiveOrg();
+  const orgId = session.currentOrgId!;
+  const userRole = session.currentMembership?.systemRole;
+
+  if (userRole !== "OWNER" && userRole !== "ADMIN") {
+    return { error: "Only Owners and Admins can apply structure presets" };
+  }
+
+  const org = await prisma.organization.findUnique({
+    where: { id: orgId },
+    select: { organizationType: true, name: true },
+  });
+
+  if (!org) {
+    return { error: "Organization not found" };
+  }
+
+  const normalizedType = normalizeOrgType(org.organizationType);
+  const preset = getPresetForOrgType(normalizedType);
+
+  if (!preset) {
+    return { error: "No preset available for this organization type" };
+  }
+
+  const [existingDepts, existingTitles, existingLocs] = await Promise.all([
+    prisma.department.findMany({ where: { organizationId: orgId }, select: { name: true } }),
+    prisma.jobTitle.findMany({ where: { organizationId: orgId }, select: { title: true } }),
+    prisma.location.findMany({ where: { organizationId: orgId }, select: { name: true } }),
+  ]);
+
+  const existingDeptNames = new Set(existingDepts.map(d => d.name.toLowerCase()));
+  const existingTitleNames = new Set(existingTitles.map(t => t.title.toLowerCase()));
+  const existingLocNames = new Set(existingLocs.map(l => l.name.toLowerCase()));
+
+  const newDepts = preset.departments.filter(d => !existingDeptNames.has(d.name.toLowerCase()));
+  const newTitles = preset.jobTitles.filter(t => !existingTitleNames.has(t.title.toLowerCase()));
+  const newLocs = preset.locations.filter(l => !existingLocNames.has(l.name.toLowerCase()));
+
+  const results = {
+    departmentsAdded: 0,
+    jobTitlesAdded: 0,
+    locationsAdded: 0,
+  };
+
+  if (newDepts.length > 0) {
+    await prisma.department.createMany({
+      data: newDepts.map(d => ({
+        name: d.name,
+        description: d.description || null,
+        organizationId: orgId,
+      })),
+    });
+    results.departmentsAdded = newDepts.length;
+  }
+
+  if (newTitles.length > 0) {
+    await prisma.jobTitle.createMany({
+      data: newTitles.map(t => ({
+        title: t.title,
+        level: t.level || null,
+        organizationId: orgId,
+      })),
+    });
+    results.jobTitlesAdded = newTitles.length;
+  }
+
+  if (newLocs.length > 0) {
+    await prisma.location.createMany({
+      data: newLocs.map(l => ({
+        name: l.name,
+        city: l.city || null,
+        country: l.country || null,
+        organizationId: orgId,
+      })),
+    });
+    results.locationsAdded = newLocs.length;
+  }
+
+  await createAuditLog(session, orgId, {
+    action: "structure.preset_applied",
+    entityType: "Organization",
+    entityId: orgId,
+    newData: {
+      orgType: normalizedType,
+      ...results,
+    },
+    metadata: {
+      preset: normalizedType,
+      appliedByRole: userRole,
+    },
+  });
+
+  revalidatePath("/app/settings/structure");
+  revalidatePath("/app/employees");
+
+  return { success: true, ...results };
 }

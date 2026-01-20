@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Box,
@@ -11,18 +11,19 @@ import {
   Stepper,
   Step,
   StepLabel,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Alert,
   CircularProgress,
   alpha,
   useTheme,
   Checkbox,
   FormControlLabel,
+  Autocomplete,
+  Chip,
+  Paper,
 } from "@mui/material";
 import { completeOrganizationSetup } from "@/lib/actions/org-setup";
+import { getTimezoneOptions, getTimezoneDisplay } from "@/lib/data/timezones";
+import { ORGANIZATION_TYPES, getOrgTypeLabel, normalizeOrgType } from "@/lib/data/organization-types";
 
 type Props = {
   organization: {
@@ -33,37 +34,6 @@ type Props = {
     organizationType: string | null;
   };
 };
-
-const TIMEZONES = [
-  { value: "America/New_York", label: "Eastern Time (US & Canada)" },
-  { value: "America/Chicago", label: "Central Time (US & Canada)" },
-  { value: "America/Denver", label: "Mountain Time (US & Canada)" },
-  { value: "America/Los_Angeles", label: "Pacific Time (US & Canada)" },
-  { value: "America/Anchorage", label: "Alaska" },
-  { value: "Pacific/Honolulu", label: "Hawaii" },
-  { value: "Europe/London", label: "London" },
-  { value: "Europe/Paris", label: "Paris, Berlin, Rome" },
-  { value: "Europe/Moscow", label: "Moscow" },
-  { value: "Asia/Dubai", label: "Dubai" },
-  { value: "Asia/Kolkata", label: "India Standard Time" },
-  { value: "Asia/Singapore", label: "Singapore" },
-  { value: "Asia/Tokyo", label: "Tokyo" },
-  { value: "Asia/Shanghai", label: "Beijing, Shanghai" },
-  { value: "Australia/Sydney", label: "Sydney" },
-  { value: "Pacific/Auckland", label: "Auckland" },
-];
-
-const ORG_TYPES = [
-  { value: "COMPANY", label: "Company / Corporation" },
-  { value: "STARTUP", label: "Startup" },
-  { value: "AGENCY", label: "Agency" },
-  { value: "NONPROFIT", label: "Non-Profit Organization" },
-  { value: "GOVERNMENT", label: "Government Entity" },
-  { value: "EDUCATION", label: "Educational Institution" },
-  { value: "HEALTHCARE", label: "Healthcare Organization" },
-  { value: "CONTRACTOR", label: "Contractor / Consulting" },
-  { value: "OTHER", label: "Other" },
-];
 
 const steps = ["Organization Info", "Confirmation"];
 
@@ -76,8 +46,18 @@ export default function SetupWizard({ organization }: Props) {
 
   const [primaryLocation, setPrimaryLocation] = useState(organization.primaryLocation || "");
   const [timezone, setTimezone] = useState(organization.timezone || "");
-  const [organizationType, setOrganizationType] = useState(organization.organizationType || "");
+  const [organizationType, setOrganizationType] = useState(normalizeOrgType(organization.organizationType) || "");
   const [confirmed, setConfirmed] = useState(false);
+
+  const timezoneOptions = useMemo(() => getTimezoneOptions(), []);
+  const selectedTimezone = useMemo(
+    () => timezoneOptions.find(tz => tz.value === timezone) || null,
+    [timezoneOptions, timezone]
+  );
+  const selectedOrgType = useMemo(
+    () => ORGANIZATION_TYPES.find(t => t.value === organizationType) || null,
+    [organizationType]
+  );
 
   const handleNext = () => {
     if (activeStep === 0) {
@@ -205,37 +185,103 @@ export default function SetupWizard({ organization }: Props) {
               sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
             />
 
-            <FormControl fullWidth required>
-              <InputLabel>Default Timezone</InputLabel>
-              <Select
-                value={timezone}
-                label="Default Timezone"
-                onChange={(e) => setTimezone(e.target.value)}
-                sx={{ borderRadius: 2 }}
-              >
-                {TIMEZONES.map((tz) => (
-                  <MenuItem key={tz.value} value={tz.value}>
-                    {tz.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Autocomplete
+              value={selectedTimezone}
+              onChange={(_, newValue) => setTimezone(newValue?.value || "")}
+              options={timezoneOptions}
+              getOptionLabel={(option) => `${option.offset} — ${option.label}`}
+              filterOptions={(options, { inputValue }) => {
+                const search = inputValue.toLowerCase();
+                return options.filter(opt => opt.searchTerms.includes(search));
+              }}
+              renderOption={(props, option) => {
+                const { key: _key, ...rest } = props as React.HTMLAttributes<HTMLLIElement> & { key: string };
+                return (
+                  <Box component="li" key={option.value} {...rest}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2, width: "100%" }}>
+                      <Chip 
+                        label={option.offset} 
+                        size="small" 
+                        sx={{ 
+                          fontFamily: "monospace", 
+                          minWidth: 90,
+                          bgcolor: "action.selected",
+                        }} 
+                      />
+                      <Typography variant="body2">{option.label}</Typography>
+                    </Box>
+                  </Box>
+                );
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Default Timezone"
+                  required
+                  placeholder="Search by city, region, or UTC offset..."
+                  helperText="Type to search timezones (e.g., 'New York', 'UTC+5', 'Tokyo')"
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+                />
+              )}
+              PaperComponent={(props) => (
+                <Paper {...props} sx={{ borderRadius: 2, mt: 0.5 }} />
+              )}
+              isOptionEqualToValue={(option, value) => option.value === value.value}
+            />
 
-            <FormControl fullWidth required>
-              <InputLabel>Organization Type</InputLabel>
-              <Select
-                value={organizationType}
-                label="Organization Type"
-                onChange={(e) => setOrganizationType(e.target.value)}
-                sx={{ borderRadius: 2 }}
-              >
-                {ORG_TYPES.map((type) => (
-                  <MenuItem key={type.value} value={type.value}>
-                    {type.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Autocomplete
+              value={selectedOrgType}
+              onChange={(_, newValue) => setOrganizationType(newValue?.value || "")}
+              options={ORGANIZATION_TYPES}
+              groupBy={(option) => {
+                const labels: Record<string, string> = {
+                  business: "Business",
+                  public: "Public Sector",
+                  specialized: "Specialized Industries",
+                };
+                return labels[option.category] || option.category;
+              }}
+              getOptionLabel={(option) => option.label}
+              filterOptions={(options, { inputValue }) => {
+                const search = inputValue.toLowerCase();
+                return options.filter(opt =>
+                  opt.label.toLowerCase().includes(search) ||
+                  opt.value.toLowerCase().includes(search) ||
+                  opt.description?.toLowerCase().includes(search)
+                );
+              }}
+              renderOption={(props, option) => {
+                const { key: _key, ...rest } = props as React.HTMLAttributes<HTMLLIElement> & { key: string };
+                return (
+                  <Box component="li" key={option.value} {...rest}>
+                    <Box sx={{ display: "flex", flexDirection: "column" }}>
+                      <Typography variant="body2" fontWeight={500}>
+                        {option.label}
+                      </Typography>
+                      {option.description && (
+                        <Typography variant="caption" color="text.secondary">
+                          {option.description}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                );
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Organization Type"
+                  required
+                  placeholder="Search by industry type..."
+                  helperText="Select your industry to get recommended organizational structure"
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+                />
+              )}
+              PaperComponent={(props) => (
+                <Paper {...props} sx={{ borderRadius: 2, mt: 0.5 }} />
+              )}
+              isOptionEqualToValue={(option, value) => option.value === value.value}
+            />
           </Box>
         )}
 
@@ -248,8 +294,8 @@ export default function SetupWizard({ organization }: Props) {
               <Box component="ul" sx={{ m: 0, pl: 2 }}>
                 <li><strong>Organization:</strong> {organization.name}</li>
                 <li><strong>Primary Location:</strong> {primaryLocation}</li>
-                <li><strong>Timezone:</strong> {TIMEZONES.find(tz => tz.value === timezone)?.label || timezone}</li>
-                <li><strong>Type:</strong> {ORG_TYPES.find(t => t.value === organizationType)?.label || organizationType}</li>
+                <li><strong>Timezone:</strong> {timezone ? getTimezoneDisplay(timezone) : "Not selected"}</li>
+                <li><strong>Type:</strong> {getOrgTypeLabel(organizationType) || "Not selected"}</li>
               </Box>
             </Alert>
 
