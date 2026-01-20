@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma.server";
 import { requireActiveOrg } from "@/lib/auth.server";
 import { createAuditLog } from "@/lib/audit.server";
+import { createNotification } from "@/lib/notifications";
 import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
 import { PortalType } from "@prisma/client";
@@ -206,6 +207,15 @@ export async function completeEmployeePortalInvite(token: string, userId: string
       inviteId: invite.id,
       portalType: invite.portalType,
     },
+  });
+
+  await createNotification({
+    userId: invite.invitedById,
+    organizationId: invite.organizationId,
+    type: "member_joined",
+    title: "Employee Portal Invite Accepted",
+    message: `${invite.employee.firstName} ${invite.employee.lastName} has accepted their portal invitation`,
+    link: `/app/employees/${invite.employeeId}`,
   });
 
   return { success: true, linkId: link.id, portalType: invite.portalType };
