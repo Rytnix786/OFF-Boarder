@@ -26,17 +26,24 @@ import {
   FormControlLabel,
   Radio,
   alpha,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import {
   createDepartment,
   updateDepartment,
   deleteDepartment,
+  reassignAndDeleteDepartment,
   createJobTitle,
   updateJobTitle,
   deleteJobTitle,
+  reassignAndDeleteJobTitle,
   createLocation,
   updateLocation,
   deleteLocation,
+  reassignAndDeleteLocation,
   applyStructurePreset,
 } from "@/lib/actions/organization";
 import { useRouter } from "next/navigation";
@@ -78,6 +85,13 @@ export default function StructureClient({
   const [applyModeDialog, setApplyModeDialog] = useState(false);
   const [applyMode, setApplyMode] = useState<"merge" | "replace">("merge");
   const [preservedWarning, setPreservedWarning] = useState<string | null>(null);
+  const [reassignDialog, setReassignDialog] = useState<{
+    open: boolean;
+    type: "department" | "jobTitle" | "location";
+    item: { id: string; name?: string; title?: string } | null;
+    employeeCount: number;
+    replacementId: string;
+  }>({ open: false, type: "department", item: null, employeeCount: 0, replacementId: "" });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -111,16 +125,60 @@ export default function StructureClient({
   };
 
   const handleDelete = async (type: "department" | "jobTitle" | "location", id: string) => {
-    if (!confirm("Are you sure you want to delete this item?")) return;
     setLoading(true);
+    setError(null);
 
     let result;
     if (type === "department") result = await deleteDepartment(id);
     else if (type === "jobTitle") result = await deleteJobTitle(id);
     else if (type === "location") result = await deleteLocation(id);
 
-    if (result?.error) alert(result.error);
-    router.refresh();
+    if (result?.error) {
+      if ((result as { requiresReassign?: boolean }).requiresReassign) {
+        const item = type === "department" 
+          ? departments.find(d => d.id === id)
+          : type === "jobTitle"
+          ? jobTitles.find(j => j.id === id)
+          : locations.find(l => l.id === id);
+        
+        setReassignDialog({
+          open: true,
+          type,
+          item: item ? { id: item.id, name: (item as Department | Location).name, title: (item as JobTitle).title } : null,
+          employeeCount: (result as { employeeCount?: number }).employeeCount || 0,
+          replacementId: "",
+        });
+      } else {
+        setError(result.error);
+      }
+    } else {
+      router.refresh();
+    }
+    setLoading(false);
+  };
+
+  const handleReassignAndDelete = async () => {
+    if (!reassignDialog.item) return;
+    setLoading(true);
+    setError(null);
+
+    let result;
+    const replacementId = reassignDialog.replacementId || null;
+    
+    if (reassignDialog.type === "department") {
+      result = await reassignAndDeleteDepartment(reassignDialog.item.id, replacementId);
+    } else if (reassignDialog.type === "jobTitle") {
+      result = await reassignAndDeleteJobTitle(reassignDialog.item.id, replacementId);
+    } else {
+      result = await reassignAndDeleteLocation(reassignDialog.item.id, replacementId);
+    }
+
+    if (result?.error) {
+      setError(result.error);
+    } else {
+      setReassignDialog({ open: false, type: "department", item: null, employeeCount: 0, replacementId: "" });
+      router.refresh();
+    }
     setLoading(false);
   };
 
@@ -582,25 +640,83 @@ export default function StructureClient({
               </Box>
             </RadioGroup>
 
-            {applyMode === "replace" && (
-              <Alert severity="info" sx={{ mt: 2, borderRadius: 2 }}>
-                Items currently assigned to employees will not be deleted. You will see a list of preserved items after applying.
+              {applyMode === "replace" && (
+                <Alert severity="info" sx={{ mt: 2, borderRadius: 2 }}>
+                  Items currently assigned to employees will not be deleted. You will see a list of preserved items after applying.
+                </Alert>
+              )}
+            </DialogContent>
+            <DialogActions sx={{ p: 2 }}>
+              <Button onClick={() => setApplyModeDialog(false)}>Cancel</Button>
+              <Button
+                variant="contained"
+                color={applyMode === "replace" ? "warning" : "primary"}
+                onClick={handleApplyPreset}
+                disabled={applyingPreset}
+                startIcon={applyingPreset ? <CircularProgress size={16} color="inherit" /> : null}
+              >
+                {applyingPreset ? "Applying..." : applyMode === "merge" ? "Merge Structure" : "Replace Structure"}
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          <Dialog open={reassignDialog.open} onClose={() => !loading && setReassignDialog({ ...reassignDialog, open: false })} maxWidth="sm" fullWidth>
+            <DialogTitle fontWeight={700}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <span className="material-symbols-outlined" style={{ color: "#f59e0b" }}>swap_horiz</span>
+                Reassign and Delete
+              </Box>
+            </DialogTitle>
+            <DialogContent>
+              <Alert severity="warning" sx={{ mb: 3 }}>
+                <strong>{reassignDialog.item?.name || reassignDialog.item?.title}</strong> has {reassignDialog.employeeCount} employee{reassignDialog.employeeCount !== 1 ? "s" : ""} assigned. 
+                Choose a replacement or remove the assignment before deleting.
               </Alert>
-            )}
-          </DialogContent>
-          <DialogActions sx={{ p: 2 }}>
-            <Button onClick={() => setApplyModeDialog(false)}>Cancel</Button>
-            <Button
-              variant="contained"
-              color={applyMode === "replace" ? "warning" : "primary"}
-              onClick={handleApplyPreset}
-              disabled={applyingPreset}
-              startIcon={applyingPreset ? <CircularProgress size={16} color="inherit" /> : null}
-            >
-              {applyingPreset ? "Applying..." : applyMode === "merge" ? "Merge Structure" : "Replace Structure"}
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
-    );
-  }
+              
+              <FormControl fullWidth>
+                <InputLabel>
+                  Reassign to {reassignDialog.type === "department" ? "Department" : reassignDialog.type === "jobTitle" ? "Job Title" : "Location"}
+                </InputLabel>
+                <Select
+                  value={reassignDialog.replacementId}
+                  label={`Reassign to ${reassignDialog.type === "department" ? "Department" : reassignDialog.type === "jobTitle" ? "Job Title" : "Location"}`}
+                  onChange={(e) => setReassignDialog({ ...reassignDialog, replacementId: e.target.value })}
+                >
+                  <MenuItem value="">
+                    <em>Remove assignment (set to none)</em>
+                  </MenuItem>
+                  {reassignDialog.type === "department" && departments
+                    .filter(d => d.id !== reassignDialog.item?.id)
+                    .map(d => <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>)}
+                  {reassignDialog.type === "jobTitle" && jobTitles
+                    .filter(j => j.id !== reassignDialog.item?.id)
+                    .map(j => <MenuItem key={j.id} value={j.id}>{j.title}</MenuItem>)}
+                  {reassignDialog.type === "location" && locations
+                    .filter(l => l.id !== reassignDialog.item?.id)
+                    .map(l => <MenuItem key={l.id} value={l.id}>{l.name}</MenuItem>)}
+                </Select>
+              </FormControl>
+
+              {error && (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                  {error}
+                </Alert>
+              )}
+            </DialogContent>
+            <DialogActions sx={{ p: 2 }}>
+              <Button onClick={() => setReassignDialog({ ...reassignDialog, open: false })} disabled={loading}>
+                Cancel
+              </Button>
+              <Button 
+                variant="contained" 
+                color="warning"
+                onClick={handleReassignAndDelete}
+                disabled={loading}
+              >
+                {loading ? "Processing..." : "Reassign & Delete"}
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </Box>
+      );
+    }

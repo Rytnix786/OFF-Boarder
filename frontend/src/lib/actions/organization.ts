@@ -94,7 +94,7 @@ export async function deleteDepartment(departmentId: string) {
 
   const employeeCount = await prisma.employee.count({ where: { departmentId } });
   if (employeeCount > 0) {
-    return { error: "Cannot delete department with assigned employees" };
+    return { error: "Cannot delete department with assigned employees", employeeCount, requiresReassign: true };
   }
 
   await prisma.department.delete({ where: { id: departmentId } });
@@ -109,6 +109,57 @@ export async function deleteDepartment(departmentId: string) {
   revalidatePath("/app/settings/structure");
   revalidatePath("/app/employees");
   return { success: true };
+}
+
+export async function reassignAndDeleteDepartment(departmentId: string, newDepartmentId: string | null) {
+  const session = await requireActiveOrg();
+  await requirePermission(session, "department:manage");
+
+  const orgId = session.currentOrgId!;
+
+  const department = await prisma.department.findFirst({
+    where: { id: departmentId, organizationId: orgId },
+  });
+
+  if (!department) {
+    return { error: "Department not found" };
+  }
+
+  if (newDepartmentId) {
+    const newDept = await prisma.department.findFirst({
+      where: { id: newDepartmentId, organizationId: orgId },
+    });
+    if (!newDept) {
+      return { error: "Replacement department not found" };
+    }
+  }
+
+  const affectedEmployees = await prisma.employee.findMany({
+    where: { departmentId, organizationId: orgId },
+    select: { id: true, firstName: true, lastName: true },
+  });
+
+  await prisma.employee.updateMany({
+    where: { departmentId, organizationId: orgId },
+    data: { departmentId: newDepartmentId },
+  });
+
+  await prisma.department.delete({ where: { id: departmentId } });
+
+  await createAuditLog(session, orgId, {
+    action: "department.reassigned_and_deleted",
+    entityType: "Department",
+    entityId: departmentId,
+    oldData: { name: department.name },
+    metadata: { 
+      reassignedTo: newDepartmentId || "none",
+      affectedEmployeeCount: affectedEmployees.length,
+    },
+  });
+
+  revalidatePath("/app/settings/structure");
+  revalidatePath("/app/employees");
+  return { success: true, reassignedCount: affectedEmployees.length };
 }
 
 export async function createJobTitle(formData: FormData) {
@@ -198,7 +249,7 @@ export async function deleteJobTitle(jobTitleId: string) {
 
   const employeeCount = await prisma.employee.count({ where: { jobTitleId } });
   if (employeeCount > 0) {
-    return { error: "Cannot delete job title with assigned employees" };
+    return { error: "Cannot delete job title with assigned employees", employeeCount, requiresReassign: true };
   }
 
   await prisma.jobTitle.delete({ where: { id: jobTitleId } });
@@ -213,6 +264,57 @@ export async function deleteJobTitle(jobTitleId: string) {
   revalidatePath("/app/settings/structure");
   revalidatePath("/app/employees");
   return { success: true };
+}
+
+export async function reassignAndDeleteJobTitle(jobTitleId: string, newJobTitleId: string | null) {
+  const session = await requireActiveOrg();
+  await requirePermission(session, "jobtitle:manage");
+
+  const orgId = session.currentOrgId!;
+
+  const jobTitle = await prisma.jobTitle.findFirst({
+    where: { id: jobTitleId, organizationId: orgId },
+  });
+
+  if (!jobTitle) {
+    return { error: "Job title not found" };
+  }
+
+  if (newJobTitleId) {
+    const newTitle = await prisma.jobTitle.findFirst({
+      where: { id: newJobTitleId, organizationId: orgId },
+    });
+    if (!newTitle) {
+      return { error: "Replacement job title not found" };
+    }
+  }
+
+  const affectedEmployees = await prisma.employee.findMany({
+    where: { jobTitleId, organizationId: orgId },
+    select: { id: true, firstName: true, lastName: true },
+  });
+
+  await prisma.employee.updateMany({
+    where: { jobTitleId, organizationId: orgId },
+    data: { jobTitleId: newJobTitleId },
+  });
+
+  await prisma.jobTitle.delete({ where: { id: jobTitleId } });
+
+  await createAuditLog(session, orgId, {
+    action: "jobtitle.reassigned_and_deleted",
+    entityType: "JobTitle",
+    entityId: jobTitleId,
+    oldData: { title: jobTitle.title },
+    metadata: { 
+      reassignedTo: newJobTitleId || "none",
+      affectedEmployeeCount: affectedEmployees.length,
+    },
+  });
+
+  revalidatePath("/app/settings/structure");
+  revalidatePath("/app/employees");
+  return { success: true, reassignedCount: affectedEmployees.length };
 }
 
 export async function createLocation(formData: FormData) {
@@ -310,7 +412,7 @@ export async function deleteLocation(locationId: string) {
 
   const employeeCount = await prisma.employee.count({ where: { locationId } });
   if (employeeCount > 0) {
-    return { error: "Cannot delete location with assigned employees" };
+    return { error: "Cannot delete location with assigned employees", employeeCount, requiresReassign: true };
   }
 
   await prisma.location.delete({ where: { id: locationId } });
@@ -325,6 +427,57 @@ export async function deleteLocation(locationId: string) {
   revalidatePath("/app/settings/structure");
   revalidatePath("/app/employees");
   return { success: true };
+}
+
+export async function reassignAndDeleteLocation(locationId: string, newLocationId: string | null) {
+  const session = await requireActiveOrg();
+  await requirePermission(session, "location:manage");
+
+  const orgId = session.currentOrgId!;
+
+  const location = await prisma.location.findFirst({
+    where: { id: locationId, organizationId: orgId },
+  });
+
+  if (!location) {
+    return { error: "Location not found" };
+  }
+
+  if (newLocationId) {
+    const newLoc = await prisma.location.findFirst({
+      where: { id: newLocationId, organizationId: orgId },
+    });
+    if (!newLoc) {
+      return { error: "Replacement location not found" };
+    }
+  }
+
+  const affectedEmployees = await prisma.employee.findMany({
+    where: { locationId, organizationId: orgId },
+    select: { id: true, firstName: true, lastName: true },
+  });
+
+  await prisma.employee.updateMany({
+    where: { locationId, organizationId: orgId },
+    data: { locationId: newLocationId },
+  });
+
+  await prisma.location.delete({ where: { id: locationId } });
+
+  await createAuditLog(session, orgId, {
+    action: "location.reassigned_and_deleted",
+    entityType: "Location",
+    entityId: locationId,
+    oldData: { name: location.name },
+    metadata: { 
+      reassignedTo: newLocationId || "none",
+      affectedEmployeeCount: affectedEmployees.length,
+    },
+  });
+
+  revalidatePath("/app/settings/structure");
+  revalidatePath("/app/employees");
+  return { success: true, reassignedCount: affectedEmployees.length };
 }
 
 export async function getOrgStructure() {

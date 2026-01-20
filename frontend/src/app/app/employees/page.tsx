@@ -21,12 +21,23 @@ export default async function EmployeesPage() {
             user: { select: { id: true, name: true, email: true } } 
           } 
         },
+        offboardings: {
+          select: { id: true, status: true },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
+        _count: {
+          select: { 
+            employeePortalInvites: true,
+            employeeUserLinks: true,
+          }
+        }
       },
       orderBy: { lastName: "asc" },
     }),
-    prisma.department.findMany({ where: { organizationId: session.currentOrgId! } }),
-    prisma.jobTitle.findMany({ where: { organizationId: session.currentOrgId! } }),
-    prisma.location.findMany({ where: { organizationId: session.currentOrgId! } }),
+    prisma.department.findMany({ where: { organizationId: session.currentOrgId! }, orderBy: { name: "asc" } }),
+    prisma.jobTitle.findMany({ where: { organizationId: session.currentOrgId! }, orderBy: { title: "asc" } }),
+    prisma.location.findMany({ where: { organizationId: session.currentOrgId! }, orderBy: { name: "asc" } }),
     prisma.membership.findMany({ 
       where: { 
         organizationId: session.currentOrgId!, 
