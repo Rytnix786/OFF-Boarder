@@ -79,6 +79,8 @@ export default function EmployeesClient({
   const [selectedJobTitleId, setSelectedJobTitleId] = useState<string>("");
   const [selectedLocationId, setSelectedLocationId] = useState<string>("");
   const [selectedManagerId, setSelectedManagerId] = useState<string>("");
+  const [inviteToPortal, setInviteToPortal] = useState(true);
+  const [inviteSuccessDialog, setInviteSuccessDialog] = useState<{ open: boolean; employeeName: string; inviteUrl: string } | null>(null);
 
   const filteredEmployees = employees.filter((emp) => {
     const matchesSearch =
@@ -103,6 +105,7 @@ export default function EmployeesClient({
     setError(null);
 
     const formData = new FormData(e.currentTarget);
+    formData.set("inviteToPortal", inviteToPortal.toString());
     const result = await createEmployee(formData);
 
     if (result.error) {
@@ -113,7 +116,18 @@ export default function EmployeesClient({
         setSelectedJobTitleId("");
         setSelectedLocationId("");
         setSelectedManagerId("");
-        setSnackbar({ open: true, message: "Employee created successfully", severity: "success" });
+        
+        if (result.invite) {
+          const fullUrl = `${window.location.origin}${result.invite.url}`;
+          setInviteSuccessDialog({
+            open: true,
+            employeeName: `${result.employee.firstName} ${result.employee.lastName}`,
+            inviteUrl: fullUrl,
+          });
+        } else {
+          setSnackbar({ open: true, message: "Employee created successfully", severity: "success" });
+        }
+        setInviteToPortal(true);
         router.refresh();
       }
     setLoading(false);
@@ -468,31 +482,96 @@ export default function EmployeesClient({
                     </Select>
                   </FormControl>
                 </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <FormControl fullWidth>
-                    <InputLabel>Manager</InputLabel>
-                    <Select 
-                      name="managerId" 
-                      label="Manager"
-                      value={selectedManagerId}
-                      onChange={(e) => setSelectedManagerId(e.target.value)}
-                    >
-                      <MenuItem value="">None</MenuItem>
-                      {employees.filter(e => e.status === "ACTIVE").map((e) => (
-                        <MenuItem key={e.id} value={e.id}>{e.firstName} {e.lastName}</MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-            </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <FormControl fullWidth>
+                      <InputLabel>Manager</InputLabel>
+                      <Select 
+                        name="managerId" 
+                        label="Manager"
+                        value={selectedManagerId}
+                        onChange={(e) => setSelectedManagerId(e.target.value)}
+                      >
+                        <MenuItem value="">None</MenuItem>
+                        {employees.filter(e => e.status === "ACTIVE").map((e) => (
+                          <MenuItem key={e.id} value={e.id}>{e.firstName} {e.lastName}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <Box sx={{ mt: 1, p: 2, bgcolor: "action.hover", borderRadius: 2 }}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox 
+                            checked={inviteToPortal} 
+                            onChange={(e) => setInviteToPortal(e.target.checked)} 
+                          />
+                        }
+                        label={
+                          <Box>
+                            <Typography fontWeight={600}>Invite to Employee Portal</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Send portal invite so employee can complete offboarding tasks
+                            </Typography>
+                          </Box>
+                        }
+                      />
+                    </Box>
+                  </Grid>
+              </Grid>
           </DialogContent>
           <DialogActions sx={{ p: 2 }}>
-              <Button onClick={() => { setCreateDialogOpen(false); setSelectedDepartmentId(""); setSelectedJobTitleId(""); setSelectedLocationId(""); setSelectedManagerId(""); setError(null); }}>Cancel</Button>
+              <Button onClick={() => { setCreateDialogOpen(false); setSelectedDepartmentId(""); setSelectedJobTitleId(""); setSelectedLocationId(""); setSelectedManagerId(""); setInviteToPortal(true); setError(null); }}>Cancel</Button>
             <Button type="submit" variant="contained" disabled={loading}>
-              {loading ? "Creating..." : "Create Employee"}
+              {loading ? "Creating..." : inviteToPortal ? "Create & Invite" : "Create Employee"}
             </Button>
           </DialogActions>
         </form>
+      </Dialog>
+
+      <Dialog open={!!inviteSuccessDialog?.open} onClose={() => setInviteSuccessDialog(null)} maxWidth="sm" fullWidth>
+        <DialogTitle fontWeight={700}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <span className="material-symbols-outlined" style={{ color: "#22c55e" }}>check_circle</span>
+            Employee Added & Invited
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Alert severity="success" sx={{ mb: 2 }}>
+            <strong>{inviteSuccessDialog?.employeeName}</strong> has been added and invited to the Employee Portal.
+          </Alert>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Share this invite link with the employee to complete their portal registration:
+          </Typography>
+          <TextField
+            fullWidth
+            value={inviteSuccessDialog?.inviteUrl || ""}
+            InputProps={{
+              readOnly: true,
+              endAdornment: (
+                <Button
+                  size="small"
+                  onClick={() => {
+                    navigator.clipboard.writeText(inviteSuccessDialog?.inviteUrl || "");
+                    setSnackbar({ open: true, message: "Invite link copied!", severity: "success" });
+                  }}
+                  startIcon={<span className="material-symbols-outlined" style={{ fontSize: 18 }}>content_copy</span>}
+                >
+                  Copy
+                </Button>
+              ),
+            }}
+            sx={{ "& .MuiInputBase-input": { fontSize: 13 } }}
+          />
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
+            This link expires in 7 days.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button variant="contained" onClick={() => setInviteSuccessDialog(null)}>
+            Done
+          </Button>
+        </DialogActions>
       </Dialog>
 
       <Snackbar

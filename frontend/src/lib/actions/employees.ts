@@ -2,15 +2,16 @@
 
 import { prisma } from "@/lib/prisma.server";
 import { requireActiveOrg } from "@/lib/auth.server";
-import { requirePermission } from "@/lib/rbac.server";
 import { createAuditLog } from "@/lib/audit.server";
 import { revalidatePath } from "next/cache";
+import { randomBytes } from "crypto";
 
 export async function createEmployee(formData: FormData) {
   const session = await requireActiveOrg();
   await requirePermission(session, "employee:create");
 
   const orgId = session.currentOrgId!;
+  const inviteToPortal = formData.get("inviteToPortal") === "true";
   const data = {
     employeeId: formData.get("employeeId") as string,
     firstName: formData.get("firstName") as string,
@@ -46,15 +47,50 @@ export async function createEmployee(formData: FormData) {
     },
   });
 
+  let invite = null;
+  if (inviteToPortal) {
+    const token = randomBytes(32).toString("hex");
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    invite = await prisma.employeePortalInvite.create({
+      data: {
+        organizationId: orgId,
+        employeeId: employee.id,
+        email: data.email,
+        token,
+        portalType: "SUBJECT_PORTAL",
+        expiresAt,
+        invitedById: session.user.id,
+      },
+    });
+
+    await createAuditLog(session, orgId, {
+      action: "employee_portal_invite_sent",
+      entityType: "EmployeePortalInvite",
+      entityId: invite.id,
+      newData: {
+        employeeId: employee.id,
+        employeeName: `${data.firstName} ${data.lastName}`,
+        employeeEmail: data.email,
+        portalType: "SUBJECT_PORTAL",
+      },
+    });
+  }
+
   await createAuditLog(session, orgId, {
     action: "employee.created",
     entityType: "Employee",
     entityId: employee.id,
-    newData: { employeeId: data.employeeId, name: `${data.firstName} ${data.lastName}`, email: data.email },
+    newData: { employeeId: data.employeeId, name: `${data.firstName} ${data.lastName}`, email: data.email, invitedToPortal: inviteToPortal },
   });
 
   revalidatePath("/app/employees");
-  return { success: true, employee };
+  return { 
+    success: true, 
+    employee,
+    invite: invite ? { id: invite.id, token: invite.token, url: `/employee-invite/${invite.token}` } : null,
+  };
 }
 
 export async function updateEmployee(employeeId: string, formData: FormData) {
