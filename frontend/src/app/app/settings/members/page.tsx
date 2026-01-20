@@ -61,18 +61,23 @@ export default async function MembersPage() {
         status: { in: joinRequestStatusFilter as any },
       },
       include: {
-        requester: { select: { id: true, name: true, email: true, avatarUrl: true } },
+        User_JoinRequest_requesterUserIdToUser: { select: { id: true, name: true, email: true, avatarUrl: true } },
       },
       orderBy: { createdAt: "desc" },
     }),
   ]);
+
+  const joinRequestsMapped = joinRequests.map((jr) => ({
+    ...jr,
+    requester: jr.User_JoinRequest_requesterUserIdToUser,
+  }));
 
   return (
     <MembersClient
       members={members}
       invitations={invitations}
       customRoles={customRoles}
-      joinRequests={joinRequests}
+      joinRequests={joinRequestsMapped}
       canManage={canManage}
       isOwner={isOwner}
       currentUserId={session.user.id}
