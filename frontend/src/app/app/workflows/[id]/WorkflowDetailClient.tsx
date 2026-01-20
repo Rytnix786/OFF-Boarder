@@ -840,7 +840,7 @@ export default function WorkflowDetailClient({ template, canManage, departments 
         </form>
       </Dialog>
 
-      <Dialog open={!!editTask} onClose={() => setEditTask(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 2 } }}>
+      <Dialog key={editTask?.id || "new"} open={!!editTask} onClose={() => setEditTask(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 2 } }}>
         <form onSubmit={handleUpdateTask}>
           <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>Edit Task</DialogTitle>
           <DialogContent>
