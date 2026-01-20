@@ -14,6 +14,7 @@ import {
   TextField,
   CircularProgress,
 } from "@mui/material";
+import { useRouter } from "next/navigation";
 import { usePlatformContext } from "./AdminClientLayout";
 import { stitchTokens } from "@/theme/tokens";
 
@@ -106,6 +107,7 @@ function MetricCard({
   color = "#71717a",
   incidentMode,
   attention = false,
+  onClick,
 }: {
   title: string;
   value: number | string;
@@ -114,12 +116,14 @@ function MetricCard({
   color?: string;
   incidentMode: boolean;
   attention?: boolean;
+  onClick?: () => void;
 }) {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
 
   return (
     <Box
+      onClick={onClick}
       sx={{
         p: 3,
         borderRadius: 2,
@@ -139,6 +143,12 @@ function MetricCard({
           ? "#27272a"
           : "#e5e7eb",
         transition: "all 150ms ease",
+        cursor: onClick ? "pointer" : "default",
+        "&:hover": onClick ? {
+          borderColor: incidentMode ? alpha("#dc2626", 0.4) : alpha(color, 0.5),
+          transform: "translateY(-2px)",
+          boxShadow: `0 4px 12px ${alpha(color, 0.15)}`,
+        } : {},
       }}
     >
       <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", mb: 2 }}>
@@ -249,6 +259,7 @@ function SignalRow({ signal, incidentMode }: { signal: PlatformData["signals"]["
 
 export default function AdminOverviewPage() {
   const theme = useTheme();
+  const router = useRouter();
   const isDark = theme.palette.mode === "dark";
   const { incidentMode, setIncidentMode, refreshData } = usePlatformContext();
   const [data, setData] = useState<PlatformData | null>(null);
@@ -344,42 +355,46 @@ export default function AdminOverviewPage() {
         </Box>
       </Box>
 
-      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }, gap: 2, mb: 4 }}>
-        <MetricCard
-          title="Total Organizations"
-          value={data?.organizations.total || 0}
-          subtitle={`${data?.organizations.active || 0} active`}
-          icon="corporate_fare"
-          color="#6366f1"
-          incidentMode={incidentMode}
-        />
-        <MetricCard
-          title="Pending Approval"
-          value={data?.organizations.pending || 0}
-          subtitle="Awaiting review"
-          icon="pending_actions"
-          color="#f59e0b"
-          incidentMode={incidentMode}
-          attention={(data?.organizations.pending || 0) > 0}
-        />
-        <MetricCard
-          title="Active Offboardings"
-          value={data?.offboardings.active || 0}
-          subtitle={`${data?.offboardings.total || 0} total`}
-          icon="group_remove"
-          color="#22c55e"
-          incidentMode={incidentMode}
-        />
-        <MetricCard
-          title="High/Critical Risk"
-          value={`${data?.offboardings.highRisk || 0} / ${data?.offboardings.critical || 0}`}
-          subtitle="Requiring attention"
-          icon="warning"
-          color="#dc2626"
-          incidentMode={incidentMode}
-          attention={(data?.offboardings.critical || 0) > 0}
-        />
-      </Box>
+        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }, gap: 2, mb: 4 }}>
+          <MetricCard
+            title="Total Organizations"
+            value={data?.organizations.total || 0}
+            subtitle={`${data?.organizations.active || 0} active`}
+            icon="corporate_fare"
+            color="#6366f1"
+            incidentMode={incidentMode}
+            onClick={() => router.push("/admin/organizations")}
+          />
+          <MetricCard
+            title="Pending Approval"
+            value={data?.organizations.pending || 0}
+            subtitle="Awaiting review"
+            icon="pending_actions"
+            color="#f59e0b"
+            incidentMode={incidentMode}
+            attention={(data?.organizations.pending || 0) > 0}
+            onClick={() => router.push("/admin/organizations?status=PENDING")}
+          />
+          <MetricCard
+            title="Active Offboardings"
+            value={data?.offboardings.active || 0}
+            subtitle={`${data?.offboardings.total || 0} total`}
+            icon="group_remove"
+            color="#22c55e"
+            incidentMode={incidentMode}
+            onClick={() => router.push("/admin/organizations?tab=offboardings")}
+          />
+          <MetricCard
+            title="High/Critical Risk"
+            value={`${data?.offboardings.highRisk || 0} / ${data?.offboardings.critical || 0}`}
+            subtitle="Requiring attention"
+            icon="warning"
+            color="#dc2626"
+            incidentMode={incidentMode}
+            attention={(data?.offboardings.critical || 0) > 0}
+            onClick={() => router.push("/admin/organizations?tab=offboardings&risk=high")}
+          />
+        </Box>
 
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" }, gap: 3 }}>
         <Box
