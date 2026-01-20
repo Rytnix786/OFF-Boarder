@@ -26,8 +26,6 @@ export default async function PendingPage() {
   const activeMembership = memberships.find(
     (m) => m.status === "ACTIVE" && m.organization.status === "ACTIVE"
   );
-  
-  if (activeMembership) redirect("/app");
 
   // Check for SUSPENDED or REJECTED org - redirect to org-blocked
   const blockedMembership = memberships.find(
@@ -74,8 +72,40 @@ export default async function PendingPage() {
       }}
     >
       <Card variant="outlined" sx={{ maxWidth: 500, width: "100%", borderRadius: 4 }}>
-        <CardContent sx={{ p: 5, textAlign: "center" }}>
-          {pendingOrg ? (
+          <CardContent sx={{ p: 5, textAlign: "center" }}>
+            {activeMembership ? (
+              <>
+                <Box
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: "50%",
+                    bgcolor: "rgba(34, 197, 94, 0.1)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    mx: "auto",
+                    mb: 3,
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 40, color: "#22c55e" }}>
+                    check_circle
+                  </span>
+                </Box>
+                <Chip label="Active" color="success" sx={{ mb: 2, fontWeight: 600 }} />
+                <Typography variant="h5" fontWeight={800} gutterBottom>
+                  Organization Ready
+                </Typography>
+                <Typography color="text.secondary" sx={{ mb: 3 }}>
+                  You have access to &quot;{activeMembership.organization.name}&quot;.
+                </Typography>
+                <Link href="/app" passHref style={{ textDecoration: 'none' }}>
+                  <Button variant="contained" size="large" fullWidth>
+                    Go to Dashboard
+                  </Button>
+                </Link>
+              </>
+            ) : pendingOrg ? (
             <>
               <Box
                 sx={{
