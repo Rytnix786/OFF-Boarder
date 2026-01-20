@@ -1036,7 +1036,20 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
 
             {/* Administrative Controls — Links → Governed Controls */}
                 <Grid size={{ xs: 12, md: 4 }}>
-                  <Card variant="outlined" sx={{ borderRadius: 2, height: "100%", position: "relative", overflow: "hidden" }}>
+                    <Card 
+                      variant="outlined" 
+                      sx={{ 
+                        borderRadius: 2, 
+                        height: "100%", 
+                        position: "relative", 
+                        overflow: "hidden",
+                        transition: "all 0.3s ease",
+                        "&:hover": {
+                          boxShadow: (theme) => `0 0 20px ${alpha("#3b82f6", 0.1)}`,
+                          borderColor: alpha("#3b82f6", 0.3),
+                        }
+                      }}
+                    >
                     <Box
                       sx={{
                         position: "absolute",
@@ -1074,13 +1087,14 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
                                   border: "1px solid",
                                   borderColor: !onboardingStatus.isComplete ? alpha("#d97706", 0.3) : "divider",
                                   bgcolor: !onboardingStatus.isComplete ? alpha("#d97706", 0.02) : "transparent",
-                                  transition: "all 100ms ease-out",
-                                  "&:hover": { 
-                                    bgcolor: !onboardingStatus.isComplete ? alpha("#d97706", 0.05) : alpha("#3b82f6", 0.04), 
-                                    borderColor: !onboardingStatus.isComplete ? alpha("#d97706", 0.5) : alpha("#3b82f6", 0.2),
-                                    "& .control-icon": { color: !onboardingStatus.isComplete ? "#d97706" : alpha("#3b82f6", 0.8) },
-                                    "& .control-chevron": { transform: "translateX(2px)", color: !onboardingStatus.isComplete ? "#d97706" : alpha("#3b82f6", 0.7) },
-                                  },
+                                    transition: "all 100ms ease-out",
+                                    "&:hover": { 
+                                      bgcolor: !onboardingStatus.isComplete ? alpha("#d97706", 0.05) : alpha("#3b82f6", 0.04), 
+                                      borderColor: !onboardingStatus.isComplete ? alpha("#d97706", 0.5) : alpha("#3b82f6", 0.2),
+                                      boxShadow: (theme) => `0 0 15px ${alpha(!onboardingStatus.isComplete ? "#d97706" : "#3b82f6", 0.15)}`,
+                                      "& .control-icon": { color: !onboardingStatus.isComplete ? "#d97706" : alpha("#3b82f6", 0.8) },
+                                      "& .control-chevron": { transform: "translateX(2px)", color: !onboardingStatus.isComplete ? "#d97706" : alpha("#3b82f6", 0.7) },
+                                    },
                                 }}
                               >
                                 <span className="material-symbols-outlined control-icon icon-row" style={{ fontSize: 18, color: !onboardingStatus.isComplete ? "#d97706" : "inherit" }}>person_remove</span>
@@ -1108,12 +1122,13 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
                                 border: "1px solid",
                                 borderColor: "divider",
                                 transition: "all 100ms ease-out",
-                                "&:hover": { 
-                                  bgcolor: alpha("#3b82f6", 0.04), 
-                                  borderColor: alpha("#3b82f6", 0.2),
-                                  "& .control-icon": { color: alpha("#3b82f6", 0.8) },
-                                  "& .control-chevron": { transform: "translateX(2px)", color: alpha("#3b82f6", 0.7) },
-                                },
+                                  "&:hover": { 
+                                    bgcolor: alpha("#3b82f6", 0.04), 
+                                    borderColor: alpha("#3b82f6", 0.2),
+                                    boxShadow: (theme) => `0 0 15px ${alpha("#3b82f6", 0.15)}`,
+                                    "& .control-icon": { color: alpha("#3b82f6", 0.8) },
+                                    "& .control-chevron": { transform: "translateX(2px)", color: alpha("#3b82f6", 0.7) },
+                                  },
                                 "&:active": { 
                                   bgcolor: alpha("#3b82f6", 0.08),
                                   transform: "scale(0.995)",
@@ -1142,12 +1157,13 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
                                 border: "1px solid",
                                 borderColor: "divider",
                                 transition: "all 100ms ease-out",
-                                "&:hover": { 
-                                  bgcolor: alpha("#3b82f6", 0.04), 
-                                  borderColor: alpha("#3b82f6", 0.2),
-                                  "& .control-icon": { color: alpha("#3b82f6", 0.8) },
-                                  "& .control-chevron": { transform: "translateX(2px)", color: alpha("#3b82f6", 0.7) },
-                                },
+                                  "&:hover": { 
+                                    bgcolor: alpha("#3b82f6", 0.04), 
+                                    borderColor: alpha("#3b82f6", 0.2),
+                                    boxShadow: (theme) => `0 0 15px ${alpha("#3b82f6", 0.15)}`,
+                                    "& .control-icon": { color: alpha("#3b82f6", 0.8) },
+                                    "& .control-chevron": { transform: "translateX(2px)", color: alpha("#3b82f6", 0.7) },
+                                  },
                                 "&:active": { 
                                   bgcolor: alpha("#3b82f6", 0.08),
                                   transform: "scale(0.995)",
@@ -1176,12 +1192,13 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
                                 border: "1px solid",
                                 borderColor: "divider",
                                 transition: "all 100ms ease-out",
-                                "&:hover": { 
-                                  bgcolor: alpha("#3b82f6", 0.04), 
-                                  borderColor: alpha("#3b82f6", 0.2),
-                                  "& .control-icon": { color: alpha("#3b82f6", 0.8) },
-                                  "& .control-chevron": { transform: "translateX(2px)", color: alpha("#3b82f6", 0.7) },
-                                },
+                                  "&:hover": { 
+                                    bgcolor: alpha("#3b82f6", 0.04), 
+                                    borderColor: alpha("#3b82f6", 0.2),
+                                    boxShadow: (theme) => `0 0 15px ${alpha("#3b82f6", 0.15)}`,
+                                    "& .control-icon": { color: alpha("#3b82f6", 0.8) },
+                                    "& .control-chevron": { transform: "translateX(2px)", color: alpha("#3b82f6", 0.7) },
+                                  },
                                 "&:active": { 
                                   bgcolor: alpha("#3b82f6", 0.08),
                                   transform: "scale(0.995)",
