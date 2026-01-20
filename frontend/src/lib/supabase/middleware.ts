@@ -118,12 +118,7 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  const isAuthPage = pathname === "/login";
   const isProtectedRoute = pathname.startsWith("/app");
-  
-  const isStatusPage = 
-    pathname === "/org-blocked" || 
-    pathname === "/pending";
 
   if (!user && isProtectedRoute) {
     const url = request.nextUrl.clone();
@@ -131,11 +126,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthPage) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/app";
-    return NextResponse.redirect(url);
-  }
+  // Don't redirect authenticated users away from /login - they may need to log out
 
   return supabaseResponse;
 }
