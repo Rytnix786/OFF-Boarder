@@ -29,6 +29,7 @@ import {
   Grid,
   Alert,
   Collapse,
+  InputAdornment,
 } from "@mui/material";
 import { createOffboarding } from "@/lib/actions/offboardings";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -45,7 +46,7 @@ type Offboarding = {
     firstName: string;
     lastName: string;
     email: string;
-    department: { name: string } | null;
+    department: { id: string; name: string } | null;
     jobTitle: { title: string } | null;
   };
   tasks: { id: string; status: string }[];
@@ -68,6 +69,7 @@ interface OffboardingsClientProps {
   offboardings: Offboarding[];
   employees: { id: string; firstName: string; lastName: string; email: string }[];
   workflowTemplates: WorkflowTemplate[];
+  departments: { id: string; name: string }[];
   canCreate: boolean;
 }
 
@@ -75,6 +77,7 @@ export default function OffboardingsClient({
   offboardings, 
   employees, 
   workflowTemplates,
+  departments,
   canCreate 
 }: OffboardingsClientProps) {
   const router = useRouter();
@@ -87,6 +90,9 @@ export default function OffboardingsClient({
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>("");
   const [selectedReason, setSelectedReason] = useState<string>("");
   const [selectedWorkflowTemplateId, setSelectedWorkflowTemplateId] = useState<string>("");
+  const [search, setSearch] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("all");
+  const [riskFilter, setRiskFilter] = useState("all");
 
   useEffect(() => {
     const startOffboardingId = searchParams.get("startOffboarding");
@@ -98,10 +104,22 @@ export default function OffboardingsClient({
   }, [searchParams, employees, router]);
 
   const filteredOffboardings = offboardings.filter((o) => {
-    if (tab === 0) return o.status === "PENDING" || o.status === "IN_PROGRESS" || o.status === "PENDING_APPROVAL";
-    if (tab === 1) return o.status === "COMPLETED";
-    if (tab === 2) return o.status === "CANCELLED";
-    return true;
+    const matchesTab = (() => {
+      if (tab === 0) return o.status === "PENDING" || o.status === "IN_PROGRESS" || o.status === "PENDING_APPROVAL";
+      if (tab === 1) return o.status === "COMPLETED";
+      if (tab === 2) return o.status === "CANCELLED";
+      return true;
+    })();
+
+    const matchesSearch = 
+      o.employee.firstName.toLowerCase().includes(search.toLowerCase()) ||
+      o.employee.lastName.toLowerCase().includes(search.toLowerCase()) ||
+      o.employee.email.toLowerCase().includes(search.toLowerCase());
+
+    const matchesDepartment = departmentFilter === "all" || o.employee.department?.id === departmentFilter;
+    const matchesRisk = riskFilter === "all" || o.riskLevel === riskFilter;
+
+    return matchesTab && matchesSearch && matchesDepartment && matchesRisk;
   });
 
   const activeCount = offboardings.filter((o) => 
@@ -188,6 +206,49 @@ export default function OffboardingsClient({
           <strong>{highRiskCount} high-risk offboarding(s)</strong> require additional attention and approvals
         </Alert>
       )}
+
+      <Card variant="outlined" sx={{ borderRadius: 3, mb: 3 }}>
+        <Box sx={{ p: 2, display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center" }}>
+          <TextField
+            placeholder="Search by name or email..."
+            size="small"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            sx={{ width: 280 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>search</span>
+                </InputAdornment>
+              ),
+            }}
+          />
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <Select
+              value={departmentFilter}
+              onChange={(e) => setDepartmentFilter(e.target.value)}
+              displayEmpty
+            >
+              <MenuItem value="all">All Departments</MenuItem>
+              {departments.map((d) => (
+                <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 130 }}>
+            <Select
+              value={riskFilter}
+              onChange={(e) => setRiskFilter(e.target.value)}
+              displayEmpty
+            >
+              <MenuItem value="all">All Risk</MenuItem>
+              <MenuItem value="NORMAL">Normal</MenuItem>
+              <MenuItem value="HIGH">High</MenuItem>
+              <MenuItem value="CRITICAL">Critical</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+      </Card>
 
       <Card variant="outlined" sx={{ borderRadius: 3 }}>
         <Tabs

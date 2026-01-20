@@ -26,10 +26,20 @@ export default async function OffboardingDetailPage({
           department: true,
           jobTitle: true,
           location: true,
-          manager: { select: { id: true, firstName: true, lastName: true } },
+          managerMembership: { 
+            select: { 
+              id: true, 
+              user: { select: { name: true, email: true } } 
+            } 
+          },
         },
       },
-      tasks: { orderBy: { order: "asc" } },
+      tasks: { 
+        orderBy: { order: "asc" },
+        include: {
+          evidence: true,
+        },
+      },
       approvals: {
         include: {
           approver: { select: { id: true, name: true, email: true } },

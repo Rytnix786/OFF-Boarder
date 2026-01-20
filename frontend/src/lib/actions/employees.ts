@@ -23,7 +23,7 @@ export async function createEmployee(formData: FormData) {
     departmentId: formData.get("departmentId") as string || null,
     jobTitleId: formData.get("jobTitleId") as string || null,
     locationId: formData.get("locationId") as string || null,
-    managerId: formData.get("managerId") as string || null,
+    managerMembershipId: formData.get("managerMembershipId") as string || null,
   };
 
   if (!data.employeeId || !data.firstName || !data.lastName || !data.email) {
@@ -57,12 +57,17 @@ export async function createEmployee(formData: FormData) {
     }
   }
 
-  if (data.managerId) {
-    const mgr = await prisma.employee.findFirst({
-      where: { id: data.managerId, organizationId: orgId },
+  if (data.managerMembershipId) {
+    const mgr = await prisma.membership.findFirst({
+      where: { 
+        id: data.managerMembershipId, 
+        organizationId: orgId,
+        status: "ACTIVE",
+        systemRole: { in: ["OWNER", "ADMIN", "CONTRIBUTOR"] },
+      },
     });
     if (!mgr) {
-      return { error: "Invalid manager selected" };
+      return { error: "Invalid manager selected - must be an active org member" };
     }
   }
 
@@ -154,7 +159,7 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
     departmentId: formData.get("departmentId") as string || null,
     jobTitleId: formData.get("jobTitleId") as string || null,
     locationId: formData.get("locationId") as string || null,
-    managerId: formData.get("managerId") as string || null,
+    managerMembershipId: formData.get("managerMembershipId") as string || null,
     status: formData.get("status") as "ACTIVE" | "ON_LEAVE" | "TERMINATED" | "OFFBOARDING" || employee.status,
   };
 
@@ -185,12 +190,17 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
     }
   }
 
-  if (data.managerId) {
-    const mgr = await prisma.employee.findFirst({
-      where: { id: data.managerId, organizationId: orgId },
+  if (data.managerMembershipId) {
+    const mgr = await prisma.membership.findFirst({
+      where: { 
+        id: data.managerMembershipId, 
+        organizationId: orgId,
+        status: "ACTIVE",
+        systemRole: { in: ["OWNER", "ADMIN", "CONTRIBUTOR"] },
+      },
     });
     if (!mgr) {
-      return { error: "Invalid manager selected" };
+      return { error: "Invalid manager selected - must be an active org member" };
     }
   }
 
@@ -393,7 +403,13 @@ export async function getEmployees(options?: { search?: string; status?: string;
       department: true,
       jobTitle: true,
       location: true,
-      manager: { select: { id: true, firstName: true, lastName: true } },
+      managerMembership: { 
+        select: { 
+          id: true, 
+          systemRole: true,
+          user: { select: { id: true, name: true, email: true } } 
+        } 
+      },
     },
     orderBy: { lastName: "asc" },
   });
@@ -409,8 +425,13 @@ export async function getEmployee(employeeId: string) {
       department: true,
       jobTitle: true,
       location: true,
-      manager: { select: { id: true, firstName: true, lastName: true } },
-      directReports: { select: { id: true, firstName: true, lastName: true } },
+      managerMembership: { 
+        select: { 
+          id: true, 
+          systemRole: true,
+          user: { select: { id: true, name: true, email: true } } 
+        } 
+      },
       offboardings: { orderBy: { createdAt: "desc" }, take: 5 },
     },
   });
