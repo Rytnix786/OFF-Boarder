@@ -40,10 +40,20 @@ type Organization = {
 
 interface OrganizationsClientProps {
   organizations: Organization[];
+  initialStatus?: string;
+  initialTab?: string;
 }
 
-export default function OrganizationsClient({ organizations }: OrganizationsClientProps) {
-  const [tab, setTab] = useState(0);
+export default function OrganizationsClient({ organizations, initialStatus, initialTab }: OrganizationsClientProps) {
+  const getInitialTab = () => {
+    if (initialStatus === "PENDING") return 0;
+    if (initialStatus === "ACTIVE") return 1;
+    if (initialStatus === "SUSPENDED" || initialStatus === "REJECTED") return 2;
+    if (initialTab === "offboardings") return 1;
+    return 0;
+  };
+
+  const [tab, setTab] = useState(getInitialTab());
   const [menuAnchor, setMenuAnchor] = useState<{ el: HTMLElement; org: Organization } | null>(null);
   const [rejectDialog, setRejectDialog] = useState<Organization | null>(null);
   const [rejectReason, setRejectReason] = useState("");
