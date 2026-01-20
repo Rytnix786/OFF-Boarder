@@ -67,38 +67,46 @@ function LoginContent() {
         }
 
         const checkRes = await fetch("/api/auth/check-user");
-        const checkData = await checkRes.json();
+          const checkData = await checkRes.json();
+          
+          console.log("[login] check-user response:", checkData);
 
-        let targetOrgId = null;
-        if (checkData.hasOrganization && checkData.organizations?.length > 0) {
-          targetOrgId = checkData.organizations[0].id;
-        }
+          let targetOrgId = null;
+          if (checkData.hasOrganization && checkData.organizations?.length > 0) {
+            targetOrgId = checkData.organizations[0].id;
+          }
 
-        await fetch("/api/sessions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            rememberDevice,
-            organizationId: targetOrgId,
-          }),
-        });
+          await fetch("/api/sessions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              rememberDevice,
+              organizationId: targetOrgId,
+            }),
+          });
 
-        if (redirectUrl) {
-          window.location.href = redirectUrl;
-          return;
-        }
-      
-        if (checkData.isPlatformAdmin) {
-          window.location.href = "/admin";
-        } else if (checkData.hasOrganization) {
-          window.location.href = "/app";
-        } else if (checkData.hasEmployeePortalAccess) {
-          window.location.href = "/app/employee";
-        } else if (checkData.hasPendingOrg) {
-          window.location.href = "/pending";
-        } else {
-          window.location.href = "/register";
-        }
+          if (redirectUrl) {
+            console.log("[login] Redirecting to redirectUrl:", redirectUrl);
+            window.location.href = redirectUrl;
+            return;
+          }
+        
+          if (checkData.isPlatformAdmin) {
+            console.log("[login] Redirecting to /admin (isPlatformAdmin)");
+            window.location.href = "/admin";
+          } else if (checkData.hasOrganization) {
+            console.log("[login] Redirecting to /app (hasOrganization)");
+            window.location.href = "/app";
+          } else if (checkData.hasEmployeePortalAccess) {
+            console.log("[login] Redirecting to /app/employee (hasEmployeePortalAccess)");
+            window.location.href = "/app/employee";
+          } else if (checkData.hasPendingOrg) {
+            console.log("[login] Redirecting to /pending (hasPendingOrg)");
+            window.location.href = "/pending";
+          } else {
+            console.log("[login] Redirecting to /register (no access)");
+            window.location.href = "/register";
+          }
     } catch (err) {
       setError("An unexpected error occurred");
     } finally {
