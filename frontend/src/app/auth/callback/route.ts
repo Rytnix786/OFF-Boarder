@@ -266,29 +266,50 @@ export async function GET(request: NextRequest) {
           existingUser.roleVersion
         );
 
-        if (existingUser.isPlatformAdmin) {
-          const response = NextResponse.redirect(`${origin}/admin`);
+          if (existingUser.isPlatformAdmin) {
+            const response = NextResponse.redirect(`${origin}/admin`);
+            return setSessionCookies(response, sessionToken, refreshToken);
+          }
+          
+          const activeEmployeeLink = await prisma.employeeUserLink.findFirst({
+            where: {
+              userId: existingUser.id,
+              status: "VERIFIED",
+              organization: { status: "ACTIVE" },
+            },
+          });
+          
+          if (redirectUrl) {
+            const isEmployeeRedirect = redirectUrl.startsWith("/app/employee");
+            const isAppRedirect = redirectUrl.startsWith("/app") && !isEmployeeRedirect;
+            
+            if (isEmployeeRedirect && activeEmployeeLink) {
+              const response = NextResponse.redirect(`${origin}${redirectUrl}`);
+              return setSessionCookies(response, sessionToken, refreshToken);
+            } else if (isAppRedirect && activeOrg) {
+              const response = NextResponse.redirect(`${origin}${redirectUrl}`);
+              return setSessionCookies(response, sessionToken, refreshToken);
+            }
+          }
+          
+          if (activeOrg) {
+            const response = NextResponse.redirect(`${origin}/app`);
+            return setSessionCookies(response, sessionToken, refreshToken);
+          }
+          
+          if (activeEmployeeLink) {
+            const response = NextResponse.redirect(`${origin}/app/employee`);
+            return setSessionCookies(response, sessionToken, refreshToken);
+          }
+          
+          if (pendingOrg) {
+            const response = NextResponse.redirect(`${origin}/pending`);
+            return setSessionCookies(response, sessionToken, refreshToken);
+          }
+          
+          const response = NextResponse.redirect(`${origin}/register`);
           return setSessionCookies(response, sessionToken, refreshToken);
         }
-        
-        if (redirectUrl) {
-          const response = NextResponse.redirect(`${origin}${redirectUrl}`);
-          return setSessionCookies(response, sessionToken, refreshToken);
-        }
-        
-        if (activeOrg) {
-          const response = NextResponse.redirect(`${origin}/app`);
-          return setSessionCookies(response, sessionToken, refreshToken);
-        }
-        
-        if (pendingOrg) {
-          const response = NextResponse.redirect(`${origin}/pending`);
-          return setSessionCookies(response, sessionToken, refreshToken);
-        }
-        
-        const response = NextResponse.redirect(`${origin}/register`);
-        return setSessionCookies(response, sessionToken, refreshToken);
-      }
 
       if (inviteToken) {
         const invitation = await prisma.invitation.findUnique({
