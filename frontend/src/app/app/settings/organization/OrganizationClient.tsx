@@ -564,12 +564,16 @@ export default function OrganizationClient({
               </Card>
 
               {isOwner && (
-                <Card variant="outlined" sx={{ 
-                  borderRadius: 4, 
-                  border: "1px solid", 
-                  borderColor: alpha("#EF4444", 0.2),
-                  bgcolor: alpha("#EF4444", 0.02)
-                }}>
+                  <Card variant="outlined" sx={{ 
+                    borderRadius: 4, 
+                    border: "1px solid", 
+                    borderColor: alpha("#EF4444", 0.2),
+                    bgcolor: alpha("#EF4444", 0.02),
+                    transition: "box-shadow 0.2s ease-in-out",
+                    "&:hover": {
+                      boxShadow: `0 0 20px ${alpha("#EF4444", 0.3)}`
+                    }
+                  }}>
                   <CardContent sx={{ p: 3 }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
                       <Typography
