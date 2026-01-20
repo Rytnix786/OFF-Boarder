@@ -50,35 +50,52 @@ function LoginContent() {
   const [resetEmailSent, setResetEmailSent] = useState(false);
 
     const handleLogin = async (e: React.FormEvent) => {
-      e.preventDefault();
-      setError(null);
-      setLoading(true);
+        e.preventDefault();
+        setError(null);
+        setLoading(true);
 
-      try {
-        setRememberMe(rememberDevice);
-        
-        const supabase = createClient();
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+        try {
+          setRememberMe(rememberDevice);
+          
+          const supabase = createClient();
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
 
-      if (error) {
-          setError(error.message);
-          return;
-        }
+        if (error) {
+            setError(error.message);
+            return;
+          }
 
-        if (redirectUrl) {
-          window.location.href = redirectUrl;
-        } else {
-          window.location.href = "/auth/redirect";
-        }
-    } catch (err) {
-      setError("An unexpected error occurred");
-    } finally {
-      setLoading(false);
-    }
-  };
+          if (!data.user) {
+            setError("Login failed. Please try again.");
+            return;
+          }
+
+          const response = await fetch("/api/auth/setup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+              redirectUrl: redirectUrl || undefined,
+              rememberDevice 
+            }),
+          });
+
+          const result = await response.json();
+          
+          if (!response.ok) {
+            setError(result.error || "Failed to complete login");
+            return;
+          }
+
+          window.location.href = result.redirectTo || "/app";
+      } catch (err) {
+        setError("An unexpected error occurred");
+      } finally {
+        setLoading(false);
+      }
+    };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();

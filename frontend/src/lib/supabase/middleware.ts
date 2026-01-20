@@ -109,36 +109,42 @@ export async function updateSession(request: NextRequest) {
 
   const isProtectedRoute = pathname.startsWith("/app");
 
-  const hasAuthCookie = request.cookies.getAll().some(
-    (cookie) => cookie.name.includes("auth-token") || cookie.name.includes("sb-")
+  const hasSupabaseCookie = request.cookies.getAll().some(
+    (cookie) => cookie.name.includes("sb-")
   );
+  const hasDeviceSession = request.cookies.has("device_session");
+  const hasAnyAuthCookie = hasSupabaseCookie || hasDeviceSession;
 
   if (isProtectedRoute) {
-    if (!hasAuthCookie) {
+    if (!hasAnyAuthCookie) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
       url.searchParams.set("redirect", pathname);
       return NextResponse.redirect(url);
     }
 
-    const { data: { user }, error } = await supabase.auth.getUser();
+    if (hasSupabaseCookie) {
+      const { data: { user }, error } = await supabase.auth.getUser();
 
-    if (!user || error) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/login";
-      url.searchParams.set("redirect", pathname);
-      
-      const redirectResponse = NextResponse.redirect(url);
-      supabaseResponse.cookies.getAll().forEach((cookie) => {
-        redirectResponse.cookies.set(cookie.name, cookie.value, {
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax" as const,
-          path: "/",
-        });
-      });
-      return redirectResponse;
+      if (!user || error) {
+        if (!hasDeviceSession) {
+          const url = request.nextUrl.clone();
+          url.pathname = "/login";
+          url.searchParams.set("redirect", pathname);
+          
+          const redirectResponse = NextResponse.redirect(url);
+          supabaseResponse.cookies.getAll().forEach((cookie) => {
+            redirectResponse.cookies.set(cookie.name, cookie.value, {
+              secure: process.env.NODE_ENV === "production",
+              sameSite: "lax" as const,
+              path: "/",
+            });
+          });
+          return redirectResponse;
+        }
+      }
     }
-  } else if (hasAuthCookie) {
+  } else if (hasSupabaseCookie) {
     await supabase.auth.getUser();
   }
 
