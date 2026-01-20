@@ -374,6 +374,124 @@ export async function updateOrganization(formData: FormData) {
   return { success: true, organization: updated };
 }
 
+const VALID_TIMEZONES = [
+  "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
+  "America/Anchorage", "Pacific/Honolulu", "Europe/London", "Europe/Paris",
+  "Europe/Moscow", "Asia/Dubai", "Asia/Kolkata", "Asia/Singapore", "Asia/Tokyo",
+  "Asia/Shanghai", "Australia/Sydney", "Pacific/Auckland", "UTC",
+];
+
+const VALID_ORG_TYPES = [
+  "technology", "healthcare", "finance", "education", "manufacturing",
+  "retail", "consulting", "government", "nonprofit", "other",
+];
+
+export async function updateOrganizationProfile(formData: FormData) {
+  const session = await requireActiveOrg();
+
+  const userRole = session.currentMembership?.systemRole;
+  if (userRole !== "OWNER" && userRole !== "ADMIN") {
+    return { error: "Only Owners and Admins can update organization profile" };
+  }
+
+  const orgId = session.currentOrgId!;
+
+  const org = await prisma.organization.findUnique({ where: { id: orgId } });
+  if (!org) {
+    return { error: "Organization not found" };
+  }
+
+  if (org.status !== "ACTIVE") {
+    return { error: "Cannot update organization profile while organization is not active" };
+  }
+
+  const name = (formData.get("name") as string)?.trim();
+  const logoUrl = (formData.get("logoUrl") as string)?.trim() || null;
+  const primaryLocation = (formData.get("primaryLocation") as string)?.trim() || null;
+  const timezone = (formData.get("timezone") as string)?.trim() || null;
+  const organizationType = (formData.get("organizationType") as string)?.trim() || null;
+
+  if (!name || name.length < 2) {
+    return { error: "Organization name must be at least 2 characters" };
+  }
+
+  if (name.length > 100) {
+    return { error: "Organization name cannot exceed 100 characters" };
+  }
+
+  if (primaryLocation && primaryLocation.length > 200) {
+    return { error: "Primary location cannot exceed 200 characters" };
+  }
+
+  if (timezone && !VALID_TIMEZONES.includes(timezone)) {
+    return { error: "Invalid timezone selected" };
+  }
+
+  if (organizationType && !VALID_ORG_TYPES.includes(organizationType)) {
+    return { error: "Invalid organization type selected" };
+  }
+
+  if (org.isSetupComplete) {
+    if (!primaryLocation) {
+      return { error: "Primary location is required for a setup-complete organization" };
+    }
+    if (!timezone) {
+      return { error: "Timezone is required for a setup-complete organization" };
+    }
+    if (!organizationType) {
+      return { error: "Organization type is required for a setup-complete organization" };
+    }
+  }
+
+  const oldData = {
+    name: org.name,
+    logoUrl: org.logoUrl,
+    primaryLocation: org.primaryLocation,
+    timezone: org.timezone,
+    organizationType: org.organizationType,
+  };
+
+  const newData = {
+    name,
+    logoUrl,
+    primaryLocation,
+    timezone,
+    organizationType,
+  };
+
+  const changedFields: string[] = [];
+  for (const key of Object.keys(newData) as (keyof typeof newData)[]) {
+    if (oldData[key] !== newData[key]) {
+      changedFields.push(key);
+    }
+  }
+
+  if (changedFields.length === 0) {
+    return { success: true, organization: org };
+  }
+
+  const updated = await prisma.organization.update({
+    where: { id: orgId },
+    data: newData,
+  });
+
+  await createAuditLog(session, orgId, {
+    action: "organization.profile_updated",
+    entityType: "Organization",
+    entityId: orgId,
+    oldData: oldData,
+    newData: newData,
+    metadata: {
+      changedFields,
+      updatedByRole: userRole,
+    },
+  });
+
+  revalidatePath("/app/settings/organization");
+  revalidatePath("/app");
+  return { success: true, organization: updated };
+}
+
 export async function approveOrganization(orgId: string) {
   const session = await requirePlatformAdmin();
 

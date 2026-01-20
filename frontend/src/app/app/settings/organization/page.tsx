@@ -20,8 +20,27 @@ export default async function OrganizationSettingsPage() {
     throw new Error("Organization not found");
   }
 
-  const canEdit = session.currentMembership?.systemRole === "OWNER" ||
-                  session.currentMembership?.systemRole === "ADMIN";
+  const userRole = session.currentMembership?.systemRole;
+  const canEdit = userRole === "OWNER" || userRole === "ADMIN";
 
-  return <OrganizationClient organization={organization} canEdit={canEdit} />;
+  return (
+    <OrganizationClient
+      organization={{
+        id: organization.id,
+        name: organization.name,
+        slug: organization.slug,
+        logoUrl: organization.logoUrl,
+        status: organization.status,
+        createdAt: organization.createdAt,
+        updatedAt: organization.updatedAt,
+        primaryLocation: organization.primaryLocation,
+        timezone: organization.timezone,
+        organizationType: organization.organizationType,
+        isSetupComplete: organization.isSetupComplete,
+        _count: organization._count,
+      }}
+      canEdit={canEdit}
+      userRole={userRole || "CONTRIBUTOR"}
+    />
+  );
 }
