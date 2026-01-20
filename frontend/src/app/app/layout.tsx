@@ -81,6 +81,18 @@ export default async function AppLayout({
     redirect("/pending");
   }
 
+  const isSetupRoute = pathname.startsWith("/app/setup");
+  const isProfileRoute = pathname.startsWith("/app/settings/profile");
+  const allowedWithoutSetup = isSetupRoute || isProfileRoute;
+
+  if (
+    !session.currentMembership.organization.isSetupComplete &&
+    session.currentMembership.systemRole === "OWNER" &&
+    !allowedWithoutSetup
+  ) {
+    redirect("/app/setup");
+  }
+
   const userPermissions = await getUserPermissions(session);
 
   if (pathname && pathname !== "/app/access-denied" && !canAccessRoute(pathname, userPermissions)) {

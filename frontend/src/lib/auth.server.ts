@@ -28,17 +28,18 @@ export async function getAuthSession(orgSlug?: string): Promise<AuthSession | nu
     include: {
       memberships: {
         where: { status: "ACTIVE" },
-        include: {
-          organization: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              logoUrl: true,
-              status: true,
+          include: {
+            organization: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                logoUrl: true,
+                status: true,
+                isSetupComplete: true,
+              },
             },
           },
-        },
       },
     },
   });

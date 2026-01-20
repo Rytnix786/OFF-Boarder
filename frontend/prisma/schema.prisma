@@ -17,6 +17,12 @@ model Organization {
   approvedAt               DateTime?
   approvedBy               String?
   rejectionReason          String?
+  isSetupComplete          Boolean                   @default(false)
+  setupCompletedAt         DateTime?
+  setupCompletedByUserId   String?
+  primaryLocation          String?
+  timezone                 String?
+  organizationType         String?
   analyticsSnapshots       AnalyticsSnapshot[]
   assets                   Asset[]
   auditLogs                AuditLog[]
