@@ -177,7 +177,7 @@ export function EmployeeDashboard({ session, offboarding }: EmployeeDashboardPro
                 <Grid size={{ xs: 6 }}>
                   <Typography variant="caption" color="text.secondary">Manager</Typography>
                   <Typography variant="body2" fontWeight={600}>
-                    {session.employee.manager ? `${session.employee.manager.firstName} ${session.employee.manager.lastName}` : "—"}
+                    {session.employee.managerMembership?.user?.name || "—"}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 6 }}>
@@ -448,12 +448,12 @@ export function EmployeeDashboard({ session, offboarding }: EmployeeDashboardPro
                     <Typography variant="body2" color="text.secondary">Department</Typography>
                     <Typography variant="body2" fontWeight={600}>{session.employee.department?.name || "—"}</Typography>
                   </Box>
-                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                    <Typography variant="body2" color="text.secondary">Manager</Typography>
-                    <Typography variant="body2" fontWeight={600}>
-                      {session.employee.manager ? `${session.employee.manager.firstName} ${session.employee.manager.lastName}` : "—"}
-                    </Typography>
-                  </Box>
+                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                      <Typography variant="body2" color="text.secondary">Manager</Typography>
+                      <Typography variant="body2" fontWeight={600}>
+                        {session.employee.managerMembership?.user?.name || "—"}
+                      </Typography>
+                    </Box>
                   <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                     <Typography variant="body2" color="text.secondary">Location</Typography>
                     <Typography variant="body2" fontWeight={600}>{session.employee.location?.name || "—"}</Typography>
@@ -542,15 +542,15 @@ export function EmployeeDashboard({ session, offboarding }: EmployeeDashboardPro
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                   If you have questions about your offboarding process, please contact your HR department or manager.
                 </Typography>
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                  {session.employee.manager && (
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: 18, color: "#6b7280" }}>person</span>
-                      <Typography variant="body2">
-                        {session.employee.manager.firstName} {session.employee.manager.lastName} (Manager)
-                      </Typography>
-                    </Box>
-                  )}
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                    {session.employee.managerMembership?.user && (
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 18, color: "#6b7280" }}>person</span>
+                        <Typography variant="body2">
+                          {session.employee.managerMembership.user.name} (Manager)
+                        </Typography>
+                      </Box>
+                    )}
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                     <span className="material-symbols-outlined" style={{ fontSize: 18, color: "#6b7280" }}>mail</span>
                     <Typography variant="body2">hr@{session.organizationName?.toLowerCase().replace(/\s+/g, "")}.com</Typography>

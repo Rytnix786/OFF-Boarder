@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         department: { select: { name: true } },
         location: { select: { name: true } },
         jobTitle: { select: { title: true } },
-        manager: { select: { firstName: true, lastName: true, email: true } },
+        managerMembership: { select: { user: { select: { name: true, email: true } } } },
       },
       orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
     });
@@ -53,8 +53,8 @@ export async function GET(request: NextRequest) {
       emp.department?.name || "",
       emp.jobTitle?.title || "",
       emp.location?.name || "",
-      emp.manager ? `${emp.manager.firstName} ${emp.manager.lastName}` : "",
-      emp.manager?.email || "",
+      emp.managerMembership?.user?.name || "",
+      emp.managerMembership?.user?.email || "",
       emp.status,
       emp.hireDate ? emp.hireDate.toISOString().split("T")[0] : "",
     ]);

@@ -33,12 +33,10 @@ export type EmployeeRecord = {
     id: string;
     name: string;
   } | null;
-  manager: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-  } | null;
+    managerMembership: {
+      id: string;
+      user: { name: string | null; email: string } | null;
+    } | null;
 };
 
 export type EmployeeLinkRecord = {
@@ -166,7 +164,7 @@ export async function getEmployeePortalSession(): Promise<EmployeePortalSession 
       department: employeeLink.employee.department,
       jobTitle: employeeLink.employee.jobTitle,
       location: employeeLink.employee.location,
-      manager: employeeLink.employee.manager,
+      managerMembership: employeeLink.employee.managerMembership,
     },
     organizationId: employeeLink.organizationId,
     organizationName: employeeLink.organization.name,
@@ -211,22 +209,20 @@ export async function getEmployeeOffboarding(session: EmployeePortalSession) {
       employeeId: session.employee.id,
       organizationId: session.organizationId,
     },
-    include: {
-      employee: {
-        include: {
-          department: true,
-          jobTitle: true,
-          location: true,
-          manager: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
+      include: {
+        employee: {
+          include: {
+            department: true,
+            jobTitle: true,
+            location: true,
+            managerMembership: {
+              select: {
+                id: true,
+                user: { select: { name: true, email: true } },
+              },
             },
           },
         },
-      },
       tasks: {
         where: {
           assignedToEmployeeId: session.employee.id,

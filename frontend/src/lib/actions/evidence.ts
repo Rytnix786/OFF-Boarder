@@ -15,15 +15,15 @@ export async function generateEvidencePack(offboardingId: string) {
 
   const offboarding = await prisma.offboarding.findFirst({
     where: { id: offboardingId, organizationId: orgId },
-    include: {
-      employee: {
-        include: {
-          department: true,
-          jobTitle: true,
-          location: true,
-          manager: { select: { id: true, firstName: true, lastName: true, email: true } },
+      include: {
+        employee: {
+          include: {
+            department: true,
+            jobTitle: true,
+            location: true,
+            managerMembership: { select: { id: true, user: { select: { name: true, email: true } } } },
+          },
         },
-      },
       tasks: {
         orderBy: { order: "asc" },
       },
@@ -84,9 +84,7 @@ export async function generateEvidencePack(offboardingId: string) {
       department: offboarding.employee.department?.name,
       jobTitle: offboarding.employee.jobTitle?.title,
       location: offboarding.employee.location?.name,
-      manager: offboarding.employee.manager 
-        ? `${offboarding.employee.manager.firstName} ${offboarding.employee.manager.lastName}`
-        : null,
+      manager: offboarding.employee.managerMembership?.user?.name || null,
       hireDate: offboarding.employee.hireDate?.toISOString(),
     },
     tasks: offboarding.tasks.map(task => ({
