@@ -38,6 +38,18 @@ type InvitationInfo = {
   expiresAt: string;
 };
 
+type EmployeeInviteInfo = {
+  id: string;
+  token: string;
+  email: string;
+  portalType: string;
+  organizationId: string;
+  organizationName: string;
+  employeeId: string;
+  employeeDisplayName: string;
+  expiresAt: string;
+};
+
 type EmailCheckResult = {
   hasAccount?: boolean;
   hasInvitation?: boolean;
@@ -102,23 +114,31 @@ function RegisterContent() {
   const [emailCheckLoading, setEmailCheckLoading] = useState(false);
   const [emailCheckResult, setEmailCheckResult] = useState<EmailCheckResult | null>(null);
   const [invitation, setInvitation] = useState<InvitationInfo | null>(null);
+  const [employeeInvite, setEmployeeInvite] = useState<EmployeeInviteInfo | null>(null);
 
   const checkEmail = useCallback(async (emailToCheck: string) => {
     if (!emailToCheck || !emailToCheck.includes("@")) {
       setEmailChecked(false);
       setEmailCheckResult(null);
       setInvitation(null);
+      setEmployeeInvite(null);
       return;
     }
 
     setEmailCheckLoading(true);
     try {
-      const res = await fetch("/api/auth/check-invitation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: emailToCheck }),
-      });
-      const data: EmailCheckResult = await res.json();
+      const [inviteRes, employeeInviteRes] = await Promise.all([
+        fetch("/api/auth/check-invitation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: emailToCheck }),
+        }),
+        fetch(`/api/employee-invites/lookup?email=${encodeURIComponent(emailToCheck)}`),
+      ]);
+
+      const data: EmailCheckResult = await inviteRes.json();
+      const employeeData = await employeeInviteRes.json();
+
       setEmailCheckResult(data);
       setEmailChecked(true);
       
@@ -127,8 +147,15 @@ function RegisterContent() {
       } else {
         setInvitation(null);
       }
+
+      if (employeeData.found && employeeData.invite) {
+        setEmployeeInvite(employeeData.invite);
+      } else {
+        setEmployeeInvite(null);
+      }
     } catch {
       setEmailCheckResult(null);
+      setEmployeeInvite(null);
     } finally {
       setEmailCheckLoading(false);
     }
@@ -196,59 +223,62 @@ function RegisterContent() {
     setOrgSearchLoading(false);
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+    const handleRegister = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setError(null);
+      setLoading(true);
 
-    const normalizedEmail = (invitation?.email || email).trim().toLowerCase().replace(/['"]/g, '');
+      const normalizedEmail = (employeeInvite?.email || invitation?.email || email).trim().toLowerCase().replace(/['"]/g, '');
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      setLoading(false);
-      return;
-    }
-
-    if (emailCheckResult?.hasAccount) {
-      setError("An account with this email already exists. Please sign in instead.");
-      setLoading(false);
-      return;
-    }
-
-    // Validation based on mode
-    if (invitation) {
-      // Invitation mode - no extra validation needed
-    } else if (activeTab === 0) {
-      // Create org mode
-      if (!orgName.trim()) {
-        setError("Please enter an organization name");
+      if (password.length < 6) {
+        setError("Password must be at least 6 characters");
         setLoading(false);
         return;
       }
-    } else {
-      // Join org mode
-      if (!selectedOrg) {
-        setError("Please select an organization to join");
+
+      if (emailCheckResult?.hasAccount) {
+        setError("An account with this email already exists. Please sign in instead.");
         setLoading(false);
         return;
       }
-    }
 
-    try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: normalizedEmail,
-          password,
-          name,
-          orgName: invitation ? null : (activeTab === 0 ? orgName : null),
-          invitationToken: invitation?.token || null,
-          // Join request params
-          joinOrganizationId: (!invitation && activeTab === 1) ? selectedOrg?.id : null,
-          requestedRole: (!invitation && activeTab === 1) ? requestedRole : null,
-        }),
-      });
+      // Validation based on mode
+      if (employeeInvite) {
+        // Employee portal invite mode - no extra validation needed
+      } else if (invitation) {
+        // Invitation mode - no extra validation needed
+      } else if (activeTab === 0) {
+        // Create org mode
+        if (!orgName.trim()) {
+          setError("Please enter an organization name");
+          setLoading(false);
+          return;
+        }
+      } else {
+        // Join org mode
+        if (!selectedOrg) {
+          setError("Please select an organization to join");
+          setLoading(false);
+          return;
+        }
+      }
+
+      try {
+        const response = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: normalizedEmail,
+            password,
+            name,
+            orgName: (employeeInvite || invitation) ? null : (activeTab === 0 ? orgName : null),
+            invitationToken: invitation?.token || null,
+            employeeInviteToken: employeeInvite?.token || null,
+            // Join request params
+            joinOrganizationId: (!employeeInvite && !invitation && activeTab === 1) ? selectedOrg?.id : null,
+            requestedRole: (!employeeInvite && !invitation && activeTab === 1) ? requestedRole : null,
+          }),
+        });
 
       const data = await response.json();
 
@@ -381,24 +411,30 @@ function RegisterContent() {
   }
 
   // Determine page title and subtitle based on mode
-  const getPageContent = () => {
-    if (invitation) {
+    const getPageContent = () => {
+      if (employeeInvite) {
+        return {
+          title: "Employee Portal Access",
+          subtitle: `Complete your account to access ${employeeInvite.organizationName}`,
+        };
+      }
+      if (invitation) {
+        return {
+          title: "Join Organization",
+          subtitle: `You've been invited to join ${invitation.organizationName}`,
+        };
+      }
+      if (activeTab === 0) {
+        return {
+          title: "Create Account",
+          subtitle: "Start securing your offboarding process today",
+        };
+      }
       return {
         title: "Join Organization",
-        subtitle: `You've been invited to join ${invitation.organizationName}`,
+        subtitle: "Request to join an existing organization",
       };
-    }
-    if (activeTab === 0) {
-      return {
-        title: "Create Account",
-        subtitle: "Start securing your offboarding process today",
-      };
-    }
-    return {
-      title: "Join Organization",
-      subtitle: "Request to join an existing organization",
     };
-  };
 
   const pageContent = getPageContent();
 
@@ -460,7 +496,7 @@ function RegisterContent() {
         </Box>
 
         {/* Tab selector - only show if no invitation */}
-        {!invitation && (
+          {!employeeInvite && !invitation && (
           <Tabs
             value={activeTab}
             onChange={(_, v) => {
@@ -500,9 +536,35 @@ function RegisterContent() {
               iconPosition="start"
             />
           </Tabs>
-        )}
+          )}
 
-        {invitation && (
+          {employeeInvite && (
+            <Alert 
+              severity="info" 
+              sx={{ mb: 3, borderRadius: 2 }}
+              icon={<span className="material-symbols-outlined">badge</span>}
+            >
+              <Typography variant="body2" fontWeight={600}>
+                Employee Portal Invitation
+              </Typography>
+              <Typography variant="caption" component="div" sx={{ mt: 0.5 }}>
+                <strong>Organization:</strong> {employeeInvite.organizationName}
+              </Typography>
+              <Typography variant="caption" component="div">
+                <strong>Employee:</strong> {employeeInvite.employeeDisplayName}
+              </Typography>
+              <Typography variant="caption" component="div">
+                <strong>Portal Type:</strong>{" "}
+                <Chip 
+                  label={employeeInvite.portalType === "SUBJECT_PORTAL" ? "Employee (Subject)" : "Contributor"} 
+                  size="small" 
+                  sx={{ ml: 0.5, height: 20 }} 
+                />
+              </Typography>
+            </Alert>
+          )}
+
+          {invitation && !employeeInvite && (
           <Alert 
             severity="success" 
             sx={{ mb: 3, borderRadius: 2 }}
@@ -552,104 +614,108 @@ function RegisterContent() {
           component="form"
           onSubmit={handleRegister}
           sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}
-        >
-          <Button
-            fullWidth
-            variant="outlined"
-            size="large"
-            onClick={handleGoogleSignUp}
-            disabled={loading || emailCheckResult?.hasAccount || (activeTab === 1 && !selectedOrg && !invitation)}
-            startIcon={
-              <img
-                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                width="18"
-                alt="Google"
-              />
-            }
-            sx={{
-              borderRadius: 3,
-              py: 1.5,
-              fontWeight: 700,
-              color: "text.primary",
-              borderColor: "divider",
-              "&:hover": { bgcolor: "action.hover", borderColor: "divider" },
-            }}
           >
-            Continue with Google
-          </Button>
-
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Divider sx={{ flexGrow: 1 }} />
-            <Typography
-              variant="caption"
-              sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase" }}
-            >
-              or use email
-            </Typography>
-            <Divider sx={{ flexGrow: 1 }} />
-          </Box>
-
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <TextField
+            {!employeeInvite && (
+            <>
+            <Button
               fullWidth
-              label="Your Name"
-              placeholder="John Doe"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              size="small"
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-            />
-            <TextField
-              fullWidth
-              label="Work Email"
-              placeholder="you@company.com"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={!!invitation}
-              size="small"
-              InputProps={{
-                endAdornment: emailCheckLoading ? (
-                  <CircularProgress size={20} />
-                ) : emailChecked && !emailCheckResult?.hasAccount ? (
-                  <span className="material-symbols-outlined" style={{ color: "#22c55e" }}>
-                    check_circle
-                  </span>
-                ) : null,
+              variant="outlined"
+              size="large"
+              onClick={handleGoogleSignUp}
+              disabled={loading || emailCheckResult?.hasAccount || (!invitation && activeTab === 1 && !selectedOrg)}
+              startIcon={
+                <img
+                  src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                  width="18"
+                  alt="Google"
+                />
+              }
+              sx={{
+                borderRadius: 3,
+                py: 1.5,
+                fontWeight: 700,
+                color: "text.primary",
+                borderColor: "divider",
+                "&:hover": { bgcolor: "action.hover", borderColor: "divider" },
               }}
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-            />
-            <TextField
-              fullWidth
-              label="Password"
-              type="password"
-              placeholder="Min. 6 characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              size="small"
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-            />
+            >
+              Continue with Google
+            </Button>
 
-            {/* Create Organization fields */}
-            {!invitation && activeTab === 0 && (
-              <TextField
-                fullWidth
-                label="Organization Name"
-                placeholder="Acme Inc."
-                value={orgName}
-                onChange={(e) => setOrgName(e.target.value)}
-                required
-                size="small"
-                helperText="You'll be the owner of this organization"
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-              />
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Divider sx={{ flexGrow: 1 }} />
+              <Typography
+                variant="caption"
+                sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase" }}
+              >
+                or use email
+              </Typography>
+              <Divider sx={{ flexGrow: 1 }} />
+            </Box>
+            </>
             )}
 
-            {/* Join Organization fields */}
-            {!invitation && activeTab === 1 && (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <TextField
+                fullWidth
+                label="Your Name"
+                placeholder="John Doe"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                size="small"
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+              />
+              <TextField
+                fullWidth
+                label="Work Email"
+                placeholder="you@company.com"
+                type="email"
+                value={employeeInvite?.email || email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={!!employeeInvite || !!invitation}
+                size="small"
+                InputProps={{
+                  endAdornment: emailCheckLoading ? (
+                    <CircularProgress size={20} />
+                  ) : emailChecked && !emailCheckResult?.hasAccount ? (
+                    <span className="material-symbols-outlined" style={{ color: "#22c55e" }}>
+                      check_circle
+                    </span>
+                  ) : null,
+                }}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+              />
+              <TextField
+                fullWidth
+                label="Password"
+                type="password"
+                placeholder="Min. 6 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                size="small"
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+              />
+
+              {/* Create Organization fields */}
+              {!employeeInvite && !invitation && activeTab === 0 && (
+                <TextField
+                  fullWidth
+                  label="Organization Name"
+                  placeholder="Acme Inc."
+                  value={orgName}
+                  onChange={(e) => setOrgName(e.target.value)}
+                  required
+                  size="small"
+                  helperText="You'll be the owner of this organization"
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+                />
+              )}
+
+              {/* Join Organization fields */}
+              {!employeeInvite && !invitation && activeTab === 1 && (
               <>
                 <Autocomplete
                   fullWidth
@@ -746,29 +812,31 @@ function RegisterContent() {
           </Box>
 
           <Button
-            fullWidth
-            variant="contained"
-            size="large"
-            type="submit"
-            disabled={loading || emailCheckResult?.hasAccount || (activeTab === 1 && !selectedOrg && !invitation)}
-            sx={{
-              borderRadius: 3,
-              py: 1.75,
-              fontWeight: 800,
-              bgcolor: "primary.main",
-              boxShadow: `0 8px 16px ${alpha(theme.palette.primary.main, 0.2)}`,
-            }}
-          >
-            {loading ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : invitation ? (
-              "Create Account & Join"
-            ) : activeTab === 0 ? (
-              "Create Account"
-            ) : (
-              "Create Account & Request to Join"
-            )}
-          </Button>
+              fullWidth
+              variant="contained"
+              size="large"
+              type="submit"
+              disabled={loading || emailCheckResult?.hasAccount || (!employeeInvite && !invitation && activeTab === 1 && !selectedOrg)}
+              sx={{
+                borderRadius: 3,
+                py: 1.75,
+                fontWeight: 800,
+                bgcolor: "primary.main",
+                boxShadow: `0 8px 16px ${alpha(theme.palette.primary.main, 0.2)}`,
+              }}
+            >
+              {loading ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : employeeInvite ? (
+                "Create Account & Access Portal"
+              ) : invitation ? (
+                "Create Account & Join"
+              ) : activeTab === 0 ? (
+                "Create Account"
+              ) : (
+                "Create Account & Request to Join"
+              )}
+            </Button>
 
           <Typography variant="caption" color="text.secondary" sx={{ textAlign: "center" }}>
             By signing up, you agree to our{" "}
