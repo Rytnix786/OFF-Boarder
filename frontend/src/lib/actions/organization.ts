@@ -375,10 +375,25 @@ export async function updateOrganization(formData: FormData) {
 }
 
 const VALID_TIMEZONES = [
-  "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
-  "America/Anchorage", "Pacific/Honolulu", "Europe/London", "Europe/Paris",
-  "Europe/Moscow", "Asia/Dubai", "Asia/Kolkata", "Asia/Singapore", "Asia/Tokyo",
-  "Asia/Shanghai", "Australia/Sydney", "Pacific/Auckland", "UTC",
+  "Pacific/Midway", "Pacific/Honolulu", "America/Anchorage", "America/Los_Angeles",
+  "America/Tijuana", "America/Denver", "America/Phoenix", "America/Chihuahua",
+  "America/Chicago", "America/Mexico_City", "America/Regina", "America/Guatemala",
+  "America/New_York", "America/Bogota", "America/Indiana/Indianapolis", "America/Caracas",
+  "America/Halifax", "America/Santiago", "America/La_Paz", "America/St_Johns",
+  "America/Sao_Paulo", "America/Argentina/Buenos_Aires", "America/Montevideo",
+  "Atlantic/South_Georgia", "Atlantic/Azores", "Atlantic/Cape_Verde", "UTC",
+  "Europe/London", "Africa/Casablanca", "Europe/Paris", "Europe/Amsterdam",
+  "Europe/Belgrade", "Africa/Lagos", "Europe/Athens", "Europe/Helsinki",
+  "Africa/Cairo", "Africa/Johannesburg", "Asia/Jerusalem", "Europe/Moscow",
+  "Asia/Kuwait", "Africa/Nairobi", "Asia/Baghdad", "Asia/Tehran", "Asia/Dubai",
+  "Asia/Baku", "Asia/Tbilisi", "Asia/Kabul", "Asia/Karachi", "Asia/Tashkent",
+  "Asia/Yekaterinburg", "Asia/Kolkata", "Asia/Colombo", "Asia/Kathmandu",
+  "Asia/Dhaka", "Asia/Almaty", "Asia/Yangon", "Asia/Bangkok", "Asia/Krasnoyarsk",
+  "Asia/Shanghai", "Asia/Singapore", "Asia/Taipei", "Australia/Perth", "Asia/Irkutsk",
+  "Asia/Tokyo", "Asia/Seoul", "Asia/Yakutsk", "Australia/Adelaide", "Australia/Darwin",
+  "Australia/Sydney", "Australia/Brisbane", "Pacific/Guam", "Asia/Vladivostok",
+  "Pacific/Noumea", "Asia/Magadan", "Pacific/Auckland", "Pacific/Fiji",
+  "Asia/Kamchatka", "Pacific/Tongatapu", "Pacific/Apia", "Pacific/Kiritimati",
 ];
 
 const VALID_ORG_TYPES = [
