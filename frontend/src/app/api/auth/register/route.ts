@@ -130,33 +130,48 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create Supabase user
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: normalizedEmail,
-      password,
-      email_confirm: true,
-      user_metadata: {
-        name,
-        org_name: invitation ? null : orgName,
-        invitation_token: invitationToken || null,
-        join_organization_id: joinOrganizationId || null,
-        requested_role: requestedRole || null,
-      },
-    });
+    // Check if Supabase user already exists
+    const { data: existingAuthUsers } = await supabaseAdmin.auth.admin.listUsers();
+    const existingAuthUser = existingAuthUsers?.users?.find(
+      u => u.email?.toLowerCase() === normalizedEmail
+    );
 
-    if (authError) {
-      console.error("Supabase admin createUser error:", authError);
-      if (authError.message.includes("already been registered")) {
-        return NextResponse.json({ 
-          error: "An account with this email already exists. Please sign in instead.",
-          code: "user_exists"
-        }, { status: 400 });
+    let supabaseUserId: string;
+
+    if (existingAuthUser) {
+      // User already has Supabase account but no Prisma record - use existing
+      supabaseUserId = existingAuthUser.id;
+    } else {
+      // Create new Supabase user
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email: normalizedEmail,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          name,
+          org_name: invitation ? null : orgName,
+          invitation_token: invitationToken || null,
+          join_organization_id: joinOrganizationId || null,
+          requested_role: requestedRole || null,
+        },
+      });
+
+      if (authError) {
+        console.error("Supabase admin createUser error:", authError);
+        if (authError.message.includes("already been registered")) {
+          return NextResponse.json({ 
+            error: "An account with this email already exists. Please sign in instead.",
+            code: "user_exists"
+          }, { status: 400 });
+        }
+        return NextResponse.json({ error: authError.message }, { status: 400 });
       }
-      return NextResponse.json({ error: authError.message }, { status: 400 });
-    }
 
-    if (!authData.user) {
-      return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
+      if (!authData.user) {
+        return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
+      }
+      
+      supabaseUserId = authData.user.id;
     }
 
     // Mode 1: Process invitation-based registration
@@ -164,7 +179,7 @@ export async function POST(request: NextRequest) {
       const result = await prisma.$transaction(async (tx) => {
         const user = await tx.user.create({
           data: {
-            supabaseId: authData.user.id,
+            supabaseId: supabaseUserId,
             email: normalizedEmail,
             name,
             isPlatformAdmin: false,
@@ -245,7 +260,7 @@ export async function POST(request: NextRequest) {
       const result = await prisma.$transaction(async (tx) => {
         const user = await tx.user.create({
           data: {
-            supabaseId: authData.user.id,
+            supabaseId: supabaseUserId,
             email: normalizedEmail,
             name,
             isPlatformAdmin: false,
@@ -343,7 +358,7 @@ export async function POST(request: NextRequest) {
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
-          supabaseId: authData.user.id,
+          supabaseId: supabaseUserId,
           email: normalizedEmail,
           name,
           isPlatformAdmin: false,
