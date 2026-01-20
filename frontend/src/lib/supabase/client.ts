@@ -27,26 +27,8 @@ export function clearRememberMe() {
 }
 
 export function createClient() {
-  const rememberMe = typeof window !== "undefined" ? getRememberMe() : true;
-  
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      auth: {
-        detectSessionInUrl: true,
-        persistSession: true,
-        autoRefreshToken: true,
-        storage: typeof window !== "undefined" 
-          ? (rememberMe ? localStorage : sessionStorage)
-          : undefined,
-        storageKey: "sb-auth-token",
-      },
-      cookieOptions: {
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-      },
-    }
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 }

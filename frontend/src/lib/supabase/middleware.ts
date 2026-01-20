@@ -87,40 +87,27 @@ export async function updateSession(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            const cookieOptions = {
+            request.cookies.set(name, value);
+          });
+          supabaseResponse = NextResponse.next({
+            request: {
+              headers: requestHeaders,
+            },
+          });
+          cookiesToSet.forEach(({ name, value, options }) => {
+            supabaseResponse.cookies.set(name, value, {
               ...options,
               secure: process.env.NODE_ENV === "production",
               sameSite: "lax" as const,
               path: "/",
-            };
-            request.cookies.set(name, value);
-            supabaseResponse = NextResponse.next({
-              request: {
-                headers: requestHeaders,
-              },
             });
-            supabaseResponse.cookies.set(name, value, cookieOptions);
           });
         },
       },
     }
   );
 
-  const allCookies = request.cookies.getAll();
-  const authCookies = allCookies.filter(c => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
-  const hasAuthCookie = authCookies.length > 0;
-
-  let user = null;
-  if (hasAuthCookie) {
-    try {
-      const { data, error } = await supabase.auth.getUser();
-      if (!error && data?.user) {
-        user = data.user;
-      }
-    } catch {
-      // Auth check failed silently - user is not authenticated
-    }
-  }
+  const { data: { user } } = await supabase.auth.getUser();
 
   const isProtectedRoute = pathname.startsWith("/app");
 
