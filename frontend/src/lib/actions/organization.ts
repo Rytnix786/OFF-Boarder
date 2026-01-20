@@ -39,6 +39,7 @@ export async function createDepartment(formData: FormData) {
   });
 
   revalidatePath("/app/settings/structure");
+  revalidatePath("/app/employees");
   return { success: true, department };
 }
 
@@ -73,6 +74,7 @@ export async function updateDepartment(departmentId: string, formData: FormData)
   });
 
   revalidatePath("/app/settings/structure");
+  revalidatePath("/app/employees");
   return { success: true, department: updated };
 }
 
@@ -105,6 +107,7 @@ export async function deleteDepartment(departmentId: string) {
   });
 
   revalidatePath("/app/settings/structure");
+  revalidatePath("/app/employees");
   return { success: true };
 }
 
@@ -140,6 +143,7 @@ export async function createJobTitle(formData: FormData) {
   });
 
   revalidatePath("/app/settings/structure");
+  revalidatePath("/app/employees");
   return { success: true, jobTitle };
 }
 
@@ -174,6 +178,7 @@ export async function updateJobTitle(jobTitleId: string, formData: FormData) {
   });
 
   revalidatePath("/app/settings/structure");
+  revalidatePath("/app/employees");
   return { success: true, jobTitle: updated };
 }
 
@@ -206,6 +211,7 @@ export async function deleteJobTitle(jobTitleId: string) {
   });
 
   revalidatePath("/app/settings/structure");
+  revalidatePath("/app/employees");
   return { success: true };
 }
 
@@ -244,6 +250,7 @@ export async function createLocation(formData: FormData) {
   });
 
   revalidatePath("/app/settings/structure");
+  revalidatePath("/app/employees");
   return { success: true, location };
 }
 
@@ -283,6 +290,7 @@ export async function updateLocation(locationId: string, formData: FormData) {
   });
 
   revalidatePath("/app/settings/structure");
+  revalidatePath("/app/employees");
   return { success: true, location: updated };
 }
 
@@ -315,6 +323,7 @@ export async function deleteLocation(locationId: string) {
   });
 
   revalidatePath("/app/settings/structure");
+  revalidatePath("/app/employees");
   return { success: true };
 }
 
