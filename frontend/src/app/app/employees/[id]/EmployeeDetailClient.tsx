@@ -32,6 +32,12 @@ import { useRouter } from "next/navigation";
 import { updateEmployee } from "@/lib/actions/employees";
 import { inviteEmployeeToPortal } from "@/lib/actions/employee-invite";
 
+type OrgMember = {
+  id: string;
+  systemRole: string;
+  user: { id: string; name: string | null; email: string };
+};
+
 type Employee = {
   id: string;
   employeeId: string;
@@ -44,8 +50,7 @@ type Employee = {
   department: { id: string; name: string } | null;
   jobTitle: { id: string; title: string } | null;
   location: { id: string; name: string } | null;
-  manager: { id: string; firstName: string; lastName: string; email: string } | null;
-  directReports: { id: string; firstName: string; lastName: string; email: string }[];
+  managerMembership: OrgMember | null;
   offboardings: { id: string; status: string; scheduledDate: Date | null; createdAt: Date }[];
   assets?: { id: string; name: string; type: string; serialNumber: string | null; assetTag: string | null; status: string }[];
 };
@@ -174,30 +179,28 @@ export default function EmployeeDetailClient({ employee, canEdit }: EmployeeDeta
             />
           </Card>
 
-          {employee.manager && (
-            <Card variant="outlined" sx={{ borderRadius: 3, mt: 3 }}>
-              <CardContent>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                  Reports To
-                </Typography>
-                <Link href={`/app/employees/${employee.manager.id}`} style={{ textDecoration: "none", color: "inherit" }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2, "&:hover": { bgcolor: "action.hover" }, p: 1, borderRadius: 2 }}>
-                    <Avatar sx={{ bgcolor: "secondary.main" }}>
-                      {employee.manager.firstName.charAt(0)}{employee.manager.lastName.charAt(0)}
-                    </Avatar>
-                    <Box>
-                      <Typography fontWeight={600}>
-                        {employee.manager.firstName} {employee.manager.lastName}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {employee.manager.email}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Link>
-              </CardContent>
-            </Card>
-          )}
+        {employee.managerMembership && (
+          <Card variant="outlined" sx={{ borderRadius: 3, mt: 3 }}>
+            <CardContent>
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                Reports To
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2, p: 1, borderRadius: 2 }}>
+                <Avatar sx={{ bgcolor: "secondary.main" }}>
+                  {(employee.managerMembership.user.name || employee.managerMembership.user.email).charAt(0).toUpperCase()}
+                </Avatar>
+                <Box>
+                  <Typography fontWeight={600}>
+                    {employee.managerMembership.user.name || employee.managerMembership.user.email}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {employee.managerMembership.user.email} • {employee.managerMembership.systemRole}
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        )}
         </Grid>
 
         <Grid size={{ xs: 12, md: 8 }}>
@@ -243,36 +246,6 @@ export default function EmployeeDetailClient({ employee, canEdit }: EmployeeDeta
                 </Table>
             </CardContent>
           </Card>
-
-          {employee.directReports.length > 0 && (
-            <Card variant="outlined" sx={{ borderRadius: 3, mt: 3 }}>
-              <CardContent>
-                <Typography variant="h6" fontWeight={700} gutterBottom>
-                  Direct Reports ({employee.directReports.length})
-                </Typography>
-                <Divider sx={{ my: 2 }} />
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                  {employee.directReports.map((report) => (
-                    <Link key={report.id} href={`/app/employees/${report.id}`} style={{ textDecoration: "none", color: "inherit" }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 2, p: 1.5, borderRadius: 2, "&:hover": { bgcolor: "action.hover" } }}>
-                        <Avatar sx={{ width: 36, height: 36, fontSize: 14 }}>
-                          {report.firstName.charAt(0)}{report.lastName.charAt(0)}
-                        </Avatar>
-                        <Box>
-                          <Typography fontWeight={600}>
-                            {report.firstName} {report.lastName}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {report.email}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Link>
-                  ))}
-                </Box>
-              </CardContent>
-            </Card>
-          )}
 
           {employee.offboardings.length > 0 && (
               <Card variant="outlined" sx={{ borderRadius: 3, mt: 3 }}>

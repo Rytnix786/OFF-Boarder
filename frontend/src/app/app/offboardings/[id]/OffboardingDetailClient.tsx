@@ -137,7 +137,7 @@ type Offboarding = {
     department: { name: string } | null;
     jobTitle: { title: string } | null;
     location: { name: string } | null;
-    manager: { firstName: string; lastName: string } | null;
+    managerMembership: { id: string; user: { name: string | null; email: string } } | null;
   };
   tasks: Task[];
   approvals: Approval[];
@@ -421,8 +421,8 @@ export default function OffboardingDetailClient({
                 <Box>
                   <Typography variant="caption" color="text.secondary">Manager</Typography>
                   <Typography variant="body2">
-                    {offboarding.employee.manager
-                      ? `${offboarding.employee.manager.firstName} ${offboarding.employee.manager.lastName}`
+                    {offboarding.employee.managerMembership
+                      ? (offboarding.employee.managerMembership.user.name || offboarding.employee.managerMembership.user.email)
                       : "—"}
                   </Typography>
                 </Box>

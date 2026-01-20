@@ -14,7 +14,7 @@ export default async function OffboardingsPage() {
     session.currentOrgId!
   );
 
-  const [offboardings, employees, workflowTemplates] = await Promise.all([
+  const [offboardings, employees, workflowTemplates, departments] = await Promise.all([
     prisma.offboarding.findMany({
       where: { 
         organizationId: session.currentOrgId!,
@@ -25,6 +25,12 @@ export default async function OffboardingsPage() {
           include: {
             department: true,
             jobTitle: true,
+            managerMembership: { 
+              select: { 
+                id: true, 
+                user: { select: { name: true, email: true } } 
+              } 
+            },
           },
         },
         tasks: { orderBy: { order: "asc" } },
@@ -51,6 +57,11 @@ export default async function OffboardingsPage() {
       select: { id: true, name: true, description: true, isDefault: true },
       orderBy: [{ isDefault: "desc" }, { name: "asc" }],
     }),
+    prisma.department.findMany({
+      where: { organizationId: session.currentOrgId! },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
   ]);
 
   const canCreate = session.currentMembership?.systemRole === "OWNER" ||
@@ -62,6 +73,7 @@ export default async function OffboardingsPage() {
         offboardings={offboardings as any}
         employees={employees}
         workflowTemplates={workflowTemplates}
+        departments={departments}
         canCreate={canCreate}
       />
     </Suspense>

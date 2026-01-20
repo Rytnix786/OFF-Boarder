@@ -35,6 +35,12 @@ import {
 import { createEmployee, deleteEmployee, archiveEmployee, unarchiveEmployee } from "@/lib/actions/employees";
 import { useRouter } from "next/navigation";
 
+type OrgMember = {
+  id: string;
+  systemRole: string;
+  user: { id: string; name: string | null; email: string };
+};
+
 type Employee = {
   id: string;
   employeeId: string;
@@ -47,7 +53,7 @@ type Employee = {
   department: { id: string; name: string } | null;
   jobTitle: { id: string; title: string } | null;
   location: { id: string; name: string } | null;
-  manager: { id: string; firstName: string; lastName: string } | null;
+  managerMembership: OrgMember | null;
 };
 
 interface EmployeesClientProps {
@@ -55,6 +61,7 @@ interface EmployeesClientProps {
   departments: { id: string; name: string }[];
   jobTitles: { id: string; title: string }[];
   locations: { id: string; name: string }[];
+  orgMembers: OrgMember[];
   canCreate: boolean;
 }
 
@@ -63,11 +70,13 @@ export default function EmployeesClient({
   departments,
   jobTitles,
   locations,
+  orgMembers,
   canCreate,
 }: EmployeesClientProps) {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [departmentFilter, setDepartmentFilter] = useState("all");
   const [showArchived, setShowArchived] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<{ el: HTMLElement; employee: Employee } | null>(null);
@@ -78,7 +87,7 @@ export default function EmployeesClient({
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>("");
   const [selectedJobTitleId, setSelectedJobTitleId] = useState<string>("");
   const [selectedLocationId, setSelectedLocationId] = useState<string>("");
-  const [selectedManagerId, setSelectedManagerId] = useState<string>("");
+  const [selectedManagerMembershipId, setSelectedManagerMembershipId] = useState<string>("");
   const [inviteToPortal, setInviteToPortal] = useState(true);
   const [inviteSuccessDialog, setInviteSuccessDialog] = useState<{ open: boolean; employeeName: string; inviteUrl: string } | null>(null);
 
@@ -95,8 +104,13 @@ export default function EmployeesClient({
     } else if (!showArchived) {
       matchesStatus = emp.status !== "ARCHIVED";
     }
+
+    let matchesDepartment = true;
+    if (departmentFilter !== "all") {
+      matchesDepartment = emp.department?.id === departmentFilter;
+    }
     
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesDepartment;
   });
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -115,7 +129,7 @@ export default function EmployeesClient({
         setSelectedDepartmentId("");
         setSelectedJobTitleId("");
         setSelectedLocationId("");
-        setSelectedManagerId("");
+        setSelectedManagerMembershipId("");
         
         if (result.invite) {
           const fullUrl = `${window.location.origin}${result.invite.url}`;
@@ -211,6 +225,11 @@ export default function EmployeesClient({
     }
   };
 
+  const getManagerDisplayName = (manager: OrgMember | null) => {
+    if (!manager) return "—";
+    return manager.user.name || manager.user.email;
+  };
+
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4 }}>
@@ -235,7 +254,7 @@ export default function EmployeesClient({
       <Card variant="outlined" sx={{ borderRadius: 3, mb: 3 }}>
         <Box sx={{ p: 2, display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center" }}>
           <TextField
-            placeholder="Search employees..."
+            placeholder="Search by name, email, or ID..."
             size="small"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -262,6 +281,18 @@ export default function EmployeesClient({
               <MenuItem value="ARCHIVED">Archived</MenuItem>
             </Select>
           </FormControl>
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <Select
+              value={departmentFilter}
+              onChange={(e) => setDepartmentFilter(e.target.value)}
+              displayEmpty
+            >
+              <MenuItem value="all">All Departments</MenuItem>
+              {departments.map((d) => (
+                <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           {statusFilter === "all" && (
             <FormControlLabel
               control={<Checkbox checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} size="small" />}
@@ -279,7 +310,7 @@ export default function EmployeesClient({
                 <TableCell>Employee</TableCell>
                 <TableCell>Department</TableCell>
                 <TableCell>Job Title</TableCell>
-                <TableCell>Location</TableCell>
+                <TableCell>Manager</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
@@ -316,7 +347,7 @@ export default function EmployeesClient({
                     </TableCell>
                     <TableCell>{emp.department?.name || "—"}</TableCell>
                     <TableCell>{emp.jobTitle?.title || "—"}</TableCell>
-                    <TableCell>{emp.location?.name || "—"}</TableCell>
+                    <TableCell>{getManagerDisplayName(emp.managerMembership)}</TableCell>
                     <TableCell>
                       <Chip
                         label={emp.status.replace("_", " ")}
@@ -482,46 +513,48 @@ export default function EmployeesClient({
                     </Select>
                   </FormControl>
                 </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <FormControl fullWidth>
-                      <InputLabel>Manager</InputLabel>
-                      <Select 
-                        name="managerId" 
-                        label="Manager"
-                        value={selectedManagerId}
-                        onChange={(e) => setSelectedManagerId(e.target.value)}
-                      >
-                        <MenuItem value="">None</MenuItem>
-                        {employees.filter(e => e.status === "ACTIVE").map((e) => (
-                          <MenuItem key={e.id} value={e.id}>{e.firstName} {e.lastName}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <Box sx={{ mt: 1, p: 2, bgcolor: "action.hover", borderRadius: 2 }}>
-                      <FormControlLabel
-                        control={
-                          <Checkbox 
-                            checked={inviteToPortal} 
-                            onChange={(e) => setInviteToPortal(e.target.checked)} 
-                          />
-                        }
-                        label={
-                          <Box>
-                            <Typography fontWeight={600}>Invite to Employee Portal</Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              Send portal invite so employee can complete offboarding tasks
-                            </Typography>
-                          </Box>
-                        }
-                      />
-                    </Box>
-                  </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Manager (Org User)</InputLabel>
+                    <Select 
+                      name="managerMembershipId" 
+                      label="Manager (Org User)"
+                      value={selectedManagerMembershipId}
+                      onChange={(e) => setSelectedManagerMembershipId(e.target.value)}
+                    >
+                      <MenuItem value="">None</MenuItem>
+                      {orgMembers.map((m) => (
+                        <MenuItem key={m.id} value={m.id}>
+                          {m.user.name || m.user.email} ({m.systemRole})
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <Box sx={{ mt: 1, p: 2, bgcolor: "action.hover", borderRadius: 2 }}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox 
+                          checked={inviteToPortal} 
+                          onChange={(e) => setInviteToPortal(e.target.checked)} 
+                        />
+                      }
+                      label={
+                        <Box>
+                          <Typography fontWeight={600}>Invite to Employee Portal</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Send portal invite so employee can complete offboarding tasks
+                          </Typography>
+                        </Box>
+                      }
+                    />
+                  </Box>
+                </Grid>
               </Grid>
           </DialogContent>
           <DialogActions sx={{ p: 2 }}>
-              <Button onClick={() => { setCreateDialogOpen(false); setSelectedDepartmentId(""); setSelectedJobTitleId(""); setSelectedLocationId(""); setSelectedManagerId(""); setInviteToPortal(true); setError(null); }}>Cancel</Button>
+              <Button onClick={() => { setCreateDialogOpen(false); setSelectedDepartmentId(""); setSelectedJobTitleId(""); setSelectedLocationId(""); setSelectedManagerMembershipId(""); setInviteToPortal(true); setError(null); }}>Cancel</Button>
             <Button type="submit" variant="contained" disabled={loading}>
               {loading ? "Creating..." : inviteToPortal ? "Create & Invite" : "Create Employee"}
             </Button>

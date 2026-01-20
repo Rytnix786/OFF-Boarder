@@ -7,20 +7,39 @@ export default async function EmployeesPage() {
   const session = await requireActiveOrg();
   await requirePermission(session, "employee:read");
 
-  const [employees, departments, jobTitles, locations] = await Promise.all([
+  const [employees, departments, jobTitles, locations, orgMembers] = await Promise.all([
     prisma.employee.findMany({
       where: { organizationId: session.currentOrgId! },
       include: {
         department: true,
         jobTitle: true,
         location: true,
-        manager: { select: { id: true, firstName: true, lastName: true } },
+        managerMembership: { 
+          select: { 
+            id: true, 
+            systemRole: true,
+            user: { select: { id: true, name: true, email: true } } 
+          } 
+        },
       },
       orderBy: { lastName: "asc" },
     }),
     prisma.department.findMany({ where: { organizationId: session.currentOrgId! } }),
     prisma.jobTitle.findMany({ where: { organizationId: session.currentOrgId! } }),
     prisma.location.findMany({ where: { organizationId: session.currentOrgId! } }),
+    prisma.membership.findMany({ 
+      where: { 
+        organizationId: session.currentOrgId!, 
+        status: "ACTIVE",
+        systemRole: { in: ["OWNER", "ADMIN", "CONTRIBUTOR"] },
+      },
+      select: { 
+        id: true, 
+        systemRole: true,
+        user: { select: { id: true, name: true, email: true } } 
+      },
+      orderBy: { user: { name: "asc" } },
+    }),
   ]);
 
   const canCreate = session.currentMembership?.systemRole === "OWNER" || 
@@ -32,6 +51,7 @@ export default async function EmployeesPage() {
       departments={departments}
       jobTitles={jobTitles}
       locations={locations}
+      orgMembers={orgMembers}
       canCreate={canCreate}
     />
   );

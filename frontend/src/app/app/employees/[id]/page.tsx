@@ -22,8 +22,13 @@ export default async function EmployeeDetailPage({ params }: PageProps) {
       department: true,
       jobTitle: true,
       location: true,
-      manager: { select: { id: true, firstName: true, lastName: true, email: true } },
-      directReports: { select: { id: true, firstName: true, lastName: true, email: true } },
+      managerMembership: { 
+        select: { 
+          id: true, 
+          systemRole: true,
+          user: { select: { id: true, name: true, email: true } } 
+        } 
+      },
       offboardings: {
         orderBy: { createdAt: "desc" },
         take: 5,
