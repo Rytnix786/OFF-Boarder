@@ -10,6 +10,11 @@ export function createClient() {
         persistSession: true,
         autoRefreshToken: true,
       },
+      cookieOptions: {
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+      },
     }
   );
 }
