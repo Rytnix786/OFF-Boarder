@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma.server";
 import { requireActiveOrg } from "@/lib/auth.server";
 import { createAuditLog } from "@/lib/audit.server";
 import { revalidatePath } from "next/cache";
+import { isValidTimezone } from "@/lib/data/timezones";
+import { isValidOrgType } from "@/lib/data/organization-types";
 
 export async function completeOrganizationSetup(formData: FormData) {
   const session = await requireActiveOrg();
@@ -37,8 +39,16 @@ export async function completeOrganizationSetup(formData: FormData) {
     return { error: "Timezone is required" };
   }
 
+  if (!isValidTimezone(timezone)) {
+    return { error: "Invalid timezone selected" };
+  }
+
   if (!organizationType?.trim()) {
     return { error: "Organization type is required" };
+  }
+
+  if (!isValidOrgType(organizationType)) {
+    return { error: "Invalid organization type selected" };
   }
 
   const updated = await prisma.organization.update({

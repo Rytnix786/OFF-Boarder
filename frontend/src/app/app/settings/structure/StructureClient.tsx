@@ -19,6 +19,9 @@ import {
   ListItem,
   ListItemText,
   ListItemSecondaryAction,
+  Alert,
+  Collapse,
+  CircularProgress,
 } from "@mui/material";
 import {
   createDepartment,
@@ -30,8 +33,11 @@ import {
   createLocation,
   updateLocation,
   deleteLocation,
+  applyStructurePreset,
 } from "@/lib/actions/organization";
 import { useRouter } from "next/navigation";
+import { getOrgTypeLabel } from "@/lib/data/organization-types";
+import type { StructurePreset } from "@/lib/data/structure-presets";
 
 type Department = { id: string; name: string; description: string | null; _count: { employees: number } };
 type JobTitle = { id: string; title: string; level: number | null; _count: { employees: number } };
@@ -42,16 +48,29 @@ interface StructureClientProps {
   jobTitles: JobTitle[];
   locations: Location[];
   canManage: boolean;
+  orgType: string | null;
+  preset: StructurePreset | null;
 }
 
 type DialogType = "department" | "jobTitle" | "location" | null;
 
-export default function StructureClient({ departments, jobTitles, locations, canManage }: StructureClientProps) {
+export default function StructureClient({ 
+  departments, 
+  jobTitles, 
+  locations, 
+  canManage,
+  orgType,
+  preset,
+}: StructureClientProps) {
   const router = useRouter();
   const [dialogType, setDialogType] = useState<DialogType>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [editItem, setEditItem] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPresets, setShowPresets] = useState(false);
+  const [applyingPreset, setApplyingPreset] = useState(false);
+  const [presetSuccess, setPresetSuccess] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -98,6 +117,7 @@ export default function StructureClient({ departments, jobTitles, locations, can
     setLoading(false);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const openDialog = (type: DialogType, item?: any) => {
     setDialogType(type);
     setEditItem(item || null);
@@ -110,6 +130,40 @@ export default function StructureClient({ departments, jobTitles, locations, can
     setError(null);
   };
 
+  const handleApplyPreset = async () => {
+    setApplyingPreset(true);
+    setPresetSuccess(null);
+    setError(null);
+
+    const result = await applyStructurePreset();
+
+    if (result.error) {
+      setError(result.error);
+    } else if ('success' in result && result.success) {
+      const parts = [];
+      if ('departmentsAdded' in result && result.departmentsAdded > 0) parts.push(`${result.departmentsAdded} departments`);
+      if ('jobTitlesAdded' in result && result.jobTitlesAdded > 0) parts.push(`${result.jobTitlesAdded} job titles`);
+      if ('locationsAdded' in result && result.locationsAdded > 0) parts.push(`${result.locationsAdded} locations`);
+      
+      if (parts.length > 0) {
+        setPresetSuccess(`Added ${parts.join(", ")}`);
+      } else {
+        setPresetSuccess("All recommended items already exist");
+      }
+      router.refresh();
+    }
+    setApplyingPreset(false);
+  };
+
+  const existingDeptNames = new Set(departments.map(d => d.name.toLowerCase()));
+  const existingTitleNames = new Set(jobTitles.map(t => t.title.toLowerCase()));
+  const existingLocNames = new Set(locations.map(l => l.name.toLowerCase()));
+
+  const newPresetDepts = preset?.departments.filter(d => !existingDeptNames.has(d.name.toLowerCase())) || [];
+  const newPresetTitles = preset?.jobTitles.filter(t => !existingTitleNames.has(t.title.toLowerCase())) || [];
+  const newPresetLocs = preset?.locations.filter(l => !existingLocNames.has(l.name.toLowerCase())) || [];
+  const hasNewPresetItems = newPresetDepts.length > 0 || newPresetTitles.length > 0 || newPresetLocs.length > 0;
+
   return (
     <Box>
       <Box sx={{ mb: 4 }}>
@@ -118,6 +172,118 @@ export default function StructureClient({ departments, jobTitles, locations, can
           Manage departments, job titles, and locations
         </Typography>
       </Box>
+
+      {canManage && preset && orgType && (
+        <Card variant="outlined" sx={{ borderRadius: 3, mb: 3, bgcolor: "primary.50" }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 2 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <Box sx={{ bgcolor: "primary.main", color: "white", p: 1, borderRadius: 2, display: "flex" }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 24 }}>auto_awesome</span>
+                </Box>
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={700}>
+                    Recommended for {getOrgTypeLabel(orgType)}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {hasNewPresetItems 
+                      ? `${newPresetDepts.length} departments, ${newPresetTitles.length} job titles, ${newPresetLocs.length} locations available`
+                      : "All recommended items already added"}
+                  </Typography>
+                </Box>
+              </Box>
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <Button 
+                  variant="outlined" 
+                  size="small"
+                  onClick={() => setShowPresets(!showPresets)}
+                >
+                  {showPresets ? "Hide Preview" : "Preview"}
+                </Button>
+                <Button 
+                  variant="contained" 
+                  size="small"
+                  onClick={handleApplyPreset}
+                  disabled={applyingPreset || !hasNewPresetItems}
+                  startIcon={applyingPreset ? <CircularProgress size={16} color="inherit" /> : null}
+                >
+                  {applyingPreset ? "Applying..." : "Apply Recommended Structure"}
+                </Button>
+              </Box>
+            </Box>
+
+            {presetSuccess && (
+              <Alert severity="success" sx={{ mt: 2, borderRadius: 2 }}>
+                {presetSuccess}
+              </Alert>
+            )}
+
+            {error && (
+              <Alert severity="error" sx={{ mt: 2, borderRadius: 2 }}>
+                {error}
+              </Alert>
+            )}
+
+            <Collapse in={showPresets}>
+              <Box sx={{ mt: 3 }}>
+                <Grid container spacing={2}>
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>
+                      Departments ({preset.departments.length})
+                    </Typography>
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                      {preset.departments.map((d, i) => (
+                        <Chip
+                          key={i}
+                          label={d.name}
+                          size="small"
+                          color={existingDeptNames.has(d.name.toLowerCase()) ? "default" : "primary"}
+                          variant={existingDeptNames.has(d.name.toLowerCase()) ? "outlined" : "filled"}
+                        />
+                      ))}
+                    </Box>
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>
+                      Job Titles ({preset.jobTitles.length})
+                    </Typography>
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                      {preset.jobTitles.map((t, i) => (
+                        <Chip
+                          key={i}
+                          label={t.title}
+                          size="small"
+                          color={existingTitleNames.has(t.title.toLowerCase()) ? "default" : "primary"}
+                          variant={existingTitleNames.has(t.title.toLowerCase()) ? "outlined" : "filled"}
+                        />
+                      ))}
+                    </Box>
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>
+                      Locations ({preset.locations.length})
+                    </Typography>
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                      {preset.locations.map((l, i) => (
+                        <Chip
+                          key={i}
+                          label={l.name}
+                          size="small"
+                          color={existingLocNames.has(l.name.toLowerCase()) ? "default" : "primary"}
+                          variant={existingLocNames.has(l.name.toLowerCase()) ? "outlined" : "filled"}
+                        />
+                      ))}
+                    </Box>
+                  </Grid>
+                </Grid>
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 2 }}>
+                  Items in blue will be added. Outlined items already exist and will be skipped.
+                </Typography>
+              </Box>
+            </Collapse>
+          </CardContent>
+        </Card>
+      )}
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 4 }}>

@@ -1,6 +1,6 @@
 import { requireActiveOrg } from "@/lib/auth.server";
 import { requirePermission } from "@/lib/rbac.server";
-import { getOrgStructure } from "@/lib/actions/organization";
+import { getOrgStructure, getOrgTypeForStructure } from "@/lib/actions/organization";
 import StructureClient from "./StructureClient";
 
 export default async function StructurePage() {
@@ -9,7 +9,10 @@ export default async function StructurePage() {
   const canManage = session.currentMembership?.systemRole === "OWNER" ||
                     session.currentMembership?.systemRole === "ADMIN";
 
-  const { departments, jobTitles, locations } = await getOrgStructure();
+  const [{ departments, jobTitles, locations }, { orgType, preset }] = await Promise.all([
+    getOrgStructure(),
+    getOrgTypeForStructure(),
+  ]);
 
   return (
     <StructureClient
@@ -17,6 +20,8 @@ export default async function StructurePage() {
       jobTitles={jobTitles}
       locations={locations}
       canManage={canManage}
+      orgType={orgType}
+      preset={preset}
     />
   );
 }

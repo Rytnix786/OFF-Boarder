@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -12,9 +12,10 @@ import {
   Divider,
   Grid,
   Avatar,
-  MenuItem,
   Alert,
   CircularProgress,
+  Autocomplete,
+  Paper,
 } from "@mui/material";
 import {
   Business as BusinessIcon,
@@ -25,102 +26,8 @@ import {
 } from "@mui/icons-material";
 import { updateOrganizationProfile } from "@/lib/actions/organization";
 import { useRouter } from "next/navigation";
-
-const TIMEZONES = [
-  { value: "Pacific/Midway", label: "(UTC-11:00) Midway Island, Samoa" },
-  { value: "Pacific/Honolulu", label: "(UTC-10:00) Hawaii" },
-  { value: "America/Anchorage", label: "(UTC-09:00) Alaska" },
-  { value: "America/Los_Angeles", label: "(UTC-08:00) Pacific Time (US & Canada)" },
-  { value: "America/Tijuana", label: "(UTC-08:00) Tijuana, Baja California" },
-  { value: "America/Denver", label: "(UTC-07:00) Mountain Time (US & Canada)" },
-  { value: "America/Phoenix", label: "(UTC-07:00) Arizona" },
-  { value: "America/Chihuahua", label: "(UTC-07:00) Chihuahua, La Paz, Mazatlan" },
-  { value: "America/Chicago", label: "(UTC-06:00) Central Time (US & Canada)" },
-  { value: "America/Mexico_City", label: "(UTC-06:00) Mexico City, Guadalajara" },
-  { value: "America/Regina", label: "(UTC-06:00) Saskatchewan" },
-  { value: "America/Guatemala", label: "(UTC-06:00) Central America" },
-  { value: "America/New_York", label: "(UTC-05:00) Eastern Time (US & Canada)" },
-  { value: "America/Bogota", label: "(UTC-05:00) Bogota, Lima, Quito" },
-  { value: "America/Indiana/Indianapolis", label: "(UTC-05:00) Indiana (East)" },
-  { value: "America/Caracas", label: "(UTC-04:00) Caracas" },
-  { value: "America/Halifax", label: "(UTC-04:00) Atlantic Time (Canada)" },
-  { value: "America/Santiago", label: "(UTC-04:00) Santiago" },
-  { value: "America/La_Paz", label: "(UTC-04:00) La Paz" },
-  { value: "America/St_Johns", label: "(UTC-03:30) Newfoundland" },
-  { value: "America/Sao_Paulo", label: "(UTC-03:00) Brasilia" },
-  { value: "America/Argentina/Buenos_Aires", label: "(UTC-03:00) Buenos Aires" },
-  { value: "America/Montevideo", label: "(UTC-03:00) Montevideo" },
-  { value: "Atlantic/South_Georgia", label: "(UTC-02:00) Mid-Atlantic" },
-  { value: "Atlantic/Azores", label: "(UTC-01:00) Azores" },
-  { value: "Atlantic/Cape_Verde", label: "(UTC-01:00) Cape Verde Islands" },
-  { value: "UTC", label: "(UTC+00:00) UTC" },
-  { value: "Europe/London", label: "(UTC+00:00) London, Dublin, Edinburgh" },
-  { value: "Africa/Casablanca", label: "(UTC+00:00) Casablanca, Monrovia" },
-  { value: "Europe/Paris", label: "(UTC+01:00) Paris, Berlin, Rome, Madrid" },
-  { value: "Europe/Amsterdam", label: "(UTC+01:00) Amsterdam, Brussels, Copenhagen" },
-  { value: "Europe/Belgrade", label: "(UTC+01:00) Belgrade, Bratislava, Budapest" },
-  { value: "Africa/Lagos", label: "(UTC+01:00) West Central Africa" },
-  { value: "Europe/Athens", label: "(UTC+02:00) Athens, Bucharest, Istanbul" },
-  { value: "Europe/Helsinki", label: "(UTC+02:00) Helsinki, Kyiv, Riga, Vilnius" },
-  { value: "Africa/Cairo", label: "(UTC+02:00) Cairo" },
-  { value: "Africa/Johannesburg", label: "(UTC+02:00) Johannesburg, Harare" },
-  { value: "Asia/Jerusalem", label: "(UTC+02:00) Jerusalem" },
-  { value: "Europe/Moscow", label: "(UTC+03:00) Moscow, St. Petersburg" },
-  { value: "Asia/Kuwait", label: "(UTC+03:00) Kuwait, Riyadh" },
-  { value: "Africa/Nairobi", label: "(UTC+03:00) Nairobi" },
-  { value: "Asia/Baghdad", label: "(UTC+03:00) Baghdad" },
-  { value: "Asia/Tehran", label: "(UTC+03:30) Tehran" },
-  { value: "Asia/Dubai", label: "(UTC+04:00) Dubai, Abu Dhabi, Muscat" },
-  { value: "Asia/Baku", label: "(UTC+04:00) Baku" },
-  { value: "Asia/Tbilisi", label: "(UTC+04:00) Tbilisi, Yerevan" },
-  { value: "Asia/Kabul", label: "(UTC+04:30) Kabul" },
-  { value: "Asia/Karachi", label: "(UTC+05:00) Karachi, Islamabad" },
-  { value: "Asia/Tashkent", label: "(UTC+05:00) Tashkent" },
-  { value: "Asia/Yekaterinburg", label: "(UTC+05:00) Ekaterinburg" },
-  { value: "Asia/Kolkata", label: "(UTC+05:30) Mumbai, Kolkata, New Delhi" },
-  { value: "Asia/Colombo", label: "(UTC+05:30) Sri Lanka" },
-  { value: "Asia/Kathmandu", label: "(UTC+05:45) Kathmandu" },
-  { value: "Asia/Dhaka", label: "(UTC+06:00) Dhaka, Astana" },
-  { value: "Asia/Almaty", label: "(UTC+06:00) Almaty, Novosibirsk" },
-  { value: "Asia/Yangon", label: "(UTC+06:30) Yangon (Rangoon)" },
-  { value: "Asia/Bangkok", label: "(UTC+07:00) Bangkok, Hanoi, Jakarta" },
-  { value: "Asia/Krasnoyarsk", label: "(UTC+07:00) Krasnoyarsk" },
-  { value: "Asia/Shanghai", label: "(UTC+08:00) Beijing, Shanghai, Hong Kong" },
-  { value: "Asia/Singapore", label: "(UTC+08:00) Singapore, Kuala Lumpur" },
-  { value: "Asia/Taipei", label: "(UTC+08:00) Taipei" },
-  { value: "Australia/Perth", label: "(UTC+08:00) Perth" },
-  { value: "Asia/Irkutsk", label: "(UTC+08:00) Irkutsk, Ulaanbaatar" },
-  { value: "Asia/Tokyo", label: "(UTC+09:00) Tokyo, Osaka, Sapporo" },
-  { value: "Asia/Seoul", label: "(UTC+09:00) Seoul" },
-  { value: "Asia/Yakutsk", label: "(UTC+09:00) Yakutsk" },
-  { value: "Australia/Adelaide", label: "(UTC+09:30) Adelaide" },
-  { value: "Australia/Darwin", label: "(UTC+09:30) Darwin" },
-  { value: "Australia/Sydney", label: "(UTC+10:00) Sydney, Melbourne, Canberra" },
-  { value: "Australia/Brisbane", label: "(UTC+10:00) Brisbane" },
-  { value: "Pacific/Guam", label: "(UTC+10:00) Guam, Port Moresby" },
-  { value: "Asia/Vladivostok", label: "(UTC+10:00) Vladivostok" },
-  { value: "Pacific/Noumea", label: "(UTC+11:00) Noumea, Solomon Islands" },
-  { value: "Asia/Magadan", label: "(UTC+11:00) Magadan" },
-  { value: "Pacific/Auckland", label: "(UTC+12:00) Auckland, Wellington" },
-  { value: "Pacific/Fiji", label: "(UTC+12:00) Fiji, Marshall Islands" },
-  { value: "Asia/Kamchatka", label: "(UTC+12:00) Kamchatka" },
-  { value: "Pacific/Tongatapu", label: "(UTC+13:00) Nuku'alofa, Tonga" },
-  { value: "Pacific/Apia", label: "(UTC+13:00) Samoa" },
-  { value: "Pacific/Kiritimati", label: "(UTC+14:00) Kiritimati (Line Islands)" },
-];
-
-const ORG_TYPES = [
-  { value: "technology", label: "Technology" },
-  { value: "healthcare", label: "Healthcare" },
-  { value: "finance", label: "Finance & Banking" },
-  { value: "education", label: "Education" },
-  { value: "manufacturing", label: "Manufacturing" },
-  { value: "retail", label: "Retail" },
-  { value: "consulting", label: "Consulting" },
-  { value: "government", label: "Government" },
-  { value: "nonprofit", label: "Non-Profit" },
-  { value: "other", label: "Other" },
-];
+import { getTimezoneOptions, type TimezoneOption } from "@/lib/data/timezones";
+import { ORGANIZATION_TYPES, normalizeOrgType, type OrgTypeOption } from "@/lib/data/organization-types";
 
 type Organization = {
   id: string;
@@ -157,13 +64,35 @@ export default function OrganizationClient({
     logoUrl: organization.logoUrl || "",
     primaryLocation: organization.primaryLocation || "",
     timezone: organization.timezone || "",
-    organizationType: organization.organizationType || "",
+    organizationType: normalizeOrgType(organization.organizationType) || "",
   });
 
   const isOwner = userRole === "OWNER";
 
+  const timezoneOptions = useMemo(() => getTimezoneOptions(), []);
+  const selectedTimezone = useMemo(
+    () => timezoneOptions.find(tz => tz.value === formData.timezone) || null,
+    [timezoneOptions, formData.timezone]
+  );
+  const selectedOrgType = useMemo(
+    () => ORGANIZATION_TYPES.find(t => t.value === formData.organizationType) || null,
+    [formData.organizationType]
+  );
+
   const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+    setSuccess(false);
+    setError(null);
+  };
+
+  const handleTimezoneChange = (newValue: TimezoneOption | null) => {
+    setFormData((prev) => ({ ...prev, timezone: newValue?.value || "" }));
+    setSuccess(false);
+    setError(null);
+  };
+
+  const handleOrgTypeChange = (newValue: OrgTypeOption | null) => {
+    setFormData((prev) => ({ ...prev, organizationType: newValue?.value || "" }));
     setSuccess(false);
     setError(null);
   };
@@ -197,7 +126,7 @@ export default function OrganizationClient({
     formData.logoUrl !== (organization.logoUrl || "") ||
     formData.primaryLocation !== (organization.primaryLocation || "") ||
     formData.timezone !== (organization.timezone || "") ||
-    formData.organizationType !== (organization.organizationType || "");
+    formData.organizationType !== normalizeOrgType(organization.organizationType);
 
   return (
     <Box>
@@ -314,57 +243,128 @@ export default function OrganizationClient({
                   </Grid>
 
                   <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                      fullWidth
-                      select
-                      label="Timezone"
-                      value={formData.timezone}
-                      onChange={handleChange("timezone")}
+                    <Autocomplete
+                      value={selectedTimezone}
+                      onChange={(_, newValue) => handleTimezoneChange(newValue)}
+                      options={timezoneOptions}
                       disabled={!canEdit}
-                      required={organization.isSetupComplete}
-                      helperText="Primary timezone for scheduling"
-                      slotProps={{
-                        input: {
-                          startAdornment: <TimezoneIcon color="action" sx={{ mr: 1 }} />,
-                        },
+                      getOptionLabel={(option) => `${option.offset} — ${option.label}`}
+                      filterOptions={(options, { inputValue }) => {
+                        const search = inputValue.toLowerCase();
+                        return options.filter(opt => opt.searchTerms.includes(search));
                       }}
-                    >
-                      <MenuItem value="">
-                        <em>Select timezone...</em>
-                      </MenuItem>
-                      {TIMEZONES.map((tz) => (
-                        <MenuItem key={tz.value} value={tz.value}>
-                          {tz.label}
-                        </MenuItem>
-                      ))}
-                    </TextField>
+              renderOption={(props, option) => {
+                const { key: _key, ...rest } = props as React.HTMLAttributes<HTMLLIElement> & { key: string };
+                return (
+                  <Box component="li" key={option.value} {...rest}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, width: "100%" }}>
+                      <Chip 
+                        label={option.offset} 
+                        size="small" 
+                        sx={{ 
+                          fontFamily: "monospace", 
+                          fontSize: "0.7rem",
+                          minWidth: 80,
+                          bgcolor: "action.selected",
+                        }} 
+                      />
+                      <Typography variant="body2" noWrap>{option.label}</Typography>
+                    </Box>
+                  </Box>
+                );
+              }}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Timezone"
+                          required={organization.isSetupComplete}
+                          placeholder="Search timezone..."
+                          helperText="Primary timezone for scheduling"
+                          slotProps={{
+                            input: {
+                              ...params.InputProps,
+                              startAdornment: (
+                                <>
+                                  <TimezoneIcon color="action" sx={{ ml: 0 }} />
+                                  {params.InputProps.startAdornment}
+                                </>
+                              ),
+                            },
+                          }}
+                        />
+                      )}
+                      PaperComponent={(props) => (
+                        <Paper {...props} sx={{ borderRadius: 2, mt: 0.5 }} />
+                      )}
+                      isOptionEqualToValue={(option, value) => option.value === value.value}
+                    />
                   </Grid>
 
                   <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                      fullWidth
-                      select
-                      label="Organization Type"
-                      value={formData.organizationType}
-                      onChange={handleChange("organizationType")}
+                    <Autocomplete
+                      value={selectedOrgType}
+                      onChange={(_, newValue) => handleOrgTypeChange(newValue)}
+                      options={ORGANIZATION_TYPES}
                       disabled={!canEdit}
-                      required={organization.isSetupComplete}
-                      helperText="Industry or sector of your organization"
-                      slotProps={{
-                        input: {
-                          startAdornment: <TypeIcon color="action" sx={{ mr: 1 }} />,
-                        },
+                      groupBy={(option) => {
+                        const labels: Record<string, string> = {
+                          business: "Business",
+                          public: "Public Sector",
+                          specialized: "Specialized Industries",
+                        };
+                        return labels[option.category] || option.category;
                       }}
-                    >
-                      <MenuItem value="">
-                        <em>Select type...</em>
-                      </MenuItem>
-                      {ORG_TYPES.map((type) => (
-                        <MenuItem key={type.value} value={type.value}>
-                          {type.label}
-                        </MenuItem>
-                      ))}
-                    </TextField>
+                      getOptionLabel={(option) => option.label}
+                      filterOptions={(options, { inputValue }) => {
+                        const search = inputValue.toLowerCase();
+                        return options.filter(opt =>
+                          opt.label.toLowerCase().includes(search) ||
+                          opt.value.toLowerCase().includes(search) ||
+                          opt.description?.toLowerCase().includes(search)
+                        );
+                      }}
+              renderOption={(props, option) => {
+                const { key: _key, ...rest } = props as React.HTMLAttributes<HTMLLIElement> & { key: string };
+                return (
+                  <Box component="li" key={option.value} {...rest}>
+                    <Box sx={{ display: "flex", flexDirection: "column" }}>
+                      <Typography variant="body2" fontWeight={500}>
+                        {option.label}
+                      </Typography>
+                      {option.description && (
+                        <Typography variant="caption" color="text.secondary">
+                          {option.description}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                );
+              }}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Organization Type"
+                          required={organization.isSetupComplete}
+                          placeholder="Search industry..."
+                          helperText="Industry or sector of your organization"
+                          slotProps={{
+                            input: {
+                              ...params.InputProps,
+                              startAdornment: (
+                                <>
+                                  <TypeIcon color="action" sx={{ ml: 0 }} />
+                                  {params.InputProps.startAdornment}
+                                </>
+                              ),
+                            },
+                          }}
+                        />
+                      )}
+                      PaperComponent={(props) => (
+                        <Paper {...props} sx={{ borderRadius: 2, mt: 0.5 }} />
+                      )}
+                      isOptionEqualToValue={(option, value) => option.value === value.value}
+                    />
                   </Grid>
                 </Grid>
 
@@ -388,7 +388,7 @@ export default function OrganizationClient({
                             logoUrl: organization.logoUrl || "",
                             primaryLocation: organization.primaryLocation || "",
                             timezone: organization.timezone || "",
-                            organizationType: organization.organizationType || "",
+                            organizationType: normalizeOrgType(organization.organizationType) || "",
                           })
                         }
                       >
