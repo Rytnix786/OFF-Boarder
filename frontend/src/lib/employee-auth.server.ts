@@ -106,12 +106,10 @@ export async function getEmployeePortalSession(): Promise<EmployeePortalSession 
           location: {
             select: { id: true, name: true },
           },
-          manager: {
+          managerMembership: {
             select: {
               id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
+              user: { select: { name: true, email: true } },
             },
           },
         },
