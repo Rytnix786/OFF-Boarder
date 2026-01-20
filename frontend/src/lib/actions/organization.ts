@@ -512,6 +512,7 @@ export async function updateOrganizationProfile(formData: FormData) {
   });
 
   revalidatePath("/app/settings/organization");
+  revalidatePath("/app/employees");
   revalidatePath("/app");
   return { success: true, organization: updated };
 }
