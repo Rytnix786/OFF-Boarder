@@ -75,8 +75,11 @@ function getActionDescription(action: string, entityType: string): string {
   const descriptions: Record<string, string> = {
     "organization.created": "New organization was created",
     "organization.updated": "Organization details were updated",
+    "organization.profile_updated": "Organization profile was updated",
+    "organization.setup_completed": "Organization setup was completed",
     "organization.approved": "Organization was approved by platform admin",
     "organization.rejected": "Organization was rejected by platform admin",
+    "organization.reactivated": "Organization was reactivated by platform admin",
     "member.invited": "A new member was invited to the organization",
     "member.joined": "A new member joined the organization",
     "member.approved": "Member was approved to join",
