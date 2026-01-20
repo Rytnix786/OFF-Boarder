@@ -16,6 +16,9 @@ import {
   CircularProgress,
   Autocomplete,
   Paper,
+  alpha,
+  Popper,
+  PopperProps,
 } from "@mui/material";
 import {
   Business as BusinessIcon,
@@ -68,6 +71,17 @@ export default function OrganizationClient({
   });
 
   const isOwner = userRole === "OWNER";
+
+  const CustomPopper = (props: PopperProps) => (
+    <Popper
+      {...props}
+      placement="bottom-start"
+      modifiers={[
+        { name: "flip", enabled: false },
+        { name: "preventOverflow", enabled: true, options: { boundary: "viewport" } },
+      ]}
+    />
+  );
 
   const timezoneOptions = useMemo(() => getTimezoneOptions(), []);
   const selectedTimezone = useMemo(
@@ -293,6 +307,12 @@ export default function OrganizationClient({
                           const search = inputValue.toLowerCase();
                           return options.filter(opt => opt.searchTerms.includes(search));
                         }}
+                        PopperComponent={CustomPopper}
+                        slotProps={{
+                          listbox: {
+                            sx: { maxHeight: 280 }
+                          }
+                        }}
                         renderOption={(props, option) => {
                           const { key: _key, ...rest } = props as React.HTMLAttributes<HTMLLIElement> & { key: string };
                           return (
@@ -341,7 +361,7 @@ export default function OrganizationClient({
                           />
                         )}
                         PaperComponent={(props) => (
-                          <Paper {...props} variant="outlined" sx={{ mt: 1, boxShadow: (t) => t.shadows[10] }} />
+                          <Paper {...props} elevation={8} sx={{ mt: 0.5, borderRadius: 2, border: "1px solid", borderColor: "divider" }} />
                         )}
                         isOptionEqualToValue={(option, value) => option.value === value.value}
                       />
@@ -369,6 +389,12 @@ export default function OrganizationClient({
                             opt.value.toLowerCase().includes(search) ||
                             opt.description?.toLowerCase().includes(search)
                           );
+                        }}
+                        PopperComponent={CustomPopper}
+                        slotProps={{
+                          listbox: {
+                            sx: { maxHeight: 280 }
+                          }
                         }}
                         renderOption={(props, option) => {
                           const { key: _key, ...rest } = props as React.HTMLAttributes<HTMLLIElement> & { key: string };
@@ -408,7 +434,7 @@ export default function OrganizationClient({
                           />
                         )}
                         PaperComponent={(props) => (
-                          <Paper {...props} variant="outlined" sx={{ mt: 1, boxShadow: (t) => t.shadows[10] }} />
+                          <Paper {...props} elevation={8} sx={{ mt: 0.5, borderRadius: 2, border: "1px solid", borderColor: "divider" }} />
                         )}
                         isOptionEqualToValue={(option, value) => option.value === value.value}
                       />
