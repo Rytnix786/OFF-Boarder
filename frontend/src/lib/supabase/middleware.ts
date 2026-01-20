@@ -102,8 +102,9 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const authCookie = request.cookies.get("sb-mcmqzwgaojgmrcmdsygh-auth-token");
-  const hasAuthCookie = !!authCookie?.value;
+  const allCookies = request.cookies.getAll();
+  const authCookies = allCookies.filter(c => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
+  const hasAuthCookie = authCookies.length > 0;
 
   let user = null;
   if (hasAuthCookie) {
@@ -117,24 +118,19 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  const isAuthPage = pathname === "/login" || pathname === "/register";
+  const isAuthPage = pathname === "/login";
   const isProtectedRoute = pathname.startsWith("/app");
   
-  // These routes are accessible to authenticated users regardless of org status
-  // They handle their own auth checks and show appropriate UI
   const isStatusPage = 
     pathname === "/org-blocked" || 
     pathname === "/pending";
 
-  // Unauthenticated users trying to access protected routes -> login
   if (!user && isProtectedRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // Authenticated users on auth pages -> redirect to app (let app layout handle org status)
-  // But NOT if they're on status pages (org-blocked, pending)
   if (user && isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/app";
