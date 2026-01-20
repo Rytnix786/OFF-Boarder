@@ -31,6 +31,7 @@ export async function GET() {
     });
 
     if (!dbUser) {
+      console.log("[check-user] No dbUser found for supabaseId:", user.id);
       return NextResponse.json({
         isPlatformAdmin: false,
         hasOrganization: false,
@@ -51,6 +52,18 @@ export async function GET() {
     const activeEmployeeLink = dbUser.employeeUserLinks.find(
       (link) => link.status === "VERIFIED" && link.organization.status === "ACTIVE"
     );
+
+    console.log("[check-user] User check result:", {
+      userId: dbUser.id,
+      email: dbUser.email,
+      isPlatformAdmin: dbUser.isPlatformAdmin,
+      membershipsCount: dbUser.memberships.length,
+      memberships: dbUser.memberships.map(m => ({ status: m.status, orgStatus: m.organization.status })),
+      hasOrganization: !!activeOrg,
+      hasPendingOrg: !!pendingOrg,
+      employeeLinksCount: dbUser.employeeUserLinks.length,
+      hasEmployeePortalAccess: !!activeEmployeeLink,
+    });
 
     return NextResponse.json({
       isPlatformAdmin: dbUser.isPlatformAdmin,
