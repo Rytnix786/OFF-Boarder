@@ -205,6 +205,7 @@ export async function logSecurityProfileView(
 
   await prisma.securityEvent.create({
     data: {
+      id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       organizationId,
       employeeId,
       eventType: "SECURITY_PROFILE_VIEWED",
@@ -256,6 +257,7 @@ export async function markEmployeeHighRisk(
 
   await prisma.securityEvent.create({
     data: {
+      id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       organizationId,
       employeeId,
       eventType: "HIGH_RISK_MARKED",
@@ -367,6 +369,7 @@ export async function suspendEmployeeAccess(
 
   await prisma.securityEvent.create({
     data: {
+      id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       organizationId,
       employeeId,
       eventType: "ACCOUNT_SUSPENDED",
@@ -477,6 +480,7 @@ export async function lockEmployeeAccount(
 
   await prisma.securityEvent.create({
     data: {
+      id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       organizationId,
       employeeId,
       eventType: "ACCOUNT_LOCKED",
@@ -520,6 +524,7 @@ export async function unlockEmployeeAccount(
 
   await prisma.securityEvent.create({
     data: {
+      id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       organizationId,
       employeeId,
       eventType: "ACCOUNT_UNLOCKED",
@@ -583,6 +588,7 @@ export async function forceLogoutEmployee(
 
   await prisma.securityEvent.create({
     data: {
+      id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       organizationId,
       employeeId,
       eventType: "FORCE_LOGOUT",
@@ -631,6 +637,7 @@ export async function blockEmployeeIP(
 
   await prisma.securityEvent.create({
     data: {
+      id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       organizationId,
       employeeId,
       eventType: "IP_BANNED",
@@ -685,6 +692,7 @@ export async function createSecuritySignal(params: {
 }) {
   return prisma.securityEvent.create({
     data: {
+      id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       organizationId: params.organizationId,
       employeeId: params.employeeId,
       offboardingId: params.offboardingId,

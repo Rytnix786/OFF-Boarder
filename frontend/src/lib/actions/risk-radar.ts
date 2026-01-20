@@ -573,6 +573,7 @@ export async function markHighRisk(offboardingId: string, reason: string) {
 
   await prisma.securityEvent.create({
     data: {
+      id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       organizationId: orgId,
       offboardingId,
       employeeId: offboarding.employeeId,
@@ -651,6 +652,7 @@ export async function triggerLockdown(offboardingId: string, reason: string, ban
 
       await prisma.securityEvent.create({
         data: {
+          id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
           organizationId: orgId,
           offboardingId,
           employeeId: offboarding.employeeId,
@@ -665,6 +667,7 @@ export async function triggerLockdown(offboardingId: string, reason: string, ban
 
   await prisma.securityEvent.create({
     data: {
+      id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       organizationId: orgId,
       offboardingId,
       employeeId: offboarding.employeeId,
@@ -751,6 +754,7 @@ export async function escalateApprovals(offboardingId: string, reason: string, a
 
   await prisma.securityEvent.create({
     data: {
+      id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       organizationId: orgId,
       offboardingId,
       eventType: "ESCALATION_TRIGGERED",
@@ -805,6 +809,7 @@ export async function confirmAccessRevocation(revocationId: string, notes?: stri
 
   await prisma.securityEvent.create({
     data: {
+      id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       organizationId: orgId,
       offboardingId: revocation.offboardingId,
       eventType: "ACCESS_REVOKED",
@@ -901,6 +906,7 @@ export async function requestEvidencePack(offboardingId: string) {
 
   await prisma.securityEvent.create({
     data: {
+      id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       organizationId: orgId,
       offboardingId,
       eventType: "EVIDENCE_PACK_REQUESTED",
@@ -999,6 +1005,7 @@ export async function banIP(ip: string, reason: string, offboardingId?: string) 
     if (offboarding) {
       await prisma.securityEvent.create({
         data: {
+          id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
           organizationId: orgId,
           offboardingId,
           employeeId: offboarding.employeeId,
@@ -1045,6 +1052,7 @@ export async function unbanIP(blockedIPId: string, reason?: string) {
 
   await prisma.securityEvent.create({
     data: {
+      id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       organizationId: orgId,
       eventType: "IP_UNBANNED",
       description: `IP ${blockedIP.ipAddress} unbanned${reason ? `: ${reason}` : ""}`,
@@ -1116,6 +1124,7 @@ export async function resolveRisk(offboardingId: string, justification: string) 
 
   await prisma.securityEvent.create({
     data: {
+      id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       organizationId: orgId,
       offboardingId,
       employeeId: offboarding.employeeId,
@@ -1173,6 +1182,7 @@ export async function sealEvidencePack(offboardingId: string) {
 
   await prisma.securityEvent.create({
     data: {
+      id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       organizationId: orgId,
       offboardingId,
       eventType: "EVIDENCE_PACK_SEALED",
@@ -1236,6 +1246,7 @@ export async function releaseLockdown(offboardingId: string, reason: string) {
 
   await prisma.securityEvent.create({
     data: {
+      id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       organizationId: orgId,
       offboardingId,
       employeeId: offboarding.employeeId,

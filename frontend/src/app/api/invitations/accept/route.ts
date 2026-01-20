@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma.server";
 import { createClient } from "@/lib/supabase/server";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -108,6 +109,15 @@ export async function POST(request: NextRequest) {
       },
     }),
   ]);
+
+  await createNotification({
+    userId: invitation.invitedById,
+    organizationId: invitation.organizationId,
+    type: "member_joined",
+    title: "Invitation Accepted",
+    message: `${dbUser.name || dbUser.email} has accepted your invitation to join ${invitation.organization.name}`,
+    link: `/app/settings/members`,
+  });
 
   return NextResponse.json({ success: true, organizationSlug: invitation.organization.slug });
 }
