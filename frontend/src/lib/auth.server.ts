@@ -2,9 +2,19 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma.server";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import type { MembershipWithOrg, AuthSession } from "@/lib/auth-types";
 
 export type { AuthUser, MembershipWithOrg, AuthSession } from "@/lib/auth-types";
+
+async function getCurrentPathname(): Promise<string | null> {
+  try {
+    const headersList = await headers();
+    return headersList.get("x-pathname");
+  } catch {
+    return null;
+  }
+}
 
 export async function getSupabaseUser() {
   try {
@@ -83,7 +93,13 @@ export async function getAuthSession(orgSlug?: string): Promise<AuthSession | nu
 
 export async function requireAuth(orgSlug?: string): Promise<AuthSession> {
   const session = await getAuthSession(orgSlug);
-  if (!session) redirect("/login");
+  if (!session) {
+    const pathname = await getCurrentPathname();
+    if (pathname && pathname !== "/login") {
+      redirect(`/login?redirect=${encodeURIComponent(pathname)}`);
+    }
+    redirect("/login");
+  }
   return session;
 }
 

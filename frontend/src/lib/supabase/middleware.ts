@@ -117,21 +117,30 @@ export async function updateSession(request: NextRequest) {
     if (!hasAuthCookie) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
+      url.searchParams.set("redirect", pathname);
       return NextResponse.redirect(url);
     }
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error } = await supabase.auth.getUser();
 
-    if (!user) {
+    if (!user || error) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
-      return NextResponse.redirect(url);
+      url.searchParams.set("redirect", pathname);
+      
+      const redirectResponse = NextResponse.redirect(url);
+      supabaseResponse.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie.name, cookie.value, {
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax" as const,
+          path: "/",
+        });
+      });
+      return redirectResponse;
     }
   } else if (hasAuthCookie) {
     await supabase.auth.getUser();
   }
-
-  // Don't redirect authenticated users away from /login - they may need to log out
 
   return supabaseResponse;
 }
