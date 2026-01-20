@@ -15,7 +15,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { AuthSession } from "@/lib/auth-types";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, clearRememberMe } from "@/lib/supabase/client";
 import Link from "next/link";
 
 interface AdminProfileMenuProps {
@@ -37,23 +37,21 @@ export default function AdminProfileMenu({ session }: AdminProfileMenuProps) {
   };
 
   const handleSignOut = async () => {
-    try {
-      setLoading(true);
-      // 1. Log sign-out action (optional/best effort)
-      await fetch("/api/platform/auth/sign-out", { method: "POST" }).catch(() => {});
+      try {
+        setLoading(true);
+        await fetch("/api/platform/auth/sign-out", { method: "POST" }).catch(() => {});
 
-      // 2. Real Supabase sign-out
-      const supabase = createClient();
-      await supabase.auth.signOut();
+        clearRememberMe();
+        const supabase = createClient();
+        await supabase.auth.signOut();
 
-      // 3. Clear local storage/state and hard redirect
-      localStorage.clear();
-      window.location.href = "/login";
-    } catch (error) {
-      console.error("Sign out failed", error);
-      setLoading(false);
-    }
-  };
+        localStorage.clear();
+        window.location.href = "/login";
+      } catch (error) {
+        console.error("Sign out failed", error);
+        setLoading(false);
+      }
+    };
 
   const user = session.user;
   const env = process.env.NODE_ENV;
