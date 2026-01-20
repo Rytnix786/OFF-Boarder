@@ -107,14 +107,28 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
-
   const isProtectedRoute = pathname.startsWith("/app");
 
-  if (!user && isProtectedRoute) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+  const hasAuthCookie = request.cookies.getAll().some(
+    (cookie) => cookie.name.includes("auth-token") || cookie.name.includes("sb-")
+  );
+
+  if (isProtectedRoute) {
+    if (!hasAuthCookie) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+  } else if (hasAuthCookie) {
+    await supabase.auth.getUser();
   }
 
   // Don't redirect authenticated users away from /login - they may need to log out
