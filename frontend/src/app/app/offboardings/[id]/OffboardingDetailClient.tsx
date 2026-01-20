@@ -536,34 +536,52 @@ export default function OffboardingDetailClient({
                       </Typography>
                       <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                           {tasks.map((task) => {
-                            const hasRequiredEvidence = task.evidenceRequirement === "REQUIRED" && task.evidence.length === 0;
-                            const isAdminBlocked = task.isEmployeeRequired && task.status !== "COMPLETED";
-                            
-                            return (
-                            <Box
-                              key={task.id}
-                              sx={{
-                                p: 2,
-                                borderRadius: 2,
-                                bgcolor: task.status === "COMPLETED" ? alpha("#22c55e", 0.05) : task.isHighRiskTask ? alpha("#ef4444", 0.05) : hasRequiredEvidence ? alpha("#f59e0b", 0.03) : "transparent",
-                                border: "1px solid",
-                                borderColor: task.status === "COMPLETED" ? alpha("#22c55e", 0.2) : task.isHighRiskTask ? alpha("#ef4444", 0.2) : hasRequiredEvidence ? alpha("#f59e0b", 0.2) : "divider",
-                              }}
-                            >
-                              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                                <Tooltip title={isAdminBlocked ? "Must be completed by employee" : ""}>
-                                  <span>
-                                    <Checkbox
-                                      checked={task.status === "COMPLETED"}
-                                      disabled={!canUpdate || loading === task.id || offboarding.status === "COMPLETED" || offboarding.status === "CANCELLED" || (task.requiresApproval && offboarding.approvals.some(a => a.task?.name === task.name && a.status === "PENDING")) || hasRequiredEvidence || isAdminBlocked}
-                                      onChange={() => handleTaskToggle(task.id, task.status)}
-                                      sx={{
-                                        color: task.status === "COMPLETED" ? "success.main" : undefined,
-                                        "&.Mui-checked": { color: "success.main" },
-                                      }}
-                                    />
-                                  </span>
-                                </Tooltip>
+                              const hasRequiredEvidence = task.evidenceRequirement === "REQUIRED" && task.evidence.length === 0;
+                              const isAdminBlocked = task.isEmployeeRequired && task.status !== "COMPLETED";
+                              const hasPendingApproval = task.requiresApproval && offboarding.approvals.some(a => a.task?.name === task.name && a.status === "PENDING");
+                              const isOffboardingClosed = offboarding.status === "COMPLETED" || offboarding.status === "CANCELLED";
+                              
+                              const getDisabledReason = () => {
+                                if (!canUpdate) return "You don't have permission to update tasks";
+                                if (isOffboardingClosed) return `Offboarding is ${offboarding.status.toLowerCase()}`;
+                                if (hasPendingApproval) return "Waiting for approval";
+                                if (hasRequiredEvidence) return "Evidence required before completing";
+                                if (isAdminBlocked) return "Must be completed by employee";
+                                return "";
+                              };
+                              
+                              const isDisabled = !canUpdate || loading === task.id || isOffboardingClosed || hasPendingApproval || hasRequiredEvidence || isAdminBlocked;
+                              const disabledReason = getDisabledReason();
+                              
+                              return (
+                              <Box
+                                key={task.id}
+                                sx={{
+                                  p: 2,
+                                  borderRadius: 2,
+                                  bgcolor: task.status === "COMPLETED" ? alpha("#22c55e", 0.05) : task.isHighRiskTask ? alpha("#ef4444", 0.05) : hasRequiredEvidence ? alpha("#f59e0b", 0.03) : "transparent",
+                                  border: "1px solid",
+                                  borderColor: task.status === "COMPLETED" ? alpha("#22c55e", 0.2) : task.isHighRiskTask ? alpha("#ef4444", 0.2) : hasRequiredEvidence ? alpha("#f59e0b", 0.2) : "divider",
+                                  cursor: !isDisabled ? "pointer" : "default",
+                                  "&:hover": !isDisabled ? { bgcolor: alpha("#3b82f6", 0.03) } : {},
+                                }}
+                                onClick={() => !isDisabled && handleTaskToggle(task.id, task.status)}
+                              >
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                                  <Tooltip title={disabledReason} placement="top">
+                                    <span>
+                                      <Checkbox
+                                        checked={task.status === "COMPLETED"}
+                                        disabled={isDisabled}
+                                        onChange={() => {}}
+                                        onClick={(e) => e.stopPropagation()}
+                                        sx={{
+                                          color: task.status === "COMPLETED" ? "success.main" : undefined,
+                                          "&.Mui-checked": { color: "success.main" },
+                                        }}
+                                      />
+                                    </span>
+                                  </Tooltip>
                                 <Box sx={{ flex: 1 }}>
                                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                                     <Typography
