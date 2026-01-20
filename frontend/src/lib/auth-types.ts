@@ -21,6 +21,7 @@ export type MembershipWithOrg = {
     slug: string;
     logoUrl: string | null;
     status: OrgStatus;
+    isSetupComplete: boolean;
   };
 };
 

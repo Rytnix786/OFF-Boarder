@@ -496,12 +496,13 @@ export async function POST(request: NextRequest) {
       });
 
       const organization = await tx.organization.create({
-        data: {
-          name: orgName,
-          slug,
-          status: "PENDING",
-        },
-      });
+          data: {
+            name: orgName,
+            slug,
+            status: "PENDING",
+            isSetupComplete: false,
+          },
+        });
 
       await tx.membership.create({
         data: {
