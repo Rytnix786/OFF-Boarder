@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "reset-to-demo": "npx tsx scripts/reset-to-demo.ts"
+    "reset-to-demo": "npx tsx scripts/reset-to-demo.ts",
+    "dev-reset": "npx tsx scripts/dev-reset.ts"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
