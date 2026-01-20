@@ -1045,7 +1045,7 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
                         overflow: "hidden",
                         transition: "all 0.3s ease",
                         "&:hover": {
-                          boxShadow: (theme) => `0 0 20px ${alpha("#3b82f6", 0.1)}`,
+                          boxShadow: `0 0 20px ${alpha("#3b82f6", 0.1)}`,
                           borderColor: alpha("#3b82f6", 0.3),
                         }
                       }}
@@ -1091,7 +1091,7 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
                                     "&:hover": { 
                                       bgcolor: !onboardingStatus.isComplete ? alpha("#d97706", 0.05) : alpha("#3b82f6", 0.04), 
                                       borderColor: !onboardingStatus.isComplete ? alpha("#d97706", 0.5) : alpha("#3b82f6", 0.2),
-                                      boxShadow: (theme) => `0 0 15px ${alpha(!onboardingStatus.isComplete ? "#d97706" : "#3b82f6", 0.15)}`,
+                                      boxShadow: `0 0 15px ${alpha(!onboardingStatus.isComplete ? "#d97706" : "#3b82f6", 0.15)}`,
                                       "& .control-icon": { color: !onboardingStatus.isComplete ? "#d97706" : alpha("#3b82f6", 0.8) },
                                       "& .control-chevron": { transform: "translateX(2px)", color: !onboardingStatus.isComplete ? "#d97706" : alpha("#3b82f6", 0.7) },
                                     },
@@ -1125,7 +1125,7 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
                                   "&:hover": { 
                                     bgcolor: alpha("#3b82f6", 0.04), 
                                     borderColor: alpha("#3b82f6", 0.2),
-                                    boxShadow: (theme) => `0 0 15px ${alpha("#3b82f6", 0.15)}`,
+                                    boxShadow: `0 0 15px ${alpha("#3b82f6", 0.15)}`,
                                     "& .control-icon": { color: alpha("#3b82f6", 0.8) },
                                     "& .control-chevron": { transform: "translateX(2px)", color: alpha("#3b82f6", 0.7) },
                                   },
@@ -1160,7 +1160,7 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
                                   "&:hover": { 
                                     bgcolor: alpha("#3b82f6", 0.04), 
                                     borderColor: alpha("#3b82f6", 0.2),
-                                    boxShadow: (theme) => `0 0 15px ${alpha("#3b82f6", 0.15)}`,
+                                    boxShadow: `0 0 15px ${alpha("#3b82f6", 0.15)}`,
                                     "& .control-icon": { color: alpha("#3b82f6", 0.8) },
                                     "& .control-chevron": { transform: "translateX(2px)", color: alpha("#3b82f6", 0.7) },
                                   },
@@ -1195,7 +1195,7 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
                                   "&:hover": { 
                                     bgcolor: alpha("#3b82f6", 0.04), 
                                     borderColor: alpha("#3b82f6", 0.2),
-                                    boxShadow: (theme) => `0 0 15px ${alpha("#3b82f6", 0.15)}`,
+                                    boxShadow: `0 0 15px ${alpha("#3b82f6", 0.15)}`,
                                     "& .control-icon": { color: alpha("#3b82f6", 0.8) },
                                     "& .control-chevron": { transform: "translateX(2px)", color: alpha("#3b82f6", 0.7) },
                                   },
