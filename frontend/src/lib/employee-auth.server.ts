@@ -179,10 +179,16 @@ export async function getEmployeePortalSession(): Promise<EmployeePortalSession 
 }
 
 export async function requireEmployeePortalAuth(): Promise<EmployeePortalSession> {
+  const supabaseUser = await getSupabaseUser();
+  
+  if (!supabaseUser) {
+    redirect("/login?redirect=/app/employee");
+  }
+  
   const session = await getEmployeePortalSession();
   
   if (!session) {
-    redirect("/login?redirect=/app/employee");
+    redirect("/app?error=not_portal_user");
   }
   
   return session;
