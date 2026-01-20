@@ -296,12 +296,26 @@ function RegisterContent() {
       }
 
       const supabase = createClient();
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: normalizedEmail,
-        password,
-      });
+      
+      const attemptSignIn = async (retries = 3, delay = 500): Promise<boolean> => {
+        for (let i = 0; i < retries; i++) {
+          if (i > 0) {
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: normalizedEmail,
+            password,
+          });
+          if (!signInError) {
+            return true;
+          }
+        }
+        return false;
+      };
 
-      if (signInError) {
+      const signedIn = await attemptSignIn();
+      
+      if (!signedIn) {
         setError("Account created but unable to sign in automatically. Please sign in manually.");
         router.push("/login");
         return;
