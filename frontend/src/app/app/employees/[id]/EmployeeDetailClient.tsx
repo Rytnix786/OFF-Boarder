@@ -125,14 +125,14 @@ export default function EmployeeDetailClient({ employee, canEdit }: EmployeeDeta
         </Box>
         {canEdit && (
             <Box sx={{ display: "flex", gap: 1 }}>
-              <Button
-                variant="outlined"
-                color="info"
-                startIcon={<span className="material-symbols-outlined">portal</span>}
-                onClick={() => setPortalInviteDialogOpen(true)}
-              >
-                Invite to Portal
-              </Button>
+                <Button
+                  variant="outlined"
+                  color="info"
+                  startIcon={<span className="material-symbols-outlined">door_open</span>}
+                  onClick={() => setPortalInviteDialogOpen(true)}
+                >
+                  Invite to Portal
+                </Button>
               <Link href={`/app/employees/${employee.id}/security`} style={{ textDecoration: "none" }}>
                 <Button
                   variant="outlined"
@@ -427,7 +427,7 @@ export default function EmployeeDetailClient({ employee, canEdit }: EmployeeDeta
       >
         <DialogTitle fontWeight={700}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <span className="material-symbols-outlined">portal</span>
+            <span className="material-symbols-outlined">door_open</span>
             Invite to Portal
           </Box>
         </DialogTitle>
