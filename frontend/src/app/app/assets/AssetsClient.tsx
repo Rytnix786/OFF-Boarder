@@ -28,8 +28,15 @@ import {
   Snackbar,
   IconButton,
   Menu,
+  Tabs,
+  Tab,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  Autocomplete,
+  Paper,
 } from "@mui/material";
-import { createAsset, assignAssetToEmployee, unassignAsset } from "@/lib/actions/assets";
+import { createAsset, assignAssetToEmployee, assignAssetToUser, unassignAsset } from "@/lib/actions/assets";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -42,7 +49,10 @@ type Asset = {
   description: string | null;
   value: number | null;
   status: "ASSIGNED" | "PENDING_RETURN" | "RETURNED" | "LOST" | "DAMAGED" | "WRITTEN_OFF";
+  assigneeType: string | null;
+  assigneeUserId: string | null;
   employee: { id: string; firstName: string; lastName: string; email: string } | null;
+  assigneeUser: { id: string; name: string | null; email: string } | null;
 };
 
 type Employee = {
@@ -52,10 +62,19 @@ type Employee = {
   email: string;
 };
 
+type OrgUser = {
+  id: string;
+  name: string | null;
+  email: string;
+};
+
 interface AssetsClientProps {
   assets: Asset[];
   employees: Employee[];
+  orgUsers: OrgUser[];
   canManage: boolean;
+  currentUserId: string;
+  myAssignedAssets: Asset[];
 }
 
 const ASSET_TYPES = [
@@ -63,7 +82,14 @@ const ASSET_TYPES = [
   "HEADSET", "ACCESS_CARD", "KEYS", "VEHICLE", "OTHER"
 ];
 
-export default function AssetsClient({ assets, employees, canManage }: AssetsClientProps) {
+export default function AssetsClient({ 
+  assets, 
+  employees, 
+  orgUsers,
+  canManage,
+  currentUserId,
+  myAssignedAssets,
+}: AssetsClientProps) {
   const router = useRouter();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState<Asset | null>(null);
@@ -72,6 +98,9 @@ export default function AssetsClient({ assets, employees, canManage }: AssetsCli
   const [menuAnchor, setMenuAnchor] = useState<{ el: HTMLElement; asset: Asset } | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [assigneeType, setAssigneeType] = useState<"EMPLOYEE" | "ORG_USER">("EMPLOYEE");
+  const [selectedAssignee, setSelectedAssignee] = useState<Employee | OrgUser | null>(null);
+  const [activeTab, setActiveTab] = useState(0);
 
   const filteredAssets = assets.filter((asset) => {
     if (statusFilter !== "all" && asset.status !== statusFilter) return false;
@@ -94,14 +123,24 @@ export default function AssetsClient({ assets, employees, canManage }: AssetsCli
     setLoading(false);
   };
 
-  const handleAssign = async (assetId: string, employeeId: string) => {
+  const handleAssign = async () => {
+    if (!assignDialogOpen || !selectedAssignee) return;
+    
     setLoading(true);
-    const result = await assignAssetToEmployee(assetId, employeeId);
+    let result;
+    
+    if (assigneeType === "EMPLOYEE") {
+      result = await assignAssetToEmployee(assignDialogOpen.id, selectedAssignee.id);
+    } else {
+      result = await assignAssetToUser(assignDialogOpen.id, selectedAssignee.id);
+    }
+    
     if (result.error) {
       setSnackbar({ open: true, message: result.error, severity: "error" });
     } else {
-      setSnackbar({ open: true, message: "Asset assigned", severity: "success" });
+      setSnackbar({ open: true, message: "Asset assigned successfully! Assignee has been notified.", severity: "success" });
       setAssignDialogOpen(null);
+      setSelectedAssignee(null);
       router.refresh();
     }
     setLoading(false);
@@ -132,8 +171,127 @@ export default function AssetsClient({ assets, employees, canManage }: AssetsCli
     }
   };
 
+  const getAssigneeDisplay = (asset: Asset) => {
+    if (asset.assigneeType === "EMPLOYEE" && asset.employee) {
+      return (
+        <Box>
+          <Typography variant="body2">
+            {asset.employee.firstName} {asset.employee.lastName}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {asset.employee.email}
+          </Typography>
+        </Box>
+      );
+    }
+    if (asset.assigneeType === "ORG_USER" && asset.assigneeUser) {
+      return (
+        <Box>
+          <Typography variant="body2">
+            {asset.assigneeUser.name || "Unnamed User"}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {asset.assigneeUser.email}
+          </Typography>
+        </Box>
+      );
+    }
+    if (asset.employee) {
+      return (
+        <Box>
+          <Typography variant="body2">
+            {asset.employee.firstName} {asset.employee.lastName}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {asset.employee.email}
+          </Typography>
+        </Box>
+      );
+    }
+    return <Typography variant="body2" color="text.secondary">Unassigned</Typography>;
+  };
+
   const assignedCount = assets.filter(a => a.status === "ASSIGNED").length;
   const pendingCount = assets.filter(a => a.status === "PENDING_RETURN").length;
+
+  const renderAssetTable = (assetList: Asset[], showActions = true) => (
+    <TableContainer>
+      <Table>
+        <TableHead>
+          <TableRow sx={{ "& th": { fontWeight: 700, color: "text.secondary", fontSize: 12, textTransform: "uppercase" } }}>
+            <TableCell>Asset</TableCell>
+            <TableCell>Type</TableCell>
+            <TableCell>Serial/Tag</TableCell>
+            <TableCell>Assigned To</TableCell>
+            <TableCell>Status</TableCell>
+            {showActions && <TableCell align="right">Actions</TableCell>}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {assetList.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={showActions ? 6 : 5} sx={{ py: 8, textAlign: "center" }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 48, opacity: 0.3 }}>
+                  inventory_2
+                </span>
+                <Typography color="text.secondary" sx={{ mt: 1 }}>
+                  No assets found
+                </Typography>
+              </TableCell>
+            </TableRow>
+          ) : (
+            assetList.map((asset) => (
+              <TableRow key={asset.id} hover>
+                <TableCell>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <Avatar sx={{ bgcolor: "primary.main" }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                        {asset.type === "LAPTOP" ? "laptop" : 
+                         asset.type === "PHONE" ? "smartphone" : 
+                         asset.type === "ACCESS_CARD" ? "badge" : 
+                         asset.type === "KEYS" ? "key" : "devices"}
+                      </span>
+                    </Avatar>
+                    <Box>
+                      <Typography fontWeight={600}>{asset.name}</Typography>
+                      {asset.description && (
+                        <Typography variant="caption" color="text.secondary">
+                          {asset.description}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                </TableCell>
+                <TableCell>{asset.type}</TableCell>
+                <TableCell>{asset.serialNumber || asset.assetTag || "—"}</TableCell>
+                <TableCell>{getAssigneeDisplay(asset)}</TableCell>
+                <TableCell>
+                  <Chip
+                    label={asset.status.replace("_", " ")}
+                    size="small"
+                    color={getStatusColor(asset.status) as any}
+                    sx={{ fontWeight: 600 }}
+                  />
+                </TableCell>
+                {showActions && (
+                  <TableCell align="right">
+                    {canManage && (
+                      <IconButton
+                        size="small"
+                        onClick={(e) => setMenuAnchor({ el: e.currentTarget, asset })}
+                      >
+                        <span className="material-symbols-outlined">more_vert</span>
+                      </IconButton>
+                    )}
+                  </TableCell>
+                )}
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
 
   return (
     <Box>
@@ -155,6 +313,18 @@ export default function AssetsClient({ assets, employees, canManage }: AssetsCli
           </Button>
         )}
       </Box>
+
+      {myAssignedAssets.length > 0 && (
+        <Card variant="outlined" sx={{ borderRadius: 3, mb: 3, border: "2px solid", borderColor: "primary.main" }}>
+          <Box sx={{ p: 2, bgcolor: "primary.main", color: "white" }}>
+            <Typography variant="h6" fontWeight={700}>
+              <span className="material-symbols-outlined" style={{ verticalAlign: "middle", marginRight: 8 }}>assignment_ind</span>
+              My Assigned Assets ({myAssignedAssets.length})
+            </Typography>
+          </Box>
+          {renderAssetTable(myAssignedAssets, false)}
+        </Card>
+      )}
 
       <Card variant="outlined" sx={{ borderRadius: 3, mb: 3 }}>
         <Box sx={{ p: 2, display: "flex", gap: 2 }}>
@@ -188,117 +358,31 @@ export default function AssetsClient({ assets, employees, canManage }: AssetsCli
       </Card>
 
       <Card variant="outlined" sx={{ borderRadius: 3 }}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow sx={{ "& th": { fontWeight: 700, color: "text.secondary", fontSize: 12, textTransform: "uppercase" } }}>
-                <TableCell>Asset</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Serial/Tag</TableCell>
-                <TableCell>Assigned To</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredAssets.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} sx={{ py: 8, textAlign: "center" }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 48, opacity: 0.3 }}>
-                      inventory_2
-                    </span>
-                    <Typography color="text.secondary" sx={{ mt: 1 }}>
-                      No assets found
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredAssets.map((asset) => (
-                  <TableRow key={asset.id} hover>
-                    <TableCell>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                        <Avatar sx={{ bgcolor: "primary.main" }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-                            {asset.type === "LAPTOP" ? "laptop" : 
-                             asset.type === "PHONE" ? "smartphone" : 
-                             asset.type === "ACCESS_CARD" ? "badge" : 
-                             asset.type === "KEYS" ? "key" : "devices"}
-                          </span>
-                        </Avatar>
-                        <Box>
-                          <Typography fontWeight={600}>{asset.name}</Typography>
-                          {asset.description && (
-                            <Typography variant="caption" color="text.secondary">
-                              {asset.description}
-                            </Typography>
-                          )}
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    <TableCell>{asset.type}</TableCell>
-                    <TableCell>{asset.serialNumber || asset.assetTag || "—"}</TableCell>
-                    <TableCell>
-                      {asset.employee ? (
-                        <Box>
-                          <Typography variant="body2">
-                            {asset.employee.firstName} {asset.employee.lastName}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {asset.employee.email}
-                          </Typography>
-                        </Box>
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">Unassigned</Typography>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={asset.status.replace("_", " ")}
-                        size="small"
-                        color={getStatusColor(asset.status) as any}
-                        sx={{ fontWeight: 600 }}
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      {canManage && (
-                        <IconButton
-                          size="small"
-                          onClick={(e) => setMenuAnchor({ el: e.currentTarget, asset })}
-                        >
-                          <span className="material-symbols-outlined">more_vert</span>
-                        </IconButton>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        {renderAssetTable(filteredAssets)}
       </Card>
 
-        <Menu
-          anchorEl={menuAnchor?.el}
-          open={Boolean(menuAnchor)}
-          onClose={() => setMenuAnchor(null)}
-        >
-          <MenuItem component={Link} href={`/app/assets/${menuAnchor?.asset.id}`}>
-            <span className="material-symbols-outlined" style={{ marginRight: 8 }}>visibility</span>
-            View Details
+      <Menu
+        anchorEl={menuAnchor?.el}
+        open={Boolean(menuAnchor)}
+        onClose={() => setMenuAnchor(null)}
+      >
+        <MenuItem component={Link} href={`/app/assets/${menuAnchor?.asset.id}`}>
+          <span className="material-symbols-outlined" style={{ marginRight: 8 }}>visibility</span>
+          View Details
+        </MenuItem>
+        {menuAnchor?.asset.status !== "ASSIGNED" && (
+          <MenuItem onClick={() => { setAssignDialogOpen(menuAnchor!.asset); setMenuAnchor(null); }}>
+            <span className="material-symbols-outlined" style={{ marginRight: 8 }}>person_add</span>
+            Assign
           </MenuItem>
-          {menuAnchor?.asset.status !== "ASSIGNED" && (
-            <MenuItem onClick={() => { setAssignDialogOpen(menuAnchor!.asset); setMenuAnchor(null); }}>
-              <span className="material-symbols-outlined" style={{ marginRight: 8 }}>person_add</span>
-              Assign
-            </MenuItem>
-          )}
-          {menuAnchor?.asset.status === "ASSIGNED" && (
-            <MenuItem onClick={() => handleUnassign(menuAnchor!.asset.id)} disabled={loading}>
-              <span className="material-symbols-outlined" style={{ marginRight: 8 }}>person_remove</span>
-              Unassign
-            </MenuItem>
-          )}
-        </Menu>
+        )}
+        {menuAnchor?.asset.status === "ASSIGNED" && (
+          <MenuItem onClick={() => handleUnassign(menuAnchor!.asset.id)} disabled={loading}>
+            <span className="material-symbols-outlined" style={{ marginRight: 8 }}>person_remove</span>
+            Unassign
+          </MenuItem>
+        )}
+      </Menu>
 
       <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} maxWidth="sm" fullWidth>
         <form onSubmit={handleCreate}>
@@ -354,42 +438,152 @@ export default function AssetsClient({ assets, employees, canManage }: AssetsCli
         </form>
       </Dialog>
 
-      <Dialog open={!!assignDialogOpen} onClose={() => setAssignDialogOpen(null)} maxWidth="sm" fullWidth>
-        <DialogTitle fontWeight={700}>Assign Asset</DialogTitle>
+      <Dialog 
+        open={!!assignDialogOpen} 
+        onClose={() => { setAssignDialogOpen(null); setSelectedAssignee(null); }} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Avatar sx={{ bgcolor: "primary.main", width: 40, height: 40 }}>
+              <span className="material-symbols-outlined">assignment_ind</span>
+            </Avatar>
+            <Box>
+              <Typography variant="h6" fontWeight={700}>Assign Asset</Typography>
+              <Typography variant="body2" color="text.secondary">
+                {assignDialogOpen?.name} ({assignDialogOpen?.type})
+              </Typography>
+            </Box>
+          </Box>
+        </DialogTitle>
         <DialogContent>
-          <Typography sx={{ mb: 2 }}>
-            Assigning: <strong>{assignDialogOpen?.name}</strong> ({assignDialogOpen?.type})
-          </Typography>
-          <FormControl fullWidth>
-            <InputLabel>Assign To</InputLabel>
-            <Select
-              id="assign-employee"
-              label="Assign To"
-              defaultValue=""
+          <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 2, bgcolor: "grey.50" }}>
+            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+              Assign to:
+            </Typography>
+            <RadioGroup
+              row
+              value={assigneeType}
+              onChange={(e) => {
+                setAssigneeType(e.target.value as "EMPLOYEE" | "ORG_USER");
+                setSelectedAssignee(null);
+              }}
             >
-              {employees.map((e) => (
-                <MenuItem key={e.id} value={e.id}>
-                  {e.firstName} {e.lastName} ({e.email})
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              <FormControlLabel 
+                value="EMPLOYEE" 
+                control={<Radio />} 
+                label={
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>badge</span>
+                    Employee
+                  </Box>
+                }
+              />
+              <FormControlLabel 
+                value="ORG_USER" 
+                control={<Radio />} 
+                label={
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>person</span>
+                    Organization User
+                  </Box>
+                }
+              />
+            </RadioGroup>
+          </Paper>
+
+          {assigneeType === "EMPLOYEE" ? (
+            <Autocomplete
+              options={employees}
+              getOptionLabel={(option) => `${option.firstName} ${option.lastName} (${option.email})`}
+              value={selectedAssignee as Employee | null}
+              onChange={(_, value) => setSelectedAssignee(value)}
+              renderInput={(params) => (
+                <TextField 
+                  {...params} 
+                  label="Select Employee" 
+                  placeholder="Search by name or email..."
+                  fullWidth 
+                />
+              )}
+              renderOption={(props, option) => (
+                <li {...props} key={option.id}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                    <Avatar sx={{ width: 32, height: 32, bgcolor: "primary.light", fontSize: 14 }}>
+                      {option.firstName[0]}{option.lastName[0]}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="body2" fontWeight={500}>
+                        {option.firstName} {option.lastName}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {option.email}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </li>
+              )}
+              noOptionsText="No employees found"
+            />
+          ) : (
+            <Autocomplete
+              options={orgUsers}
+              getOptionLabel={(option) => `${option.name || "Unnamed"} (${option.email})`}
+              value={selectedAssignee as OrgUser | null}
+              onChange={(_, value) => setSelectedAssignee(value)}
+              renderInput={(params) => (
+                <TextField 
+                  {...params} 
+                  label="Select Organization User" 
+                  placeholder="Search by name or email..."
+                  fullWidth 
+                />
+              )}
+              renderOption={(props, option) => (
+                <li {...props} key={option.id}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                    <Avatar sx={{ width: 32, height: 32, bgcolor: "secondary.light", fontSize: 14 }}>
+                      {(option.name || option.email)[0].toUpperCase()}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="body2" fontWeight={500}>
+                        {option.name || "Unnamed User"}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {option.email}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </li>
+              )}
+              noOptionsText="No organization users found"
+            />
+          )}
+
+          {selectedAssignee && (
+            <Alert severity="info" sx={{ mt: 2 }}>
+              <Typography variant="body2">
+                The assignee will receive a notification about this assignment.
+              </Typography>
+            </Alert>
+          )}
         </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setAssignDialogOpen(null)}>Cancel</Button>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button 
+            onClick={() => { setAssignDialogOpen(null); setSelectedAssignee(null); }}
+            variant="outlined"
+          >
+            Cancel
+          </Button>
           <Button
             variant="contained"
-            onClick={() => {
-              const select = document.getElementById("assign-employee") as HTMLSelectElement;
-              const employeeId = select?.querySelector("[aria-selected='true']")?.getAttribute("data-value") || 
-                               (select?.nextElementSibling?.querySelector("input") as HTMLInputElement)?.value;
-              if (assignDialogOpen && employeeId) {
-                handleAssign(assignDialogOpen.id, employeeId);
-              }
-            }}
-            disabled={loading}
+            onClick={handleAssign}
+            disabled={loading || !selectedAssignee}
+            startIcon={<span className="material-symbols-outlined">check</span>}
           >
-            Assign
+            {loading ? "Assigning..." : "Assign Asset"}
           </Button>
         </DialogActions>
       </Dialog>
