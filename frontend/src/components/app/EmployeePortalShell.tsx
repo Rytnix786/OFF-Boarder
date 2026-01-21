@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   Box,
   List,
@@ -18,12 +18,15 @@ import {
   Toolbar,
   IconButton,
   Chip,
+  Badge,
+  alpha,
 } from "@mui/material";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ColorModeContext } from "@/theme/ThemeRegistry";
 import { createClient, clearRememberMe } from "@/lib/supabase/client";
 import type { EmployeePortalSession } from "@/lib/employee-auth.server";
+import { getUnreadNotificationCount } from "@/lib/actions/employee-notifications";
 
 const SIDEBAR_WIDTH = 280;
 
@@ -37,6 +40,8 @@ const navItems = [
   { label: "My Tasks", icon: "task_alt", href: "/app/employee/tasks" },
   { label: "Assets to Return", icon: "devices", href: "/app/employee/assets" },
   { label: "Attestation", icon: "verified_user", href: "/app/employee/attestation" },
+  { label: "Notifications", icon: "notifications", href: "/app/employee/notifications", alwaysEnabled: true },
+  { label: "My Profile", icon: "person", href: "/app/employee/profile", alwaysEnabled: true },
 ];
 
 export default function EmployeePortalShell({ session, children }: EmployeePortalShellProps) {
@@ -45,6 +50,21 @@ export default function EmployeePortalShell({ session, children }: EmployeePorta
   const pathname = usePathname();
   const router = useRouter();
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const count = await getUnreadNotificationCount();
+        setUnreadCount(count);
+      } catch (error) {
+        console.error("Failed to fetch unread count:", error);
+      }
+    };
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [pathname]);
 
   const handleSignOut = async () => {
       clearRememberMe();
@@ -106,62 +126,69 @@ export default function EmployeePortalShell({ session, children }: EmployeePorta
         <Divider />
 
         <List sx={{ px: 1.5, py: 2, flex: 1, overflow: "auto" }}>
-          {navItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== "/app/employee" && pathname.startsWith(item.href));
-            const isDisabled = !session.hasActiveOffboarding && item.href !== "/app/employee";
-            
-            return (
-              <ListItem key={item.label} disablePadding sx={{ mb: 0.5 }}>
-                {isDisabled ? (
-                  <ListItemButton
-                    disabled
-                    sx={{
-                      borderRadius: 2,
-                      py: 1.2,
-                      opacity: 0.5,
-                    }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 40, color: "text.disabled" }}>
-                      <span className="material-symbols-outlined">{item.icon}</span>
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={item.label}
-                      primaryTypographyProps={{
-                        fontWeight: 500,
-                        fontSize: "0.9rem",
-                        color: "text.disabled",
-                      }}
-                    />
-                  </ListItemButton>
-                ) : (
-                  <Link href={item.href} passHref style={{ textDecoration: "none", width: "100%", color: "inherit" }}>
+            {navItems.map((item) => {
+              const isActive = pathname === item.href || (item.href !== "/app/employee" && pathname.startsWith(item.href));
+              const isDisabled = !session.hasActiveOffboarding && item.href !== "/app/employee" && !item.alwaysEnabled;
+              const isNotification = item.label === "Notifications";
+              
+              return (
+                <ListItem key={item.label} disablePadding sx={{ mb: 0.5 }}>
+                  {isDisabled ? (
                     <ListItemButton
+                      disabled
                       sx={{
                         borderRadius: 2,
                         py: 1.2,
-                        bgcolor: isActive ? "primary.main" : "transparent",
-                        color: isActive ? "white" : "text.primary",
-                        "&:hover": {
-                          bgcolor: isActive ? "primary.dark" : "action.hover",
-                        },
+                        opacity: 0.5,
                       }}
                     >
-                      <ListItemIcon sx={{ minWidth: 40, color: "inherit" }}>
+                      <ListItemIcon sx={{ minWidth: 40, color: "text.disabled" }}>
                         <span className="material-symbols-outlined">{item.icon}</span>
                       </ListItemIcon>
                       <ListItemText
                         primary={item.label}
                         primaryTypographyProps={{
-                          fontWeight: isActive ? 600 : 500,
+                          fontWeight: 500,
                           fontSize: "0.9rem",
+                          color: "text.disabled",
                         }}
                       />
                     </ListItemButton>
-                  </Link>
-                )}
-              </ListItem>
-            );
-          })}
+                  ) : (
+                    <Link href={item.href} passHref style={{ textDecoration: "none", width: "100%", color: "inherit" }}>
+                      <ListItemButton
+                        sx={{
+                          borderRadius: 2,
+                          py: 1.2,
+                          bgcolor: isActive ? "primary.main" : "transparent",
+                          color: isActive ? "white" : "text.primary",
+                          "&:hover": {
+                            bgcolor: isActive ? "primary.dark" : "action.hover",
+                          },
+                        }}
+                      >
+                        <ListItemIcon sx={{ minWidth: 40, color: "inherit" }}>
+                          {isNotification && unreadCount > 0 ? (
+                            <Badge badgeContent={unreadCount} color="error" max={99}>
+                              <span className="material-symbols-outlined">{item.icon}</span>
+                            </Badge>
+                          ) : (
+                            <span className="material-symbols-outlined">{item.icon}</span>
+                          )}
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={item.label}
+                          primaryTypographyProps={{
+                            fontWeight: isActive ? 600 : 500,
+                            fontSize: "0.9rem",
+                          }}
+                        />
+                      </ListItemButton>
+                    </Link>
+                  )}
+                </ListItem>
+              );
+            })}
 
           </List>
 
@@ -224,13 +251,20 @@ export default function EmployeePortalShell({ session, children }: EmployeePorta
               Employee Portal
             </Typography>
 
-<Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <IconButton size="small" onClick={colorMode.toggleColorMode}>
-                  <span className="material-symbols-outlined">
-                    {theme.palette.mode === "dark" ? "light_mode" : "dark_mode"}
-                  </span>
-                </IconButton>
-              </Box>
+<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Link href="/app/employee/notifications" style={{ textDecoration: "none" }}>
+                    <IconButton size="small">
+                      <Badge badgeContent={unreadCount} color="error" max={99}>
+                        <span className="material-symbols-outlined">notifications</span>
+                      </Badge>
+                    </IconButton>
+                  </Link>
+                  <IconButton size="small" onClick={colorMode.toggleColorMode}>
+                    <span className="material-symbols-outlined">
+                      {theme.palette.mode === "dark" ? "light_mode" : "dark_mode"}
+                    </span>
+                  </IconButton>
+                </Box>
           </Toolbar>
         </AppBar>
 
