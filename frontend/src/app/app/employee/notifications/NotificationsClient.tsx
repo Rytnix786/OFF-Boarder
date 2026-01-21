@@ -21,7 +21,7 @@ import {
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { markNotificationRead, markAllNotificationsRead } from "@/lib/actions/employee-notifications";
+import { markNotificationAsRead, markAllNotificationsRead } from "@/lib/actions/employee-notifications";
 
 type Notification = {
   id: string;
@@ -77,7 +77,7 @@ export default function NotificationsClient({ notifications }: NotificationsClie
   const unreadCount = localNotifications.filter((n) => !n.read).length;
 
   const handleMarkRead = async (id: string) => {
-    const result = await markNotificationRead(id);
+    const result = await markNotificationAsRead(id);
     if (result.success) {
       setLocalNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, read: true } : n))
