@@ -191,33 +191,6 @@ export default function EmployeePortalShell({ session, children }: EmployeePorta
             })}
 
           </List>
-
-        <Divider />
-        <Box sx={{ p: 2 }}>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1.5,
-              p: 1,
-              borderRadius: 2,
-              cursor: "pointer",
-              "&:hover": { bgcolor: "action.hover" },
-            }}
-            onClick={(e) => setUserMenuAnchor(e.currentTarget)}
-          >
-            <Avatar sx={{ width: 36, height: 36, bgcolor: "secondary.main" }}>
-              {session.employee.firstName?.charAt(0) || "E"}
-            </Avatar>
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="body2" noWrap fontWeight={600}>
-                {session.employee.firstName} {session.employee.lastName}
-              </Typography>
-              <Typography variant="caption" color="text.secondary" noWrap>
-                {session.employee.email}
-              </Typography>
-            </Box>
-          </Box>
         </Box>
 
         <Menu
@@ -233,7 +206,6 @@ export default function EmployeePortalShell({ session, children }: EmployeePorta
             Sign Out
           </MenuItem>
         </Menu>
-      </Box>
 
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <AppBar
