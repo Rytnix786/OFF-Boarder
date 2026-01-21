@@ -11,7 +11,10 @@ export type NotificationType =
   | "high_risk_approval_required"
   | "monitoring_alert"
   | "security_alert"
-  | "risk_level_changed";
+  | "risk_level_changed"
+  | "evidence_requested"
+  | "evidence_rejected"
+  | "attestation_required";
 
 interface CreateNotificationParams {
   userId: string;
@@ -36,6 +39,42 @@ export async function createNotification(params: CreateNotificationParams) {
 
   if (error) {
     console.error("Failed to create notification:", error);
+  }
+}
+
+export async function createEmployeeNotification(
+  organizationId: string,
+  employeeId: string,
+  type: NotificationType,
+  title: string,
+  message: string,
+  link?: string
+) {
+  const supabase = await createClient();
+
+  const { data: employeeLink } = await supabase
+    .from("EmployeeUserLink")
+    .select("userId")
+    .eq("organizationId", organizationId)
+    .eq("employeeId", employeeId)
+    .eq("status", "VERIFIED")
+    .single();
+
+  if (!employeeLink?.userId) {
+    return;
+  }
+
+  const { error } = await supabase.from("Notification").insert({
+    userId: employeeLink.userId,
+    organizationId,
+    type,
+    title,
+    message,
+    link: link || null,
+  });
+
+  if (error) {
+    console.error("Failed to create employee notification:", error);
   }
 }
 

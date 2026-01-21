@@ -14,7 +14,7 @@ import {
   InvariantViolationError
 } from "@/lib/rbac.server";
 import { createAuditLog } from "@/lib/audit.server";
-import { createNotificationForOrgMembers } from "@/lib/notifications";
+import { createNotificationForOrgMembers, createEmployeeNotification } from "@/lib/notifications";
 import { revalidatePath } from "next/cache";
 import { RiskLevel } from "@prisma/client";
 import { ensureDefaultWorkflowTemplate } from "./workflows";
@@ -199,6 +199,18 @@ export async function createOffboarding(formData: FormData) {
     `/app/offboardings/${offboarding.id}`,
     employeeId
   );
+
+  const employeeAssignedTasks = offboarding.tasks.filter(t => t.assignedToEmployeeId === employeeId);
+  if (employeeAssignedTasks.length > 0) {
+    await createEmployeeNotification(
+      orgId,
+      employeeId,
+      "task_assigned",
+      "Your Offboarding Has Started",
+      `You have ${employeeAssignedTasks.length} task${employeeAssignedTasks.length > 1 ? "s" : ""} to complete during your offboarding.`,
+      "/app/employee/tasks"
+    );
+  }
 
   const { invalidateOrgCache, refreshAnalyticsSnapshot } = await import("@/lib/cache.server");
   invalidateOrgCache(orgId);
