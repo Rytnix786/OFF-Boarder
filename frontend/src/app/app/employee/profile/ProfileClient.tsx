@@ -112,172 +112,159 @@ export default function ProfileClient({ session }: ProfileClientProps) {
 
   const portalStatus = session.employeeLink.status === "VERIFIED" ? "Verified" : "Pending";
   const employeeStatus = session.employee.status.replace("_", " ");
+  const initials = `${session.employee.firstName?.charAt(0) || ""}${session.employee.lastName?.charAt(0) || ""}`;
 
   return (
-    <Box sx={{ maxWidth: 960, mx: "auto" }}>
-      <Box sx={{ mb: 6, pt: 2 }}>
-        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 3 }}>
-          <Avatar
+    <Box sx={{ maxWidth: 1100, mx: "auto" }}>
+      <Grid container spacing={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <Box
             sx={{
-              width: 72,
-              height: 72,
-              bgcolor: alpha("#1a1a2e", 0.08),
-              color: "text.primary",
-              fontSize: "1.5rem",
-              fontWeight: 500,
-              letterSpacing: "-0.02em",
+              position: "relative",
+              p: 4,
+              borderRadius: 4,
+              background: (theme) =>
+                theme.palette.mode === "dark"
+                  ? `linear-gradient(145deg, ${alpha("#10b981", 0.12)} 0%, ${alpha("#059669", 0.06)} 50%, ${alpha("#047857", 0.02)} 100%)`
+                  : `linear-gradient(145deg, ${alpha("#10b981", 0.08)} 0%, ${alpha("#059669", 0.04)} 50%, ${alpha("#047857", 0.02)} 100%)`,
+              border: "1px solid",
+              borderColor: (theme) =>
+                theme.palette.mode === "dark" ? alpha("#10b981", 0.2) : alpha("#10b981", 0.15),
+              boxShadow: (theme) =>
+                theme.palette.mode === "dark"
+                  ? `0 0 60px ${alpha("#10b981", 0.08)}, 0 4px 20px ${alpha("#000", 0.2)}`
+                  : `0 0 60px ${alpha("#10b981", 0.06)}, 0 4px 20px ${alpha("#000", 0.05)}`,
+              overflow: "hidden",
+              "&::before": {
+                content: '""',
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: "1px",
+                background: `linear-gradient(90deg, transparent, ${alpha("#10b981", 0.4)}, transparent)`,
+              },
             }}
           >
-            {session.employee.firstName?.charAt(0)}{session.employee.lastName?.charAt(0)}
-          </Avatar>
-          <Box sx={{ flex: 1, pt: 0.5 }}>
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 600,
-                fontSize: "1.75rem",
-                letterSpacing: "-0.02em",
-                color: "text.primary",
-                mb: 0.5,
-              }}
-            >
-              {session.employee.firstName} {session.employee.lastName}
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                color: "text.secondary",
-                fontSize: "1rem",
-                mb: 1.5,
-              }}
-            >
-              {session.employee.jobTitle?.title || "Employee"} · {session.employee.department?.name || session.organizationName}
-            </Typography>
-            <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-              <Chip
-                size="small"
-                label={portalStatus}
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+              <Box
                 sx={{
-                  height: 24,
-                  fontSize: "0.75rem",
-                  fontWeight: 500,
-                  bgcolor: portalStatus === "Verified" ? alpha("#16a34a", 0.08) : alpha("#d97706", 0.08),
-                  color: portalStatus === "Verified" ? "#16a34a" : "#d97706",
-                  border: "none",
-                  "& .MuiChip-label": { px: 1.5 },
+                  position: "relative",
+                  mb: 3,
                 }}
-              />
-              {session.hasActiveOffboarding && (
+              >
+                <Box
+                  sx={{
+                    position: "absolute",
+                    inset: -6,
+                    borderRadius: "50%",
+                    background: `conic-gradient(from 0deg, ${alpha("#10b981", 0.3)}, ${alpha("#059669", 0.1)}, ${alpha("#10b981", 0.3)})`,
+                    animation: "spin 8s linear infinite",
+                    "@keyframes spin": {
+                      from: { transform: "rotate(0deg)" },
+                      to: { transform: "rotate(360deg)" },
+                    },
+                  }}
+                />
+                <Avatar
+                  sx={{
+                    position: "relative",
+                    width: 88,
+                    height: 88,
+                    bgcolor: "#10b981",
+                    color: "#fff",
+                    fontSize: "1.75rem",
+                    fontWeight: 600,
+                    letterSpacing: "-0.02em",
+                    boxShadow: `0 0 30px ${alpha("#10b981", 0.4)}, 0 4px 12px ${alpha("#000", 0.15)}`,
+                  }}
+                >
+                  {initials}
+                </Avatar>
+              </Box>
+
+              <Typography
+                variant="h5"
+                sx={{
+                  fontWeight: 700,
+                  fontSize: "1.5rem",
+                  letterSpacing: "-0.02em",
+                  color: "text.primary",
+                  mb: 0.5,
+                }}
+              >
+                {session.employee.firstName} {session.employee.lastName}
+              </Typography>
+
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "text.secondary",
+                  fontSize: "0.95rem",
+                  mb: 2,
+                }}
+              >
+                {session.employee.jobTitle?.title || "Employee"}
+              </Typography>
+
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", justifyContent: "center", mb: 3 }}>
                 <Chip
                   size="small"
-                  label="Offboarding"
+                  label={portalStatus}
                   sx={{
-                    height: 24,
+                    height: 26,
                     fontSize: "0.75rem",
-                    fontWeight: 500,
-                    bgcolor: alpha("#dc2626", 0.08),
-                    color: "#dc2626",
-                    border: "none",
+                    fontWeight: 600,
+                    bgcolor: alpha("#10b981", 0.15),
+                    color: "#10b981",
+                    border: `1px solid ${alpha("#10b981", 0.3)}`,
                     "& .MuiChip-label": { px: 1.5 },
                   }}
                 />
-              )}
-            </Box>
-          </Box>
-        </Box>
-      </Box>
-
-      <Grid container spacing={6}>
-        <Grid size={{ xs: 12, md: 7 }}>
-          <Box sx={{ mb: 5 }}>
-            <Typography
-              variant="overline"
-              sx={{
-                color: "text.disabled",
-                fontSize: "0.7rem",
-                fontWeight: 600,
-                letterSpacing: "0.1em",
-                display: "block",
-                mb: 2,
-              }}
-            >
-              Personal Details
-            </Typography>
-            <Box
-              sx={{
-                borderTop: "1px solid",
-                borderColor: "divider",
-              }}
-            >
-              <Grid container>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow label="Email" value={session.employee.email} />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow label="Phone" value={session.employee.phone} />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow label="Employee ID" value={session.employee.employeeId} />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow
-                    label="Start Date"
-                    value={session.employee.hireDate ? new Date(session.employee.hireDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : null}
+                {session.hasActiveOffboarding && (
+                  <Chip
+                    size="small"
+                    label="Offboarding"
+                    sx={{
+                      height: 26,
+                      fontSize: "0.75rem",
+                      fontWeight: 600,
+                      bgcolor: alpha("#f59e0b", 0.15),
+                      color: "#f59e0b",
+                      border: `1px solid ${alpha("#f59e0b", 0.3)}`,
+                      "& .MuiChip-label": { px: 1.5 },
+                    }}
                   />
-                </Grid>
-              </Grid>
+                )}
+              </Box>
+
+              <Box
+                sx={{
+                  width: "100%",
+                  pt: 2,
+                  borderTop: "1px solid",
+                  borderColor: (theme) =>
+                    theme.palette.mode === "dark" ? alpha("#fff", 0.08) : alpha("#000", 0.06),
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: "text.secondary",
+                    fontSize: "0.8rem",
+                  }}
+                >
+                  {session.employee.department?.name || "—"} · {session.organizationName}
+                </Typography>
+              </Box>
             </Box>
           </Box>
 
-          <Box>
-            <Typography
-              variant="overline"
-              sx={{
-                color: "text.disabled",
-                fontSize: "0.7rem",
-                fontWeight: 600,
-                letterSpacing: "0.1em",
-                display: "block",
-                mb: 2,
-              }}
-            >
-              Organization
-            </Typography>
-            <Box
-              sx={{
-                borderTop: "1px solid",
-                borderColor: "divider",
-              }}
-            >
-              <Grid container>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow label="Company" value={session.organizationName} />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow label="Department" value={session.employee.department?.name} />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow label="Title" value={session.employee.jobTitle?.title} />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow label="Location" value={session.employee.location?.name} />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow label="Manager" value={session.employee.managerMembership?.user?.name} />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow label="Status" value={employeeStatus} />
-                </Grid>
-              </Grid>
-            </Box>
-          </Box>
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 5 }}>
           <Box
             sx={{
+              mt: 3,
               p: 3,
-              borderRadius: 2,
+              borderRadius: 3,
               bgcolor: (theme) => theme.palette.mode === "dark" ? alpha("#fff", 0.02) : alpha("#000", 0.02),
               border: "1px solid",
               borderColor: "divider",
@@ -302,13 +289,14 @@ export default function ProfileClient({ session }: ProfileClientProps) {
                 lineHeight: 1.5,
               }}
             >
-              Protect your account with a strong, unique password.
+              Keep your account protected.
             </Typography>
 
             {!showPasswordForm ? (
               <Button
                 variant="outlined"
                 size="small"
+                fullWidth
                 onClick={() => setShowPasswordForm(true)}
                 sx={{
                   textTransform: "none",
@@ -420,10 +408,10 @@ export default function ProfileClient({ session }: ProfileClientProps) {
               sx={{
                 mt: 3,
                 p: 3,
-                borderRadius: 2,
-                bgcolor: alpha("#dc2626", 0.04),
+                borderRadius: 3,
+                bgcolor: alpha("#f59e0b", 0.06),
                 border: "1px solid",
-                borderColor: alpha("#dc2626", 0.12),
+                borderColor: alpha("#f59e0b", 0.2),
               }}
             >
               <Typography
@@ -431,7 +419,7 @@ export default function ProfileClient({ session }: ProfileClientProps) {
                 sx={{
                   fontWeight: 600,
                   fontSize: "0.875rem",
-                  color: "#b91c1c",
+                  color: "#d97706",
                   mb: 0.5,
                 }}
               >
@@ -445,10 +433,95 @@ export default function ProfileClient({ session }: ProfileClientProps) {
                   lineHeight: 1.5,
                 }}
               >
-                Please complete your assigned tasks and return any company assets. Your cooperation helps ensure a smooth transition.
+                Complete your tasks and return company assets.
               </Typography>
             </Box>
           )}
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 8 }}>
+          <Box sx={{ mb: 5 }}>
+            <Typography
+              variant="overline"
+              sx={{
+                color: "text.disabled",
+                fontSize: "0.7rem",
+                fontWeight: 600,
+                letterSpacing: "0.1em",
+                display: "block",
+                mb: 2,
+              }}
+            >
+              Personal Details
+            </Typography>
+            <Box
+              sx={{
+                borderTop: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              <Grid container>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow label="Email" value={session.employee.email} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow label="Phone" value={session.employee.phone} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow label="Employee ID" value={session.employee.employeeId} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow
+                    label="Start Date"
+                    value={session.employee.hireDate ? new Date(session.employee.hireDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : null}
+                  />
+                </Grid>
+              </Grid>
+            </Box>
+          </Box>
+
+          <Box>
+            <Typography
+              variant="overline"
+              sx={{
+                color: "text.disabled",
+                fontSize: "0.7rem",
+                fontWeight: 600,
+                letterSpacing: "0.1em",
+                display: "block",
+                mb: 2,
+              }}
+            >
+              Organization
+            </Typography>
+            <Box
+              sx={{
+                borderTop: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              <Grid container>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow label="Company" value={session.organizationName} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow label="Department" value={session.employee.department?.name} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow label="Title" value={session.employee.jobTitle?.title} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow label="Location" value={session.employee.location?.name} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow label="Manager" value={session.employee.managerMembership?.user?.name} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow label="Status" value={employeeStatus} />
+                </Grid>
+              </Grid>
+            </Box>
+          </Box>
         </Grid>
       </Grid>
 
