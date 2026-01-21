@@ -4,6 +4,15 @@ import { prisma } from "@/lib/prisma.server";
 import { requireEmployeePortalAuth } from "@/lib/employee-auth.server";
 import { revalidatePath } from "next/cache";
 
+export type EmployeeNotification = {
+  id: string;
+  title: string;
+  message: string;
+  read: boolean;
+  createdAt: Date;
+  type: string;
+};
+
 export async function markNotificationRead(notificationId: string) {
   const session = await requireEmployeePortalAuth();
 
@@ -56,4 +65,31 @@ export async function getUnreadNotificationCount() {
   });
 
   return count;
+}
+
+export async function getRecentNotifications(limit: number = 5): Promise<EmployeeNotification[]> {
+  const session = await requireEmployeePortalAuth();
+
+  const notifications = await prisma.notification.findMany({
+    where: {
+      userId: session.user.id,
+      organizationId: session.organizationId,
+    },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    select: {
+      id: true,
+      title: true,
+      message: true,
+      read: true,
+      createdAt: true,
+      type: true,
+    },
+  });
+
+  return notifications;
+}
+
+export async function markNotificationAsRead(notificationId: string) {
+  return markNotificationRead(notificationId);
 }

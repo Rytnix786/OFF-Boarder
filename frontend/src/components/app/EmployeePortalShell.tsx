@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useCallback } from "react";
 import {
   Box,
   List,
@@ -20,13 +20,16 @@ import {
   Chip,
   Badge,
   alpha,
+  Popover,
+  CircularProgress,
+  Button,
 } from "@mui/material";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ColorModeContext } from "@/theme/ThemeRegistry";
 import { createClient, clearRememberMe } from "@/lib/supabase/client";
 import type { EmployeePortalSession } from "@/lib/employee-auth.server";
-import { getUnreadNotificationCount } from "@/lib/actions/employee-notifications";
+import { getUnreadNotificationCount, getRecentNotifications, markNotificationAsRead, type EmployeeNotification } from "@/lib/actions/employee-notifications";
 
 const SIDEBAR_WIDTH = 280;
 
@@ -51,20 +54,51 @@ export default function EmployeePortalShell({ session, children }: EmployeePorta
   const router = useRouter();
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notifAnchor, setNotifAnchor] = useState<null | HTMLElement>(null);
+  const [notifications, setNotifications] = useState<EmployeeNotification[]>([]);
+  const [notifLoading, setNotifLoading] = useState(false);
+
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const count = await getUnreadNotificationCount();
+      setUnreadCount(count);
+    } catch (error) {
+      console.error("Failed to fetch unread count:", error);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchUnreadCount = async () => {
-      try {
-        const count = await getUnreadNotificationCount();
-        setUnreadCount(count);
-      } catch (error) {
-        console.error("Failed to fetch unread count:", error);
-      }
-    };
     fetchUnreadCount();
     const interval = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(interval);
-  }, [pathname]);
+  }, [fetchUnreadCount]);
+
+  const handleNotifOpen = async (e: React.MouseEvent<HTMLElement>) => {
+    setNotifAnchor(e.currentTarget);
+    setNotifLoading(true);
+    try {
+      const recent = await getRecentNotifications(5);
+      setNotifications(recent);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    } finally {
+      setNotifLoading(false);
+    }
+  };
+
+  const handleNotifClose = () => {
+    setNotifAnchor(null);
+  };
+
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await markNotificationAsRead(id);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error("Failed to mark as read:", error);
+    }
+  };
 
   const handleSignOut = async () => {
       clearRememberMe();
@@ -224,14 +258,97 @@ export default function EmployeePortalShell({ session, children }: EmployeePorta
             </Typography>
 
 <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                    <Link href="/app/employee/notifications" style={{ textDecoration: "none" }}>
-                      <IconButton size="small">
+                      <IconButton size="small" onClick={handleNotifOpen}>
                         <Badge badgeContent={unreadCount} color="error" max={99}>
                           <span className="material-symbols-outlined">notifications</span>
                         </Badge>
                       </IconButton>
-                    </Link>
-                    <IconButton size="small" onClick={colorMode.toggleColorMode}>
+                      <Popover
+                        open={Boolean(notifAnchor)}
+                        anchorEl={notifAnchor}
+                        onClose={handleNotifClose}
+                        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                        transformOrigin={{ vertical: "top", horizontal: "right" }}
+                        PaperProps={{
+                          sx: {
+                            width: 360,
+                            maxHeight: 420,
+                            mt: 1,
+                            borderRadius: 2,
+                            boxShadow: theme.shadows[8],
+                          },
+                        }}
+                      >
+                        <Box sx={{ p: 2, borderBottom: "1px solid", borderColor: "divider", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <Typography variant="subtitle1" fontWeight={600}>Notifications</Typography>
+                          {unreadCount > 0 && (
+                            <Chip size="small" label={`${unreadCount} unread`} color="error" sx={{ height: 22, fontSize: "0.7rem" }} />
+                          )}
+                        </Box>
+                        <Box sx={{ maxHeight: 280, overflow: "auto" }}>
+                          {notifLoading ? (
+                            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                              <CircularProgress size={24} />
+                            </Box>
+                          ) : notifications.length === 0 ? (
+                            <Box sx={{ py: 4, textAlign: "center" }}>
+                              <span className="material-symbols-outlined" style={{ fontSize: 36, opacity: 0.3 }}>notifications_none</span>
+                              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>No notifications</Typography>
+                            </Box>
+                          ) : (
+                            <List disablePadding>
+                              {notifications.map((notif) => (
+                                <ListItem
+                                  key={notif.id}
+                                  disablePadding
+                                  sx={{
+                                    bgcolor: notif.read ? "transparent" : alpha(theme.palette.primary.main, 0.04),
+                                  }}
+                                >
+                                  <ListItemButton
+                                    onClick={() => {
+                                      if (!notif.read) handleMarkAsRead(notif.id);
+                                      handleNotifClose();
+                                      router.push("/app/employee/notifications");
+                                    }}
+                                    sx={{ py: 1.5, px: 2 }}
+                                  >
+                                    <ListItemIcon sx={{ minWidth: 36 }}>
+                                      <span className="material-symbols-outlined" style={{ fontSize: 20, color: notif.read ? theme.palette.text.disabled : theme.palette.primary.main }}>
+                                        {notif.type === "task_assigned" ? "task_alt" : notif.type === "security_alert" ? "security" : "notifications"}
+                                      </span>
+                                    </ListItemIcon>
+                                    <ListItemText
+                                      primary={notif.title}
+                                      secondary={new Date(notif.createdAt).toLocaleDateString()}
+                                      primaryTypographyProps={{
+                                        fontWeight: notif.read ? 400 : 600,
+                                        fontSize: "0.875rem",
+                                        noWrap: true,
+                                      }}
+                                      secondaryTypographyProps={{ fontSize: "0.75rem" }}
+                                    />
+                                  </ListItemButton>
+                                </ListItem>
+                              ))}
+                            </List>
+                          )}
+                        </Box>
+                        <Box sx={{ p: 1.5, borderTop: "1px solid", borderColor: "divider" }}>
+                          <Button
+                            fullWidth
+                            size="small"
+                            onClick={() => {
+                              handleNotifClose();
+                              router.push("/app/employee/notifications");
+                            }}
+                            sx={{ textTransform: "none", fontWeight: 500 }}
+                          >
+                            View all notifications
+                          </Button>
+                        </Box>
+                      </Popover>
+                      <IconButton size="small" onClick={colorMode.toggleColorMode}>
                       <span className="material-symbols-outlined">
                         {theme.palette.mode === "dark" ? "light_mode" : "dark_mode"}
                       </span>
