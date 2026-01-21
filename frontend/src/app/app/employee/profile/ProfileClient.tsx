@@ -4,12 +4,9 @@ import React, { useState } from "react";
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
   Grid,
   Chip,
   Avatar,
-  Divider,
   TextField,
   Button,
   Alert,
@@ -22,6 +19,34 @@ import { createClient } from "@/lib/supabase/client";
 
 interface ProfileClientProps {
   session: EmployeePortalSession;
+}
+
+function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
+  return (
+    <Box sx={{ py: 1.5 }}>
+      <Typography
+        variant="body2"
+        sx={{
+          color: "text.disabled",
+          fontSize: "0.75rem",
+          letterSpacing: "0.02em",
+          textTransform: "uppercase",
+          mb: 0.25,
+        }}
+      >
+        {label}
+      </Typography>
+      <Typography
+        variant="body1"
+        sx={{
+          color: value ? "text.primary" : "text.disabled",
+          fontWeight: 400,
+        }}
+      >
+        {value || "—"}
+      </Typography>
+    </Box>
+  );
 }
 
 export default function ProfileClient({ session }: ProfileClientProps) {
@@ -85,296 +110,344 @@ export default function ProfileClient({ session }: ProfileClientProps) {
     }
   };
 
-  const portalStatus = session.employeeLink.status === "VERIFIED" ? "Verified" : "Invited";
+  const portalStatus = session.employeeLink.status === "VERIFIED" ? "Verified" : "Pending";
+  const employeeStatus = session.employee.status.replace("_", " ");
 
   return (
-    <Box>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight={800} sx={{ mb: 1 }}>
-          My Profile
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          View your profile information
-        </Typography>
-      </Box>
-
-      <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Card variant="outlined" sx={{ borderRadius: 3, mb: 3 }}>
-            <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 3, mb: 3 }}>
-                <Avatar
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    bgcolor: "primary.main",
-                    fontSize: "2rem",
-                    fontWeight: 700,
-                  }}
-                >
-                  {session.employee.firstName?.charAt(0)}{session.employee.lastName?.charAt(0)}
-                </Avatar>
-                <Box>
-                  <Typography variant="h5" fontWeight={700}>
-                    {session.employee.firstName} {session.employee.lastName}
-                  </Typography>
-                  <Typography variant="body1" color="text.secondary">
-                    {session.employee.jobTitle?.title || "Employee"}
-                  </Typography>
-                  <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-                    <Chip
-                      size="small"
-                      label={portalStatus}
-                      sx={{
-                        fontWeight: 600,
-                        bgcolor: portalStatus === "Verified" ? alpha("#22c55e", 0.1) : alpha("#f59e0b", 0.1),
-                        color: portalStatus === "Verified" ? "#22c55e" : "#f59e0b",
-                      }}
-                    />
-                    <Chip
-                      size="small"
-                      label={session.employee.status.replace("_", " ")}
-                      sx={{
-                        fontWeight: 600,
-                        bgcolor: alpha("#3b82f6", 0.1),
-                        color: "#3b82f6",
-                      }}
-                    />
-                  </Box>
-                </Box>
-              </Box>
-
-              <Divider sx={{ my: 3 }} />
-
-              <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>
-                Personal Information
-              </Typography>
-
-              <Grid container spacing={3}>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    First Name
-                  </Typography>
-                  <Typography variant="body1" fontWeight={500}>
-                    {session.employee.firstName}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    Last Name
-                  </Typography>
-                  <Typography variant="body1" fontWeight={500}>
-                    {session.employee.lastName}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    Email Address
-                  </Typography>
-                  <Typography variant="body1" fontWeight={500}>
-                    {session.employee.email}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    Phone Number
-                  </Typography>
-                  <Typography variant="body1" fontWeight={500}>
-                    {session.employee.phone || "—"}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    Employee ID
-                  </Typography>
-                  <Typography variant="body1" fontWeight={500}>
-                    {session.employee.employeeId}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    Hire Date
-                  </Typography>
-                  <Typography variant="body1" fontWeight={500}>
-                    {session.employee.hireDate
-                      ? new Date(session.employee.hireDate).toLocaleDateString()
-                      : "—"}
-                  </Typography>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-
-          <Card variant="outlined" sx={{ borderRadius: 3 }}>
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>
-                Organization Information
-              </Typography>
-
-              <Grid container spacing={3}>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    Organization
-                  </Typography>
-                  <Typography variant="body1" fontWeight={500}>
-                    {session.organizationName}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    Department
-                  </Typography>
-                  <Typography variant="body1" fontWeight={500}>
-                    {session.employee.department?.name || "—"}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    Job Title
-                  </Typography>
-                  <Typography variant="body1" fontWeight={500}>
-                    {session.employee.jobTitle?.title || "—"}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    Location
-                  </Typography>
-                  <Typography variant="body1" fontWeight={500}>
-                    {session.employee.location?.name || "—"}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    Manager
-                  </Typography>
-                  <Typography variant="body1" fontWeight={500}>
-                    {session.employee.managerMembership?.user?.name || "—"}
-                  </Typography>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Card variant="outlined" sx={{ borderRadius: 3 }}>
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>
-                Account Security
-              </Typography>
-
-              {!showPasswordForm ? (
-                <Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Keep your account secure by using a strong password.
-                  </Typography>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    onClick={() => setShowPasswordForm(true)}
-                    startIcon={<span className="material-symbols-outlined">lock</span>}
-                  >
-                    Change Password
-                  </Button>
-                </Box>
-              ) : (
-                <Box component="form" onSubmit={handlePasswordChange}>
-                  {error && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
-                      {error}
-                    </Alert>
-                  )}
-
-                  <TextField
-                    fullWidth
-                    label="Current Password"
-                    type="password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    required
-                    sx={{ mb: 2 }}
-                    size="small"
-                  />
-
-                  <TextField
-                    fullWidth
-                    label="New Password"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
-                    helperText="At least 8 characters"
-                    sx={{ mb: 2 }}
-                    size="small"
-                  />
-
-                  <TextField
-                    fullWidth
-                    label="Confirm New Password"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    sx={{ mb: 2 }}
-                    size="small"
-                  />
-
-                  <Box sx={{ display: "flex", gap: 1 }}>
-                    <Button
-                      type="button"
-                      variant="outlined"
-                      fullWidth
-                      onClick={() => {
-                        setShowPasswordForm(false);
-                        setCurrentPassword("");
-                        setNewPassword("");
-                        setConfirmPassword("");
-                        setError(null);
-                      }}
-                      disabled={isLoading}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      fullWidth
-                      disabled={isLoading}
-                    >
-                      {isLoading ? <CircularProgress size={20} /> : "Update"}
-                    </Button>
-                  </Box>
-                </Box>
-              )}
-            </CardContent>
-          </Card>
-
-          {session.hasActiveOffboarding && (
-            <Card
-              variant="outlined"
+    <Box sx={{ maxWidth: 960, mx: "auto" }}>
+      <Box sx={{ mb: 6, pt: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 3 }}>
+          <Avatar
+            sx={{
+              width: 72,
+              height: 72,
+              bgcolor: alpha("#1a1a2e", 0.08),
+              color: "text.primary",
+              fontSize: "1.5rem",
+              fontWeight: 500,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            {session.employee.firstName?.charAt(0)}{session.employee.lastName?.charAt(0)}
+          </Avatar>
+          <Box sx={{ flex: 1, pt: 0.5 }}>
+            <Typography
+              variant="h4"
               sx={{
-                borderRadius: 3,
-                mt: 3,
-                borderColor: alpha("#f59e0b", 0.3),
-                bgcolor: alpha("#f59e0b", 0.02),
+                fontWeight: 600,
+                fontSize: "1.75rem",
+                letterSpacing: "-0.02em",
+                color: "text.primary",
+                mb: 0.5,
               }}
             >
-              <CardContent sx={{ p: 3 }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-                  <span className="material-symbols-outlined" style={{ color: "#f59e0b" }}>
-                    info
-                  </span>
-                  <Typography variant="subtitle1" fontWeight={700}>
-                    Offboarding Status
-                  </Typography>
+              {session.employee.firstName} {session.employee.lastName}
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{
+                color: "text.secondary",
+                fontSize: "1rem",
+                mb: 1.5,
+              }}
+            >
+              {session.employee.jobTitle?.title || "Employee"} · {session.employee.department?.name || session.organizationName}
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+              <Chip
+                size="small"
+                label={portalStatus}
+                sx={{
+                  height: 24,
+                  fontSize: "0.75rem",
+                  fontWeight: 500,
+                  bgcolor: portalStatus === "Verified" ? alpha("#16a34a", 0.08) : alpha("#d97706", 0.08),
+                  color: portalStatus === "Verified" ? "#16a34a" : "#d97706",
+                  border: "none",
+                  "& .MuiChip-label": { px: 1.5 },
+                }}
+              />
+              {session.hasActiveOffboarding && (
+                <Chip
+                  size="small"
+                  label="Offboarding"
+                  sx={{
+                    height: 24,
+                    fontSize: "0.75rem",
+                    fontWeight: 500,
+                    bgcolor: alpha("#dc2626", 0.08),
+                    color: "#dc2626",
+                    border: "none",
+                    "& .MuiChip-label": { px: 1.5 },
+                  }}
+                />
+              )}
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+
+      <Grid container spacing={6}>
+        <Grid size={{ xs: 12, md: 7 }}>
+          <Box sx={{ mb: 5 }}>
+            <Typography
+              variant="overline"
+              sx={{
+                color: "text.disabled",
+                fontSize: "0.7rem",
+                fontWeight: 600,
+                letterSpacing: "0.1em",
+                display: "block",
+                mb: 2,
+              }}
+            >
+              Personal Details
+            </Typography>
+            <Box
+              sx={{
+                borderTop: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              <Grid container>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow label="Email" value={session.employee.email} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow label="Phone" value={session.employee.phone} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow label="Employee ID" value={session.employee.employeeId} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow
+                    label="Start Date"
+                    value={session.employee.hireDate ? new Date(session.employee.hireDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : null}
+                  />
+                </Grid>
+              </Grid>
+            </Box>
+          </Box>
+
+          <Box>
+            <Typography
+              variant="overline"
+              sx={{
+                color: "text.disabled",
+                fontSize: "0.7rem",
+                fontWeight: 600,
+                letterSpacing: "0.1em",
+                display: "block",
+                mb: 2,
+              }}
+            >
+              Organization
+            </Typography>
+            <Box
+              sx={{
+                borderTop: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              <Grid container>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow label="Company" value={session.organizationName} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow label="Department" value={session.employee.department?.name} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow label="Title" value={session.employee.jobTitle?.title} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow label="Location" value={session.employee.location?.name} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow label="Manager" value={session.employee.managerMembership?.user?.name} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <InfoRow label="Status" value={employeeStatus} />
+                </Grid>
+              </Grid>
+            </Box>
+          </Box>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 5 }}>
+          <Box
+            sx={{
+              p: 3,
+              borderRadius: 2,
+              bgcolor: (theme) => theme.palette.mode === "dark" ? alpha("#fff", 0.02) : alpha("#000", 0.02),
+              border: "1px solid",
+              borderColor: "divider",
+            }}
+          >
+            <Typography
+              variant="subtitle2"
+              sx={{
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                mb: 0.5,
+              }}
+            >
+              Account Security
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                color: "text.secondary",
+                fontSize: "0.8125rem",
+                mb: 2.5,
+                lineHeight: 1.5,
+              }}
+            >
+              Protect your account with a strong, unique password.
+            </Typography>
+
+            {!showPasswordForm ? (
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => setShowPasswordForm(true)}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 500,
+                  borderColor: "divider",
+                  color: "text.primary",
+                  "&:hover": {
+                    borderColor: "text.secondary",
+                    bgcolor: "transparent",
+                  },
+                }}
+              >
+                Change password
+              </Button>
+            ) : (
+              <Box component="form" onSubmit={handlePasswordChange}>
+                {error && (
+                  <Alert
+                    severity="error"
+                    sx={{
+                      mb: 2,
+                      py: 0.5,
+                      "& .MuiAlert-message": { fontSize: "0.8125rem" },
+                    }}
+                  >
+                    {error}
+                  </Alert>
+                )}
+
+                <TextField
+                  fullWidth
+                  label="Current password"
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  required
+                  sx={{ mb: 2 }}
+                  size="small"
+                />
+
+                <TextField
+                  fullWidth
+                  label="New password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  helperText="Minimum 8 characters"
+                  sx={{ mb: 2 }}
+                  size="small"
+                  FormHelperTextProps={{
+                    sx: { fontSize: "0.75rem", mt: 0.5, ml: 0 },
+                  }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Confirm new password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  sx={{ mb: 2.5 }}
+                  size="small"
+                />
+
+                <Box sx={{ display: "flex", gap: 1.5 }}>
+                  <Button
+                    type="button"
+                    variant="text"
+                    size="small"
+                    onClick={() => {
+                      setShowPasswordForm(false);
+                      setCurrentPassword("");
+                      setNewPassword("");
+                      setConfirmPassword("");
+                      setError(null);
+                    }}
+                    disabled={isLoading}
+                    sx={{
+                      textTransform: "none",
+                      fontWeight: 500,
+                      color: "text.secondary",
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="small"
+                    disabled={isLoading}
+                    sx={{
+                      textTransform: "none",
+                      fontWeight: 500,
+                      boxShadow: "none",
+                      "&:hover": { boxShadow: "none" },
+                    }}
+                  >
+                    {isLoading ? <CircularProgress size={18} /> : "Update password"}
+                  </Button>
                 </Box>
-                <Typography variant="body2" color="text.secondary">
-                  You have an active offboarding in progress. Please complete all required tasks
-                  and return any assets assigned to you.
-                </Typography>
-              </CardContent>
-            </Card>
+              </Box>
+            )}
+          </Box>
+
+          {session.hasActiveOffboarding && (
+            <Box
+              sx={{
+                mt: 3,
+                p: 3,
+                borderRadius: 2,
+                bgcolor: alpha("#dc2626", 0.04),
+                border: "1px solid",
+                borderColor: alpha("#dc2626", 0.12),
+              }}
+            >
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  fontWeight: 600,
+                  fontSize: "0.875rem",
+                  color: "#b91c1c",
+                  mb: 0.5,
+                }}
+              >
+                Offboarding in Progress
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "text.secondary",
+                  fontSize: "0.8125rem",
+                  lineHeight: 1.5,
+                }}
+              >
+                Please complete your assigned tasks and return any company assets. Your cooperation helps ensure a smooth transition.
+              </Typography>
+            </Box>
           )}
         </Grid>
       </Grid>
