@@ -206,7 +206,10 @@ export async function assignAssetToEmployee(assetId: string, employeeId: string)
 
   const [asset, employee] = await Promise.all([
     prisma.asset.findFirst({ where: { id: assetId, organizationId: orgId } }),
-    prisma.employee.findFirst({ where: { id: employeeId, organizationId: orgId } }),
+    prisma.employee.findFirst({ 
+      where: { id: employeeId, organizationId: orgId },
+      include: { employeeUserLinks: { where: { status: "VERIFIED" }, select: { userId: true } } }
+    }),
   ]);
 
   if (!asset) return { error: "Asset not found" };
@@ -216,7 +219,12 @@ export async function assignAssetToEmployee(assetId: string, employeeId: string)
 
   const updated = await prisma.asset.update({
     where: { id: assetId },
-    data: { employeeId, status: "ASSIGNED" },
+    data: { 
+      employeeId, 
+      status: "ASSIGNED",
+      assigneeType: "EMPLOYEE",
+      assigneeUserId: null,
+    },
   });
 
   await createAuditLog(session, orgId, {
@@ -224,12 +232,78 @@ export async function assignAssetToEmployee(assetId: string, employeeId: string)
     entityType: "Asset",
     entityId: assetId,
     oldData: { employeeId: oldEmployeeId },
-    newData: { employeeId, employeeName: `${employee.firstName} ${employee.lastName}` },
+    newData: { employeeId, employeeName: `${employee.firstName} ${employee.lastName}`, assigneeType: "EMPLOYEE" },
   });
+
+  const linkedUserId = employee.employeeUserLinks[0]?.userId;
+  if (linkedUserId) {
+    const { createNotification } = await import("@/lib/notifications");
+    await createNotification({
+      userId: linkedUserId,
+      organizationId: orgId,
+      type: "task_assigned",
+      title: "Asset Assigned to You",
+      message: `You have been assigned: ${asset.name} (${asset.type})`,
+      link: `/app/employee/assets`,
+    });
+  }
 
   revalidatePath("/app/assets");
   revalidatePath(`/app/assets/${assetId}`);
   revalidatePath(`/app/employees/${employeeId}`);
+  revalidatePath("/app/employee/assets");
+  return { success: true, asset: updated };
+}
+
+export async function assignAssetToUser(assetId: string, userId: string) {
+  const session = await requireActiveOrg();
+  await requirePermission(session, "asset:update");
+
+  const orgId = session.currentOrgId!;
+
+  const [asset, membership] = await Promise.all([
+    prisma.asset.findFirst({ where: { id: assetId, organizationId: orgId } }),
+    prisma.membership.findFirst({ 
+      where: { userId, organizationId: orgId, status: "ACTIVE" },
+      include: { user: { select: { id: true, name: true, email: true } } }
+    }),
+  ]);
+
+  if (!asset) return { error: "Asset not found" };
+  if (!membership) return { error: "User not found in organization" };
+
+  const oldAssigneeUserId = asset.assigneeUserId;
+
+  const updated = await prisma.asset.update({
+    where: { id: assetId },
+    data: { 
+      employeeId: null,
+      status: "ASSIGNED",
+      assigneeType: "ORG_USER",
+      assigneeUserId: userId,
+    },
+  });
+
+  await createAuditLog(session, orgId, {
+    action: "asset.assigned",
+    entityType: "Asset",
+    entityId: assetId,
+    oldData: { assigneeUserId: oldAssigneeUserId },
+    newData: { assigneeUserId: userId, assigneeName: membership.user.name || membership.user.email, assigneeType: "ORG_USER" },
+  });
+
+  const { createNotification } = await import("@/lib/notifications");
+  await createNotification({
+    userId: userId,
+    organizationId: orgId,
+    type: "task_assigned",
+    title: "Asset Assigned to You",
+    message: `You have been assigned: ${asset.name} (${asset.type})`,
+    link: `/app/assets/${assetId}`,
+  });
+
+  revalidatePath("/app/assets");
+  revalidatePath(`/app/assets/${assetId}`);
   return { success: true, asset: updated };
 }
 
@@ -241,29 +315,45 @@ export async function unassignAsset(assetId: string) {
 
   const asset = await prisma.asset.findFirst({
     where: { id: assetId, organizationId: orgId },
-    include: { employee: { select: { firstName: true, lastName: true } } },
+    include: { 
+      employee: { select: { firstName: true, lastName: true } },
+      assigneeUser: { select: { name: true, email: true } }
+    },
   });
 
   if (!asset) return { error: "Asset not found" };
 
   const oldEmployeeId = asset.employeeId;
+  const oldAssigneeUserId = asset.assigneeUserId;
   const oldEmployeeName = asset.employee ? `${asset.employee.firstName} ${asset.employee.lastName}` : null;
+  const oldAssigneeName = asset.assigneeUser ? (asset.assigneeUser.name || asset.assigneeUser.email) : null;
 
   const updated = await prisma.asset.update({
     where: { id: assetId },
-    data: { employeeId: null, status: "RETURNED" },
+    data: { 
+      employeeId: null, 
+      assigneeType: null,
+      assigneeUserId: null,
+      status: "RETURNED" 
+    },
   });
 
   await createAuditLog(session, orgId, {
     action: "asset.unassigned",
     entityType: "Asset",
     entityId: assetId,
-    oldData: { employeeId: oldEmployeeId, employeeName: oldEmployeeName },
-    newData: { employeeId: null },
+    oldData: { 
+      employeeId: oldEmployeeId, 
+      employeeName: oldEmployeeName,
+      assigneeUserId: oldAssigneeUserId,
+      assigneeName: oldAssigneeName
+    },
+    newData: { employeeId: null, assigneeUserId: null, assigneeType: null },
   });
 
   revalidatePath("/app/assets");
   revalidatePath(`/app/assets/${assetId}`);
+  revalidatePath("/app/employee/assets");
   if (oldEmployeeId) revalidatePath(`/app/employees/${oldEmployeeId}`);
   return { success: true, asset: updated };
 }
