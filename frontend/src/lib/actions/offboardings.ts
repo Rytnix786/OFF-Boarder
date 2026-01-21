@@ -475,7 +475,7 @@ export async function updateOffboardingTask(taskId: string, status: "PENDING" | 
   });
 
   const allAssetsResolved = assetReturns.every(ar => 
-    ar.status === "RETURNED" || ar.status === "LOST" || ar.status === "DAMAGED"
+    ar.status === "RETURNED" || ar.status === "MISSING" || ar.status === "VERIFIED" || ar.status === "DAMAGED"
   );
 
   const completedCount = allTasks.filter((t) => t.status === "COMPLETED" || t.status === "SKIPPED").length;
