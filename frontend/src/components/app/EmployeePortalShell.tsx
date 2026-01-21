@@ -251,20 +251,100 @@ export default function EmployeePortalShell({ session, children }: EmployeePorta
               Employee Portal
             </Typography>
 
-<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Link href="/app/employee/notifications" style={{ textDecoration: "none" }}>
-                    <IconButton size="small">
-                      <Badge badgeContent={unreadCount} color="error" max={99}>
-                        <span className="material-symbols-outlined">notifications</span>
-                      </Badge>
+<Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                    <Link href="/app/employee/notifications" style={{ textDecoration: "none" }}>
+                      <IconButton size="small">
+                        <Badge badgeContent={unreadCount} color="error" max={99}>
+                          <span className="material-symbols-outlined">notifications</span>
+                        </Badge>
+                      </IconButton>
+                    </Link>
+                    <IconButton size="small" onClick={colorMode.toggleColorMode}>
+                      <span className="material-symbols-outlined">
+                        {theme.palette.mode === "dark" ? "light_mode" : "dark_mode"}
+                      </span>
                     </IconButton>
-                  </Link>
-                  <IconButton size="small" onClick={colorMode.toggleColorMode}>
-                    <span className="material-symbols-outlined">
-                      {theme.palette.mode === "dark" ? "light_mode" : "dark_mode"}
-                    </span>
-                  </IconButton>
-                </Box>
+
+                    <Box
+                      onClick={(e) => setUserMenuAnchor(e.currentTarget)}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1.5,
+                        ml: 1,
+                        pl: 2,
+                        borderLeft: "1px solid",
+                        borderColor: "divider",
+                        cursor: "pointer",
+                        py: 0.5,
+                        pr: 1,
+                        borderRadius: "0 24px 24px 0",
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                          bgcolor: alpha("#10b981", 0.08),
+                        },
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          position: "relative",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            inset: -3,
+                            borderRadius: "50%",
+                            background: `conic-gradient(from 0deg, ${alpha("#10b981", 0.5)}, ${alpha("#059669", 0.2)}, ${alpha("#10b981", 0.5)})`,
+                            animation: "headerSpin 6s linear infinite",
+                            "@keyframes headerSpin": {
+                              from: { transform: "rotate(0deg)" },
+                              to: { transform: "rotate(360deg)" },
+                            },
+                          }}
+                        />
+                        <Avatar
+                          sx={{
+                            position: "relative",
+                            width: 36,
+                            height: 36,
+                            bgcolor: "#10b981",
+                            color: "#fff",
+                            fontSize: "0.875rem",
+                            fontWeight: 600,
+                            boxShadow: `0 0 16px ${alpha("#10b981", 0.4)}`,
+                          }}
+                        >
+                          {session.employee.firstName?.charAt(0)}{session.employee.lastName?.charAt(0)}
+                        </Avatar>
+                      </Box>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: "0.875rem",
+                            lineHeight: 1.3,
+                            color: "text.primary",
+                          }}
+                          noWrap
+                        >
+                          {session.employee.firstName} {session.employee.lastName}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: "#10b981",
+                            fontSize: "0.75rem",
+                            lineHeight: 1.2,
+                          }}
+                          noWrap
+                        >
+                          {session.employee.email}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
           </Toolbar>
         </AppBar>
 
