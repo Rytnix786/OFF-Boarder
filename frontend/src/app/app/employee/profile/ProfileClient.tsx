@@ -1,18 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
   Grid,
   Chip,
-  Avatar,
   TextField,
   Button,
   Alert,
   Snackbar,
   CircularProgress,
   alpha,
+  Divider,
 } from "@mui/material";
 import type { EmployeePortalSession } from "@/lib/employee-auth.server";
 import { createClient } from "@/lib/supabase/client";
@@ -21,30 +21,43 @@ interface ProfileClientProps {
   session: EmployeePortalSession;
 }
 
-function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
+function InfoRow({ label, value, isLocked = true }: { label: string; value: string | null | undefined; isLocked?: boolean }) {
   return (
-    <Box sx={{ py: 1.5 }}>
-      <Typography
-        variant="body2"
-        sx={{
-          color: "text.disabled",
-          fontSize: "0.75rem",
-          letterSpacing: "0.02em",
-          textTransform: "uppercase",
-          mb: 0.25,
-        }}
-      >
-        {label}
-      </Typography>
-      <Typography
-        variant="body1"
-        sx={{
-          color: value ? "text.primary" : "text.disabled",
-          fontWeight: 400,
-        }}
-      >
-        {value || "—"}
-      </Typography>
+    <Box sx={{ py: 1.5, display: "flex", alignItems: "flex-start", gap: 1 }}>
+      <Box sx={{ flex: 1 }}>
+        <Typography
+          variant="body2"
+          sx={{
+            color: "text.disabled",
+            fontSize: "0.75rem",
+            letterSpacing: "0.02em",
+            textTransform: "uppercase",
+            mb: 0.25,
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+          }}
+        >
+          {label}
+          {isLocked && (
+            <span 
+              className="material-symbols-outlined" 
+              style={{ fontSize: "0.75rem", opacity: 0.5 }}
+            >
+              lock
+            </span>
+          )}
+        </Typography>
+        <Typography
+          variant="body1"
+          sx={{
+            color: value ? "text.primary" : "text.disabled",
+            fontWeight: 400,
+          }}
+        >
+          {value || "—"}
+        </Typography>
+      </Box>
     </Box>
   );
 }
@@ -57,6 +70,31 @@ export default function ProfileClient({ session }: ProfileClientProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" } | null>(null);
+
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [personalPhone, setPersonalPhone] = useState("");
+  const [personalEmail, setPersonalEmail] = useState("");
+  const [contactLoading, setContactLoading] = useState(false);
+  const [contactError, setContactError] = useState<string | null>(null);
+  const [initialContactLoaded, setInitialContactLoaded] = useState(false);
+
+  useEffect(() => {
+    const fetchContactInfo = async () => {
+      try {
+        const res = await fetch("/api/employee-portal/contact-info");
+        if (res.ok) {
+          const data = await res.json();
+          setPersonalPhone(data.personalPhone || "");
+          setPersonalEmail(data.personalEmail || "");
+        }
+      } catch (err) {
+        console.error("Failed to fetch contact info:", err);
+      } finally {
+        setInitialContactLoaded(true);
+      }
+    };
+    fetchContactInfo();
+  }, []);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,427 +141,504 @@ export default function ProfileClient({ session }: ProfileClientProps) {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (err) {
+    } catch {
       setError("Failed to update password. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleContactUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setContactError(null);
+    setContactLoading(true);
+
+    try {
+      const res = await fetch("/api/employee-portal/contact-info", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ personalPhone, personalEmail }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setContactError(data.error || "Failed to update contact information");
+        return;
+      }
+
+      setSnackbar({ open: true, message: "Contact information updated", severity: "success" });
+      setShowContactForm(false);
+    } catch {
+      setContactError("Failed to update contact information");
+    } finally {
+      setContactLoading(false);
+    }
+  };
+
   const portalStatus = session.employeeLink.status === "VERIFIED" ? "Verified" : "Pending";
   const employeeStatus = session.employee.status.replace("_", " ");
-  const initials = `${session.employee.firstName?.charAt(0) || ""}${session.employee.lastName?.charAt(0) || ""}`;
 
   return (
-    <Box sx={{ maxWidth: 1100, mx: "auto" }}>
-      <Grid container spacing={4}>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Box
-            sx={{
-              position: "relative",
-              p: 4,
-              borderRadius: 4,
-              background: (theme) =>
-                theme.palette.mode === "dark"
-                  ? `linear-gradient(145deg, ${alpha("#10b981", 0.12)} 0%, ${alpha("#059669", 0.06)} 50%, ${alpha("#047857", 0.02)} 100%)`
-                  : `linear-gradient(145deg, ${alpha("#10b981", 0.08)} 0%, ${alpha("#059669", 0.04)} 50%, ${alpha("#047857", 0.02)} 100%)`,
-              border: "1px solid",
-              borderColor: (theme) =>
-                theme.palette.mode === "dark" ? alpha("#10b981", 0.2) : alpha("#10b981", 0.15),
-              boxShadow: (theme) =>
-                theme.palette.mode === "dark"
-                  ? `0 0 60px ${alpha("#10b981", 0.08)}, 0 4px 20px ${alpha("#000", 0.2)}`
-                  : `0 0 60px ${alpha("#10b981", 0.06)}, 0 4px 20px ${alpha("#000", 0.05)}`,
-              overflow: "hidden",
-              "&::before": {
-                content: '""',
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: "1px",
-                background: `linear-gradient(90deg, transparent, ${alpha("#10b981", 0.4)}, transparent)`,
-              },
-            }}
+    <Box sx={{ maxWidth: 900, mx: "auto" }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: 700,
+            fontSize: "1.5rem",
+            letterSpacing: "-0.02em",
+            mb: 0.5,
+          }}
+        >
+          My Profile
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          View your personal and organizational information
+        </Typography>
+      </Box>
+
+      <Box
+        sx={{
+          mb: 4,
+          p: 3,
+          borderRadius: 2,
+          bgcolor: (theme) => theme.palette.mode === "dark" ? alpha("#fff", 0.02) : alpha("#000", 0.02),
+          border: "1px solid",
+          borderColor: "divider",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+          <Typography
+            variant="subtitle2"
+            sx={{ fontWeight: 600, fontSize: "0.875rem" }}
           >
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-              <Box
-                sx={{
-                  position: "relative",
-                  mb: 3,
-                }}
-              >
-                <Box
-                  sx={{
-                    position: "absolute",
-                    inset: -6,
-                    borderRadius: "50%",
-                    background: `conic-gradient(from 0deg, ${alpha("#10b981", 0.3)}, ${alpha("#059669", 0.1)}, ${alpha("#10b981", 0.3)})`,
-                    animation: "spin 8s linear infinite",
-                    "@keyframes spin": {
-                      from: { transform: "rotate(0deg)" },
-                      to: { transform: "rotate(360deg)" },
-                    },
-                  }}
-                />
-                <Avatar
-                  sx={{
-                    position: "relative",
-                    width: 88,
-                    height: 88,
-                    bgcolor: "#10b981",
-                    color: "#fff",
-                    fontSize: "1.75rem",
-                    fontWeight: 600,
-                    letterSpacing: "-0.02em",
-                    boxShadow: `0 0 30px ${alpha("#10b981", 0.4)}, 0 4px 12px ${alpha("#000", 0.15)}`,
-                  }}
-                >
-                  {initials}
-                </Avatar>
-              </Box>
-
-              <Typography
-                variant="h5"
-                sx={{
-                  fontWeight: 700,
-                  fontSize: "1.5rem",
-                  letterSpacing: "-0.02em",
-                  color: "text.primary",
-                  mb: 0.5,
-                }}
-              >
-                {session.employee.firstName} {session.employee.lastName}
-              </Typography>
-
-              <Typography
-                variant="body1"
-                sx={{
-                  color: "text.secondary",
-                  fontSize: "0.95rem",
-                  mb: 2,
-                }}
-              >
-                {session.employee.jobTitle?.title || "Employee"}
-              </Typography>
-
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", justifyContent: "center", mb: 3 }}>
-                <Chip
-                  size="small"
-                  label={portalStatus}
-                  sx={{
-                    height: 26,
-                    fontSize: "0.75rem",
-                    fontWeight: 600,
-                    bgcolor: alpha("#10b981", 0.15),
-                    color: "#10b981",
-                    border: `1px solid ${alpha("#10b981", 0.3)}`,
-                    "& .MuiChip-label": { px: 1.5 },
-                  }}
-                />
-                {session.hasActiveOffboarding && (
-                  <Chip
-                    size="small"
-                    label="Offboarding"
-                    sx={{
-                      height: 26,
-                      fontSize: "0.75rem",
-                      fontWeight: 600,
-                      bgcolor: alpha("#f59e0b", 0.15),
-                      color: "#f59e0b",
-                      border: `1px solid ${alpha("#f59e0b", 0.3)}`,
-                      "& .MuiChip-label": { px: 1.5 },
-                    }}
-                  />
-                )}
-              </Box>
-
-              <Box
-                sx={{
-                  width: "100%",
-                  pt: 2,
-                  borderTop: "1px solid",
-                  borderColor: (theme) =>
-                    theme.palette.mode === "dark" ? alpha("#fff", 0.08) : alpha("#000", 0.06),
-                }}
-              >
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: "text.secondary",
-                    fontSize: "0.8rem",
-                  }}
-                >
-                  {session.employee.department?.name || "—"} · {session.organizationName}
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-
-          <Box
+            Account Status
+          </Typography>
+          <Chip
+            size="small"
+            label={portalStatus}
             sx={{
-              mt: 3,
-              p: 3,
-              borderRadius: 3,
-              bgcolor: (theme) => theme.palette.mode === "dark" ? alpha("#fff", 0.02) : alpha("#000", 0.02),
-              border: "1px solid",
-              borderColor: "divider",
+              height: 22,
+              fontSize: "0.7rem",
+              fontWeight: 600,
+              bgcolor: alpha("#10b981", 0.15),
+              color: "#10b981",
+              border: `1px solid ${alpha("#10b981", 0.3)}`,
             }}
-          >
-            <Typography
-              variant="subtitle2"
-              sx={{
-                fontWeight: 600,
-                fontSize: "0.875rem",
-                mb: 0.5,
-              }}
-            >
-              Account Security
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                color: "text.secondary",
-                fontSize: "0.8125rem",
-                mb: 2.5,
-                lineHeight: 1.5,
-              }}
-            >
-              Keep your account protected.
-            </Typography>
-
-            {!showPasswordForm ? (
-              <Button
-                variant="outlined"
-                size="small"
-                fullWidth
-                onClick={() => setShowPasswordForm(true)}
-                sx={{
-                  textTransform: "none",
-                  fontWeight: 500,
-                  borderColor: "divider",
-                  color: "text.primary",
-                  "&:hover": {
-                    borderColor: "text.secondary",
-                    bgcolor: "transparent",
-                  },
-                }}
-              >
-                Change password
-              </Button>
-            ) : (
-              <Box component="form" onSubmit={handlePasswordChange}>
-                {error && (
-                  <Alert
-                    severity="error"
-                    sx={{
-                      mb: 2,
-                      py: 0.5,
-                      "& .MuiAlert-message": { fontSize: "0.8125rem" },
-                    }}
-                  >
-                    {error}
-                  </Alert>
-                )}
-
-                <TextField
-                  fullWidth
-                  label="Current password"
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  required
-                  sx={{ mb: 2 }}
-                  size="small"
-                />
-
-                <TextField
-                  fullWidth
-                  label="New password"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
-                  helperText="Minimum 8 characters"
-                  sx={{ mb: 2 }}
-                  size="small"
-                  FormHelperTextProps={{
-                    sx: { fontSize: "0.75rem", mt: 0.5, ml: 0 },
-                  }}
-                />
-
-                <TextField
-                  fullWidth
-                  label="Confirm new password"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  sx={{ mb: 2.5 }}
-                  size="small"
-                />
-
-                <Box sx={{ display: "flex", gap: 1.5 }}>
-                  <Button
-                    type="button"
-                    variant="text"
-                    size="small"
-                    onClick={() => {
-                      setShowPasswordForm(false);
-                      setCurrentPassword("");
-                      setNewPassword("");
-                      setConfirmPassword("");
-                      setError(null);
-                    }}
-                    disabled={isLoading}
-                    sx={{
-                      textTransform: "none",
-                      fontWeight: 500,
-                      color: "text.secondary",
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    size="small"
-                    disabled={isLoading}
-                    sx={{
-                      textTransform: "none",
-                      fontWeight: 500,
-                      boxShadow: "none",
-                      "&:hover": { boxShadow: "none" },
-                    }}
-                  >
-                    {isLoading ? <CircularProgress size={18} /> : "Update password"}
-                  </Button>
-                </Box>
-              </Box>
-            )}
-          </Box>
-
+          />
           {session.hasActiveOffboarding && (
-            <Box
+            <Chip
+              size="small"
+              label="Offboarding"
               sx={{
-                mt: 3,
-                p: 3,
-                borderRadius: 3,
-                bgcolor: alpha("#f59e0b", 0.06),
-                border: "1px solid",
-                borderColor: alpha("#f59e0b", 0.2),
+                height: 22,
+                fontSize: "0.7rem",
+                fontWeight: 600,
+                bgcolor: alpha("#f59e0b", 0.15),
+                color: "#f59e0b",
+                border: `1px solid ${alpha("#f59e0b", 0.3)}`,
               }}
-            >
+            />
+          )}
+        </Box>
+        <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.8125rem" }}>
+          Employment status: {employeeStatus}
+        </Typography>
+      </Box>
+
+      <Grid container spacing={4}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Box sx={{ mb: 4 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: "1.25rem", color: "inherit", opacity: 0.7 }}>
+                badge
+              </span>
               <Typography
                 variant="subtitle2"
                 sx={{
                   fontWeight: 600,
                   fontSize: "0.875rem",
-                  color: "#d97706",
-                  mb: 0.5,
+                  letterSpacing: "0.01em",
                 }}
               >
-                Offboarding in Progress
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  color: "text.secondary",
-                  fontSize: "0.8125rem",
-                  lineHeight: 1.5,
-                }}
-              >
-                Complete your tasks and return company assets.
+                Identity Information
               </Typography>
             </Box>
-          )}
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Box sx={{ mb: 5 }}>
             <Typography
-              variant="overline"
+              variant="caption"
               sx={{
-                color: "text.disabled",
-                fontSize: "0.7rem",
-                fontWeight: 600,
-                letterSpacing: "0.1em",
                 display: "block",
                 mb: 2,
+                color: "text.secondary",
+                fontSize: "0.75rem",
               }}
             >
-              Personal Details
+              System of record data — cannot be modified
             </Typography>
             <Box
               sx={{
-                borderTop: "1px solid",
+                p: 2.5,
+                borderRadius: 2,
+                bgcolor: (theme) => theme.palette.mode === "dark" ? alpha("#fff", 0.02) : alpha("#000", 0.02),
+                border: "1px solid",
                 borderColor: "divider",
               }}
             >
-              <Grid container>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow label="Email" value={session.employee.email} />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow label="Phone" value={session.employee.phone} />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow label="Employee ID" value={session.employee.employeeId} />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow
-                    label="Start Date"
-                    value={session.employee.hireDate ? new Date(session.employee.hireDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : null}
-                  />
-                </Grid>
-              </Grid>
+              <InfoRow label="Full Name" value={`${session.employee.firstName} ${session.employee.lastName}`} />
+              <Divider sx={{ my: 1 }} />
+              <InfoRow label="Primary Email (Login)" value={session.employee.email} />
+              <Divider sx={{ my: 1 }} />
+              <InfoRow label="Employee ID" value={session.employee.employeeId} />
+              <Divider sx={{ my: 1 }} />
+              <InfoRow label="Job Title" value={session.employee.jobTitle?.title} />
+              <Divider sx={{ my: 1 }} />
+              <InfoRow label="Department" value={session.employee.department?.name} />
+              <Divider sx={{ my: 1 }} />
+              <InfoRow label="Manager" value={session.employee.managerMembership?.user?.name} />
             </Box>
           </Box>
+        </Grid>
 
-          <Box>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Box sx={{ mb: 4 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: "1.25rem", color: "inherit", opacity: 0.7 }}>
+                business
+              </span>
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  fontWeight: 600,
+                  fontSize: "0.875rem",
+                  letterSpacing: "0.01em",
+                }}
+              >
+                Organization
+              </Typography>
+            </Box>
             <Typography
-              variant="overline"
+              variant="caption"
               sx={{
-                color: "text.disabled",
-                fontSize: "0.7rem",
-                fontWeight: 600,
-                letterSpacing: "0.1em",
                 display: "block",
                 mb: 2,
+                color: "text.secondary",
+                fontSize: "0.75rem",
               }}
             >
-              Organization
+              Assigned organization and location
             </Typography>
             <Box
               sx={{
-                borderTop: "1px solid",
+                p: 2.5,
+                borderRadius: 2,
+                bgcolor: (theme) => theme.palette.mode === "dark" ? alpha("#fff", 0.02) : alpha("#000", 0.02),
+                border: "1px solid",
                 borderColor: "divider",
               }}
             >
-              <Grid container>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow label="Company" value={session.organizationName} />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow label="Department" value={session.employee.department?.name} />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow label="Title" value={session.employee.jobTitle?.title} />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow label="Location" value={session.employee.location?.name} />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow label="Manager" value={session.employee.managerMembership?.user?.name} />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <InfoRow label="Status" value={employeeStatus} />
-                </Grid>
-              </Grid>
+              <InfoRow label="Company" value={session.organizationName} />
+              <Divider sx={{ my: 1 }} />
+              <InfoRow label="Location" value={session.employee.location?.name} />
+              <Divider sx={{ my: 1 }} />
+              <InfoRow label="Work Phone" value={session.employee.phone} />
+              <Divider sx={{ my: 1 }} />
+              <InfoRow
+                label="Start Date"
+                value={session.employee.hireDate ? new Date(session.employee.hireDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : null}
+              />
             </Box>
           </Box>
         </Grid>
       </Grid>
+
+      <Box
+        sx={{
+          mb: 4,
+          p: 3,
+          borderRadius: 2,
+          bgcolor: (theme) => theme.palette.mode === "dark" ? alpha("#0ea5e9", 0.06) : alpha("#0ea5e9", 0.04),
+          border: "1px solid",
+          borderColor: (theme) => theme.palette.mode === "dark" ? alpha("#0ea5e9", 0.2) : alpha("#0ea5e9", 0.15),
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: "1.25rem", color: "#0ea5e9" }}>
+              contact_phone
+            </span>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 600, fontSize: "0.875rem" }}
+            >
+              Contact Information
+            </Typography>
+          </Box>
+          {!showContactForm && initialContactLoaded && (
+            <Button
+              variant="text"
+              size="small"
+              onClick={() => setShowContactForm(true)}
+              sx={{
+                textTransform: "none",
+                fontWeight: 500,
+                fontSize: "0.8125rem",
+                color: "#0ea5e9",
+              }}
+            >
+              Edit
+            </Button>
+          )}
+        </Box>
+        
+        <Typography
+          variant="caption"
+          sx={{
+            display: "block",
+            mb: 2,
+            color: "text.secondary",
+            fontSize: "0.75rem",
+            lineHeight: 1.5,
+          }}
+        >
+          For offboarding communication only. Does not affect your login or identity.
+        </Typography>
+
+        {!showContactForm ? (
+          <Box>
+            {!initialContactLoaded ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+                <CircularProgress size={20} />
+              </Box>
+            ) : (
+              <>
+                <Box sx={{ py: 1 }}>
+                  <Typography variant="body2" sx={{ color: "text.disabled", fontSize: "0.75rem", textTransform: "uppercase", mb: 0.25 }}>
+                    Personal Phone
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: personalPhone ? "text.primary" : "text.disabled" }}>
+                    {personalPhone || "Not provided"}
+                  </Typography>
+                </Box>
+                <Box sx={{ py: 1 }}>
+                  <Typography variant="body2" sx={{ color: "text.disabled", fontSize: "0.75rem", textTransform: "uppercase", mb: 0.25 }}>
+                    Personal Email
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: personalEmail ? "text.primary" : "text.disabled" }}>
+                    {personalEmail || "Not provided"}
+                  </Typography>
+                </Box>
+              </>
+            )}
+          </Box>
+        ) : (
+          <Box component="form" onSubmit={handleContactUpdate}>
+            {contactError && (
+              <Alert severity="error" sx={{ mb: 2, py: 0.5, "& .MuiAlert-message": { fontSize: "0.8125rem" } }}>
+                {contactError}
+              </Alert>
+            )}
+
+            <TextField
+              fullWidth
+              label="Personal phone"
+              value={personalPhone}
+              onChange={(e) => setPersonalPhone(e.target.value)}
+              placeholder="e.g., +1 555-123-4567"
+              sx={{ mb: 2 }}
+              size="small"
+              helperText="For asset return coordination"
+              FormHelperTextProps={{ sx: { fontSize: "0.75rem", mt: 0.5, ml: 0 } }}
+            />
+
+            <TextField
+              fullWidth
+              label="Personal email"
+              type="email"
+              value={personalEmail}
+              onChange={(e) => setPersonalEmail(e.target.value)}
+              placeholder="e.g., personal@email.com"
+              sx={{ mb: 2.5 }}
+              size="small"
+              helperText="Alternative contact (not your login email)"
+              FormHelperTextProps={{ sx: { fontSize: "0.75rem", mt: 0.5, ml: 0 } }}
+            />
+
+            <Box sx={{ display: "flex", gap: 1.5 }}>
+              <Button
+                type="button"
+                variant="text"
+                size="small"
+                onClick={() => {
+                  setShowContactForm(false);
+                  setContactError(null);
+                }}
+                disabled={contactLoading}
+                sx={{ textTransform: "none", fontWeight: 500, color: "text.secondary" }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                size="small"
+                disabled={contactLoading}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 500,
+                  boxShadow: "none",
+                  bgcolor: "#0ea5e9",
+                  "&:hover": { boxShadow: "none", bgcolor: "#0284c7" },
+                }}
+              >
+                {contactLoading ? <CircularProgress size={18} /> : "Save changes"}
+              </Button>
+            </Box>
+          </Box>
+        )}
+      </Box>
+
+      <Box
+        sx={{
+          p: 3,
+          borderRadius: 2,
+          bgcolor: (theme) => theme.palette.mode === "dark" ? alpha("#fff", 0.02) : alpha("#000", 0.02),
+          border: "1px solid",
+          borderColor: "divider",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+          <span className="material-symbols-outlined" style={{ fontSize: "1.25rem", color: "inherit", opacity: 0.7 }}>
+            security
+          </span>
+          <Typography
+            variant="subtitle2"
+            sx={{ fontWeight: 600, fontSize: "0.875rem" }}
+          >
+            Account Security
+          </Typography>
+        </Box>
+        <Typography
+          variant="body2"
+          sx={{
+            color: "text.secondary",
+            fontSize: "0.8125rem",
+            mb: 2.5,
+            lineHeight: 1.5,
+          }}
+        >
+          Keep your account protected.
+        </Typography>
+
+        {!showPasswordForm ? (
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => setShowPasswordForm(true)}
+            sx={{
+              textTransform: "none",
+              fontWeight: 500,
+              borderColor: "divider",
+              color: "text.primary",
+              "&:hover": {
+                borderColor: "text.secondary",
+                bgcolor: "transparent",
+              },
+            }}
+          >
+            Change password
+          </Button>
+        ) : (
+          <Box component="form" onSubmit={handlePasswordChange}>
+            {error && (
+              <Alert
+                severity="error"
+                sx={{
+                  mb: 2,
+                  py: 0.5,
+                  "& .MuiAlert-message": { fontSize: "0.8125rem" },
+                }}
+              >
+                {error}
+              </Alert>
+            )}
+
+            <TextField
+              fullWidth
+              label="Current password"
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              required
+              sx={{ mb: 2 }}
+              size="small"
+            />
+
+            <TextField
+              fullWidth
+              label="New password"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              required
+              helperText="Minimum 8 characters"
+              sx={{ mb: 2 }}
+              size="small"
+              FormHelperTextProps={{
+                sx: { fontSize: "0.75rem", mt: 0.5, ml: 0 },
+              }}
+            />
+
+            <TextField
+              fullWidth
+              label="Confirm new password"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              sx={{ mb: 2.5 }}
+              size="small"
+            />
+
+            <Box sx={{ display: "flex", gap: 1.5 }}>
+              <Button
+                type="button"
+                variant="text"
+                size="small"
+                onClick={() => {
+                  setShowPasswordForm(false);
+                  setCurrentPassword("");
+                  setNewPassword("");
+                  setConfirmPassword("");
+                  setError(null);
+                }}
+                disabled={isLoading}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 500,
+                  color: "text.secondary",
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                size="small"
+                disabled={isLoading}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 500,
+                  boxShadow: "none",
+                  "&:hover": { boxShadow: "none" },
+                }}
+              >
+                {isLoading ? <CircularProgress size={18} /> : "Update password"}
+              </Button>
+            </Box>
+          </Box>
+        )}
+      </Box>
 
       <Snackbar
         open={snackbar?.open}
