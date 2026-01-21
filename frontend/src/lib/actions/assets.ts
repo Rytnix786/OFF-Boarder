@@ -415,10 +415,10 @@ export async function updateAssetReturnForOffboarding(
       where: { id: assetId },
       data: { status: "RETURNED", employeeId: null },
     });
-  } else if (status === "LOST" || status === "NOT_RETURNED") {
+  } else if (status === "MISSING") {
     await prisma.asset.update({
       where: { id: assetId },
-      data: { status: status === "LOST" ? "LOST" : "ASSIGNED" },
+      data: { status: "LOST" },
     });
   }
 
@@ -446,7 +446,7 @@ export async function checkOffboardingAssetBlockers(offboardingId: string) {
   });
 
   const unresolved = assetReturns.filter(ar => 
-    ar.status !== "RETURNED" && ar.status !== "LOST"
+    ar.status !== "RETURNED" && ar.status !== "MISSING" && ar.status !== "VERIFIED"
   );
 
   return {

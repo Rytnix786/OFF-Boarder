@@ -131,7 +131,7 @@ export async function calculateRiskScore(offboardingId: string): Promise<RiskSco
   }
 
   const unresolvedAssets = offboarding.assetReturns.filter(
-    ar => ar.status !== "RETURNED" && ar.status !== "LOST"
+    ar => ar.status !== "RETURNED" && ar.status !== "MISSING" && ar.status !== "VERIFIED"
   );
   if (unresolvedAssets.length > 0) {
     const score = Math.min(unresolvedAssets.length * 3, RISK_WEIGHTS.unresolvedAssets);
@@ -392,7 +392,7 @@ export async function getRiskRadarDashboard(filters: {
         select: { id: true, firstName: true, lastName: true, email: true, department: { select: { id: true, name: true } } },
       },
       tasks: { where: { status: { in: ["PENDING", "IN_PROGRESS"] } } },
-      assetReturns: { where: { status: { notIn: ["RETURNED", "LOST"] } } },
+      assetReturns: { where: { status: { notIn: ["RETURNED", "MISSING", "VERIFIED"] } } },
     },
     orderBy: [{ riskLevel: "desc" }, { createdAt: "desc" }],
   });
