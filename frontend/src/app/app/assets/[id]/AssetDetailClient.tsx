@@ -347,71 +347,102 @@ export default function AssetDetailClient({ asset, history, employees, canManage
         sx={{ 
           borderRadius: 3, 
           mb: 3, 
-          borderLeft: 6, 
-          borderLeftColor: asset.employee ? "success.main" : "warning.main",
-          transition: "all 0.2s ease-in-out",
+          transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+          borderLeft: 4, 
+          borderLeftColor: asset.employee ? "success.main" : "divider",
+          position: "relative",
+          overflow: "hidden",
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            bgcolor: asset.employee ? "success.main" : "warning.main",
+            opacity: 0,
+            transition: "opacity 0.2s ease",
+            zIndex: 0,
+          },
           ...( !asset.employee && {
+            cursor: "pointer",
             "&:hover": {
-              bgcolor: "warning.lighter",
+              borderLeft: 6,
+              borderLeftColor: "warning.main",
               transform: "translateY(-2px)",
-              boxShadow: "0 4px 20px rgba(237, 108, 2, 0.08)"
+              boxShadow: "0 8px 32px rgba(237, 108, 2, 0.12)",
+              "&::before": {
+                opacity: 0.04,
+              }
+            }
+          }),
+          ...( asset.employee && {
+            "&:hover": {
+              borderLeft: 6,
+              transform: "translateY(-1px)",
+              boxShadow: "0 4px 16px rgba(46, 125, 50, 0.08)",
+              "&::before": {
+                opacity: 0.02,
+              }
             }
           })
         }}
       >
-        <CardContent sx={{ p: 3 }}>
-          <Grid container spacing={2} alignItems="center">
-            <Grid size={{ xs: 12, md: 8 }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <Avatar sx={{ bgcolor: asset.employee ? "success.lighter" : "warning.lighter", color: asset.employee ? "success.main" : "warning.main" }}>
-                  <span className="material-symbols-outlined">
-                    {asset.employee ? "person" : "person_off"}
-                  </span>
-                </Avatar>
-                <Box>
-                  <Typography variant="h6" fontWeight={700}>
-                    {asset.employee ? `Assigned to ${asset.employee.firstName} ${asset.employee.lastName}` : "Currently Unassigned"}
-                  </Typography>
-                  {asset.employee ? (
-                    <Box sx={{ display: "flex", gap: 2, mt: 0.5 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        ID: {asset.employee.employeeId || "—"}
-                      </Typography>
-                      <Link href={`/app/employees/${asset.employee.id}`} style={{ textDecoration: "none" }}>
-                        <Typography variant="body2" color="primary.main" sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                          View Profile <span className="material-symbols-outlined" style={{ fontSize: 14 }}>open_in_new</span>
-                        </Typography>
-                      </Link>
-                    </Box>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      Available for assignment in inventory.
+        <Box sx={{ position: "relative", zIndex: 1 }}>
+          <CardContent sx={{ p: 3 }}>
+            <Grid container spacing={2} alignItems="center">
+              <Grid size={{ xs: 12, md: 8 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <Avatar sx={{ bgcolor: asset.employee ? "success.lighter" : "warning.lighter", color: asset.employee ? "success.main" : "warning.main" }}>
+                    <span className="material-symbols-outlined">
+                      {asset.employee ? "person" : "person_off"}
+                    </span>
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h6" fontWeight={700}>
+                      {asset.employee ? `Assigned to ${asset.employee.firstName} ${asset.employee.lastName}` : "Currently Unassigned"}
                     </Typography>
-                  )}
+                    {asset.employee ? (
+                      <Box sx={{ display: "flex", gap: 2, mt: 0.5 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          ID: {asset.employee.employeeId || "—"}
+                        </Typography>
+                        <Link href={`/app/employees/${asset.employee.id}`} style={{ textDecoration: "none" }}>
+                          <Typography variant="body2" color="primary.main" sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                            View Profile <span className="material-symbols-outlined" style={{ fontSize: 14 }}>open_in_new</span>
+                          </Typography>
+                        </Link>
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        Available for assignment in inventory.
+                      </Typography>
+                    )}
+                  </Box>
                 </Box>
-              </Box>
+              </Grid>
+              <Grid size={{ xs: 12, md: 4 }} sx={{ textAlign: { md: "right" } }}>
+                {activeOffboarding && (
+                  <Chip
+                    label="Linked to Active Offboarding"
+                    color="error"
+                    variant="outlined"
+                    component={Link}
+                    href={`/app/offboardings/${activeOffboarding.id}`}
+                    clickable
+                    icon={<span className="material-symbols-outlined" style={{ fontSize: 16 }}>exit_to_app</span>}
+                    sx={{ mb: 1 }}
+                  />
+                )}
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ cursor: "pointer", "&:hover": { color: "primary.main" } }} onClick={() => document.getElementById("timeline-section")?.scrollIntoView({ behavior: "smooth" })}>
+                    {history.length} events in Assignment History
+                  </Typography>
+                </Box>
+              </Grid>
             </Grid>
-            <Grid size={{ xs: 12, md: 4 }} sx={{ textAlign: { md: "right" } }}>
-              {activeOffboarding && (
-                <Chip
-                  label="Linked to Active Offboarding"
-                  color="error"
-                  variant="outlined"
-                  component={Link}
-                  href={`/app/offboardings/${activeOffboarding.id}`}
-                  clickable
-                  icon={<span className="material-symbols-outlined" style={{ fontSize: 16 }}>exit_to_app</span>}
-                  sx={{ mb: 1 }}
-                />
-              )}
-              <Box sx={{ mt: 1 }}>
-                <Typography variant="caption" color="text.secondary" sx={{ cursor: "pointer", "&:hover": { color: "primary.main" } }} onClick={() => document.getElementById("timeline-section")?.scrollIntoView({ behavior: "smooth" })}>
-                  {history.length} events in Assignment History
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
-        </CardContent>
+          </CardContent>
+        </Box>
       </Card>
 
           <Grid container spacing={3}>
