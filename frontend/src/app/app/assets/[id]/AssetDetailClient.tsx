@@ -822,59 +822,76 @@ export default function AssetDetailClient({ asset, history, employees, canManage
             </Card>
           )}
 
-          {canManage && (
-            <Card 
-              variant="outlined" 
-              sx={{ 
-                borderRadius: 3, 
-                mb: 3, 
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                borderColor: "divider",
-                bgcolor: "transparent",
-                position: "relative",
-                overflow: "hidden",
-                "&::before": {
-                  content: '""',
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  bgcolor: "error.main",
-                  opacity: 0,
-                  transition: "opacity 0.3s ease",
-                  zIndex: 0,
-                },
-                "&:hover": {
-                  borderColor: "error.main",
-                  boxShadow: "0 8px 32px rgba(211, 47, 47, 0.15)",
-                  transform: "translateY(-2px)",
+            {canManage && (
+              <Card 
+                variant="outlined" 
+                sx={{ 
+                  borderRadius: 3, 
+                  mb: 3, 
+                  transition: "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease, border-width 0.2s ease, box-shadow 0.2s ease",
+                  borderColor: "divider",
+                  borderLeft: "4px solid",
+                  borderLeftColor: "error.main",
+                  position: "relative",
+                  overflow: "hidden",
+                  transform: "translateZ(0)",
+                  backfaceVisibility: "hidden",
                   "&::before": {
-                    opacity: 0.04,
-                  }
-                },
-                "& > *": { position: "relative", zIndex: 1 }
-              }}
-            >
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="overline" color="error.main" fontWeight={700} sx={{ mb: 2, display: "block" }}>
-                  Danger Zone
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Permanently remove this asset from the organization's inventory.
-                </Typography>
-                <Button 
-                  variant="outlined" 
-                  color="error" 
-                  fullWidth
-                  onClick={() => setDeleteDialogOpen(true)}
-                  startIcon={<span className="material-symbols-outlined">delete</span>}
-                >
-                  Delete Asset
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+                    content: '""',
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    background: "linear-gradient(90deg, rgba(211, 47, 47, 0.08) 0%, transparent 40%)",
+                    opacity: 0,
+                    transition: "opacity 0.2s ease-out",
+                    zIndex: 0,
+                  },
+                  "&:hover": {
+                    borderLeftWidth: "6px",
+                    transform: "translateY(-1px) translateZ(0)",
+                    boxShadow: "inset 12px 0 16px -10px rgba(211, 47, 47, 0.3)",
+                    "&::before": {
+                      opacity: 1,
+                    }
+                  },
+                  "& > *": { position: "relative", zIndex: 1 }
+                }}
+              >
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="overline" color="error.main" fontWeight={700} sx={{ mb: 2, display: "block" }}>
+                    Danger Zone
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
+                    Permanently remove this asset from the organization's inventory. This action cannot be undone and will be recorded in the security audit logs.
+                  </Typography>
+                  <Button 
+                    variant="outlined" 
+                    color="error" 
+                    fullWidth
+                    onClick={() => setDeleteDialogOpen(true)}
+                    startIcon={<span className="material-symbols-outlined">delete</span>}
+                    sx={{
+                      borderRadius: 2.5,
+                      textTransform: "none",
+                      fontWeight: 700,
+                      py: 1,
+                      borderWidth: "1.5px",
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        borderWidth: "1.5px",
+                        bgcolor: "rgba(211, 47, 47, 0.04)",
+                        boxShadow: "0 4px 12px rgba(211, 47, 47, 0.15)",
+                        transform: "translateY(-1px)",
+                      }
+                    }}
+                  >
+                    Delete Asset
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
           {asset.assetReturns.length > 0 && (
             <Card variant="outlined" sx={{ borderRadius: 3 }}>
