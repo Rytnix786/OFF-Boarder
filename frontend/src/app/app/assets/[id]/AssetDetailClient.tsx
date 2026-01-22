@@ -471,7 +471,27 @@ export default function AssetDetailClient({ asset, history, employees, canManage
             )}
 
             {canManage && (
-              <Card variant="outlined" sx={{ borderRadius: 3, mb: 3, borderColor: "error.light", bgcolor: "error.lighter" }}>
+              <Card 
+                variant="outlined" 
+                sx={{ 
+                  borderRadius: 3, 
+                  mb: 3, 
+                  transition: "all 0.2s ease-in-out",
+                  borderColor: "divider",
+                  bgcolor: "background.paper",
+                  "&:hover": {
+                    borderColor: "error.light",
+                    bgcolor: "error.lighter",
+                    boxShadow: (theme) => `0 0 15px ${theme.palette.error.main}15`,
+                  },
+                  "&:focus-within": {
+                    borderColor: "error.main",
+                    bgcolor: "error.lighter",
+                    boxShadow: (theme) => `0 0 20px ${theme.palette.error.main}25`,
+                    outline: "none",
+                  }
+                }}
+              >
                 <CardContent sx={{ p: 3 }}>
                   <Typography variant="overline" color="error.main" fontWeight={700} sx={{ mb: 2, display: "block" }}>
                     Danger Zone
