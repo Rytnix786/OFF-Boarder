@@ -342,54 +342,56 @@ export default function AssetDetailClient({ asset, history, employees, canManage
       </Box>
 
       {/* Top Banner: Assignment Context */}
-      <Card 
-        variant="outlined" 
-        sx={{ 
-          borderRadius: 3, 
-          mb: 3, 
-          transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-          borderLeft: 4, 
-          borderLeftColor: asset.employee ? "success.main" : "divider",
-          position: "relative",
-          overflow: "hidden",
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            bgcolor: asset.employee ? "success.main" : "warning.main",
-            opacity: 0,
-            transition: "opacity 0.2s ease",
-            zIndex: 0,
-          },
-          ...( !asset.employee && {
-            cursor: "pointer",
-            "&:hover": {
-              borderLeft: 6,
-              borderLeftColor: "warning.main",
-              transform: "translateY(-1px)",
-              boxShadow: "inset 12px 0 16px -10px rgba(237, 108, 2, 0.3)",
-              "&::before": {
-                opacity: 0.08,
-                background: "linear-gradient(90deg, rgba(237, 108, 2, 0.08) 0%, transparent 40%)",
+        <Card 
+          variant="outlined" 
+          sx={{ 
+            borderRadius: 3, 
+            mb: 3, 
+            transition: "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease, border-width 0.2s ease, box-shadow 0.2s ease",
+            borderLeft: "4px solid", 
+            borderLeftColor: asset.employee ? "success.main" : "divider",
+            position: "relative",
+            overflow: "hidden",
+            transform: "translateZ(0)",
+            backfaceVisibility: "hidden",
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              background: asset.employee 
+                ? "linear-gradient(90deg, rgba(46, 125, 50, 0.1) 0%, transparent 40%)" 
+                : "linear-gradient(90deg, rgba(237, 108, 2, 0.1) 0%, transparent 40%)",
+              opacity: 0,
+              transition: "opacity 0.2s ease-out",
+              zIndex: 0,
+            },
+            ...( !asset.employee && {
+              cursor: "pointer",
+              "&:hover": {
+                borderLeftWidth: "6px",
+                borderLeftColor: "warning.main",
+                transform: "translateY(-1px) translateZ(0)",
+                boxShadow: "inset 12px 0 16px -10px rgba(237, 108, 2, 0.3)",
+                "&::before": {
+                  opacity: 1,
+                }
               }
-            }
-          }),
-          ...( asset.employee && {
-            "&:hover": {
-              borderLeft: 6,
-              transform: "translateY(-0.5px)",
-              boxShadow: "inset 10px 0 14px -10px rgba(46, 125, 50, 0.2)",
-              "&::before": {
-                opacity: 0.04,
-                background: "linear-gradient(90deg, rgba(46, 125, 50, 0.05) 0%, transparent 30%)",
+            }),
+            ...( asset.employee && {
+              "&:hover": {
+                borderLeftWidth: "6px",
+                transform: "translateY(-0.5px) translateZ(0)",
+                boxShadow: "inset 10px 0 14px -10px rgba(46, 125, 50, 0.2)",
+                "&::before": {
+                  opacity: 1,
+                }
               }
-            }
-          })
-        }}
-      >
+            })
+          }}
+        >
         <Box sx={{ position: "relative", zIndex: 1 }}>
           <CardContent sx={{ p: 3 }}>
             <Grid container spacing={2} alignItems="center">
