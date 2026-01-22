@@ -37,6 +37,9 @@ model User {
   JoinRequest_JoinRequest_resolvedByUserIdToUser JoinRequest[]          @relation("JoinRequest_resolvedByUserIdToUser")
   memberships                                    Membership[]
   sessions                                       UserSession[]
+  createdAssets                                  Asset[]                @relation("AssetCreator")
+  updatedAssets                                  Asset[]                @relation("AssetUpdater")
+  assetEvidence                                  AssetEvidence[]
 }
 
 model Membership {
@@ -417,17 +420,49 @@ model Asset {
   purchaseDate   DateTime?     @db.Timestamp(6)
   status         AssetStatus   @default(ASSIGNED)
   notes          String?
+  createdById    String?
+  updatedById    String?
   createdAt      DateTime      @default(now()) @db.Timestamp(6)
   updatedAt      DateTime      @default(now()) @updatedAt @db.Timestamp(6)
   employee       Employee?     @relation(fields: [employeeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   assigneeUser   User?         @relation(fields: [assigneeUserId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  createdBy      User?         @relation("AssetCreator", fields: [createdById], references: [id])
+  updatedBy      User?         @relation("AssetUpdater", fields: [updatedById], references: [id])
   assetReturns   AssetReturn[]
+  evidence       AssetEvidence[]
 
   @@index([organizationId])
   @@index([employeeId])
   @@index([assigneeUserId])
   @@index([status])
+  @@index([type])
+  @@index([createdById])
+  @@index([updatedById])
+}
+
+model AssetEvidence {
+  id              String       @id @default(cuid())
+  assetId         String
+  organizationId  String
+  type            EvidenceType
+  title           String?
+  description     String?
+  fileName        String?
+  fileUrl         String?
+  fileSize        Int?
+  mimeType        String?
+  linkUrl         String?
+  noteContent     String?
+  metadata        Json?
+  createdByUserId String
+  createdAt       DateTime     @default(now()) @db.Timestamp(6)
+  asset           Asset        @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  user            User         @relation(fields: [createdByUserId], references: [id])
+
+  @@index([assetId])
+  @@index([createdByUserId])
+  @@index([organizationId])
   @@index([type])
 }
 

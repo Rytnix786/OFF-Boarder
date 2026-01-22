@@ -26,8 +26,21 @@ import {
   ListItem,
   ListItemText,
   ListItemAvatar,
+  Tooltip,
+  IconButton,
+  CircularProgress,
+  Tabs,
+  Tab,
+  Paper,
 } from "@mui/material";
-import { updateAsset, assignAssetToEmployee, unassignAsset, updateAssetReturnStatus, deleteAsset } from "@/lib/actions/assets";
+import { 
+  updateAsset, 
+  assignAssetToEmployee, 
+  unassignAsset, 
+  updateAssetReturnStatus, 
+  deleteAsset,
+  addAssetEvidence 
+} from "@/lib/actions/assets";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -37,18 +50,38 @@ type Employee = {
   lastName: string;
   email: string;
   employeeId?: string;
+  offboardings: Array<{ id: string; status: string }>;
+};
+
+type AssetEvidence = {
+  id: string;
+  type: "FILE" | "LINK" | "NOTE";
+  title: string | null;
+  description: string | null;
+  fileName: string | null;
+  fileUrl: string | null;
+  fileSize: number | null;
+  linkUrl: string | null;
+  noteContent: string | null;
+  createdAt: string;
+  user: { name: string | null; email: string };
 };
 
 type AssetReturn = {
   id: string;
   status: string;
-  returnedAt: Date | null;
+  returnedAt: string | null;
   notes: string | null;
   offboarding: {
     id: string;
     status: string;
     employee: { firstName: string; lastName: string };
   };
+};
+
+type UserMinimal = {
+  name: string | null;
+  email: string;
 };
 
 type Asset = {
@@ -59,12 +92,16 @@ type Asset = {
   assetTag: string | null;
   description: string | null;
   value: number | null;
-  purchaseDate: Date | null;
+  purchaseDate: string | null;
   status: string;
   notes: string | null;
-  createdAt: Date;
+  createdAt: string;
+  updatedAt: string;
   employee: Employee | null;
   assetReturns: AssetReturn[];
+  evidence: AssetEvidence[];
+  createdBy: UserMinimal | null;
+  updatedBy: UserMinimal | null;
 };
 
 type AuditLog = {
@@ -122,14 +159,26 @@ const STATUS_OPTIONS = [
   },
 ];
 
+const getRiskConfig = (status: string) => {
+  switch (status) {
+    case "LOST":
+    case "WRITTEN_OFF":
+      return { label: "High Risk", color: "error" as const };
+    case "DAMAGED":
+    case "PENDING_RETURN":
+      return { label: "Medium Risk", color: "warning" as const };
+    case "ASSIGNED":
+    case "RETURNED":
+      return { label: "Low Risk", color: "success" as const };
+    default:
+      return { label: "Low Risk", color: "success" as const };
+  }
+};
+
 export default function AssetDetailClient({ asset, history, employees, canManage }: AssetDetailClientProps) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -138,6 +187,12 @@ export default function AssetDetailClient({ asset, history, employees, canManage
   const [newStatus, setNewStatus] = useState(asset.status);
   const [statusNotes, setStatusNotes] = useState("");
   const [selectedEmployee, setSelectedEmployee] = useState("");
+  const [evidenceTab, setEvidenceTab] = useState(0);
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -205,7 +260,58 @@ export default function AssetDetailClient({ asset, history, employees, canManage
     setLoading(false);
   };
 
+  const handleAddEvidence = async (data: any) => {
+    setLoading(true);
+    const result = await addAssetEvidence(asset.id, data);
+    if (result.error) {
+      setSnackbar({ open: true, message: result.error, severity: "error" });
+    } else {
+      setSnackbar({ open: true, message: "Evidence added successfully", severity: "success" });
+      router.refresh();
+    }
+    setLoading(false);
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("assetId", asset.id);
+
+    try {
+      const response = await fetch("/api/upload/asset-evidence", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        await handleAddEvidence({
+          type: "FILE",
+          title: file.name,
+          fileName: result.fileName,
+          fileUrl: result.fileUrl,
+          fileSize: result.fileSize,
+          mimeType: result.mimeType,
+        });
+      } else {
+        setSnackbar({ open: true, message: result.error || "Upload failed", severity: "error" });
+      }
+    } catch (error) {
+      setSnackbar({ open: true, message: "Upload failed", severity: "error" });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const statusConfig = STATUS_OPTIONS.find(s => s.value === asset.status) || STATUS_OPTIONS[0];
+  const riskConfig = getRiskConfig(asset.status);
+  const activeOffboarding = asset.employee?.offboardings?.[0];
+
+  if (!mounted) return null;
 
   return (
     <Box>
@@ -214,6 +320,63 @@ export default function AssetDetailClient({ asset, history, employees, canManage
           Back to Assets
         </Button>
       </Box>
+
+      {/* Top Banner: Assignment Context */}
+      <Card variant="outlined" sx={{ borderRadius: 3, mb: 3, borderLeft: 6, borderLeftColor: asset.employee ? "success.main" : "warning.main" }}>
+        <CardContent sx={{ p: 3 }}>
+          <Grid container spacing={2} alignItems="center">
+            <Grid size={{ xs: 12, md: 8 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <Avatar sx={{ bgcolor: asset.employee ? "success.lighter" : "warning.lighter", color: asset.employee ? "success.main" : "warning.main" }}>
+                  <span className="material-symbols-outlined">
+                    {asset.employee ? "person" : "person_off"}
+                  </span>
+                </Avatar>
+                <Box>
+                  <Typography variant="h6" fontWeight={700}>
+                    {asset.employee ? `Assigned to ${asset.employee.firstName} ${asset.employee.lastName}` : "Currently Unassigned"}
+                  </Typography>
+                  {asset.employee ? (
+                    <Box sx={{ display: "flex", gap: 2, mt: 0.5 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        ID: {asset.employee.employeeId || "—"}
+                      </Typography>
+                      <Link href={`/app/employees/${asset.employee.id}`} style={{ textDecoration: "none" }}>
+                        <Typography variant="body2" color="primary.main" sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                          View Profile <span className="material-symbols-outlined" style={{ fontSize: 14 }}>open_in_new</span>
+                        </Typography>
+                      </Link>
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      Available for assignment in inventory.
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }} sx={{ textAlign: { md: "right" } }}>
+              {activeOffboarding && (
+                <Chip
+                  label="Linked to Active Offboarding"
+                  color="error"
+                  variant="outlined"
+                  component={Link}
+                  href={`/app/offboardings/${activeOffboarding.id}`}
+                  clickable
+                  icon={<span className="material-symbols-outlined" style={{ fontSize: 16 }}>exit_to_app</span>}
+                  sx={{ mb: 1 }}
+                />
+              )}
+              <Box sx={{ mt: 1 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ cursor: "pointer", "&:hover": { color: "primary.main" } }} onClick={() => document.getElementById("timeline-section")?.scrollIntoView({ behavior: "smooth" })}>
+                  {history.length} events in Assignment History
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 8 }}>
@@ -229,320 +392,467 @@ export default function AssetDetailClient({ asset, history, employees, canManage
                        asset.type === "KEYS" ? "key" : "devices"}
                     </span>
                   </Avatar>
-                    <Box>
+                  <Box>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Typography variant="h5" fontWeight={700}>{asset.name}</Typography>
-                      <Typography color="text.secondary" variant="body2">{asset.type}</Typography>
-                      <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-                        <Chip 
-                          label={asset.employee ? "Assigned" : "Unassigned"} 
-                          size="small" 
-                          variant="outlined"
-                          color={asset.employee ? "success" : "default"}
-                        />
-                        <Chip 
-                          label={statusConfig.label} 
-                          size="small" 
-                          color={statusConfig.color as any}
-                        />
-                      </Box>
+                      <Chip 
+                        label={riskConfig.label} 
+                        size="small" 
+                        color={riskConfig.color}
+                        sx={{ height: 20, fontSize: "0.7rem", fontWeight: 700 }}
+                      />
+                    </Box>
+                    <Typography color="text.secondary" variant="body2">{asset.type}</Typography>
+                    <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+                      <Chip 
+                        label={statusConfig.label} 
+                        size="small" 
+                        color={statusConfig.color as any}
+                      />
                     </Box>
                   </Box>
-                  {canManage && (
-                    <Box sx={{ display: "flex", gap: 1 }}>
-                      <Button variant="outlined" startIcon={<span className="material-symbols-outlined">edit</span>} onClick={() => setEditDialogOpen(true)}>
-                        Edit
-                      </Button>
-                    </Box>
-                  )}
                 </Box>
+                {canManage && (
+                  <Box sx={{ display: "flex", gap: 1 }}>
+                    <Button variant="outlined" startIcon={<span className="material-symbols-outlined">edit</span>} onClick={() => setEditDialogOpen(true)}>
+                      Edit
+                    </Button>
+                  </Box>
+                )}
+              </Box>
 
-                <Divider sx={{ my: 3 }} />
+              <Divider sx={{ my: 3 }} />
 
-                <Grid container spacing={4}>
-                  {/* Identity Section */}
-                  <Grid size={{ xs: 12 }}>
-                    <Typography variant="overline" color="text.secondary" fontWeight={700}>
-                      Asset Identity
-                    </Typography>
-                    <Grid container spacing={2} sx={{ mt: 0.5 }}>
-                      <Grid size={{ xs: 12, sm: 4 }}>
-                        <Typography variant="caption" color="text.secondary" display="block">Serial Number</Typography>
-                        <Typography fontWeight={500} variant="body1">{asset.serialNumber || "—"}</Typography>
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 4 }}>
-                        <Typography variant="caption" color="text.secondary" display="block">Asset Tag</Typography>
-                        <Typography fontWeight={500} variant="body1">{asset.assetTag || "—"}</Typography>
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 4 }}>
-                        <Typography variant="caption" color="text.secondary" display="block">Asset Type</Typography>
-                        <Typography fontWeight={500} variant="body1">{asset.type}</Typography>
-                      </Grid>
+              <Grid container spacing={4}>
+                {/* Identity Section */}
+                <Grid size={{ xs: 12 }}>
+                  <Typography variant="overline" color="text.secondary" fontWeight={700}>
+                    Asset Identity
+                  </Typography>
+                  <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Typography variant="caption" color="text.secondary" display="block">Serial Number</Typography>
+                      <Typography fontWeight={500} variant="body1">{asset.serialNumber || "—"}</Typography>
                     </Grid>
-                  </Grid>
-
-                  {/* Financial Section */}
-                  <Grid size={{ xs: 12 }}>
-                    <Typography variant="overline" color="text.secondary" fontWeight={700}>
-                      Financial Details
-                    </Typography>
-                    <Grid container spacing={2} sx={{ mt: 0.5 }}>
-                        <Grid size={{ xs: 12, sm: 4 }}>
-                          <Typography variant="caption" color="text.secondary" display="block">Purchase Value</Typography>
-                          <Typography fontWeight={500} variant="body1">
-                            {mounted && asset.value ? `$${asset.value.toLocaleString()}` : asset.value ? "..." : "—"}
-                          </Typography>
-                        </Grid>
-                        <Grid size={{ xs: 12, sm: 4 }}>
-                          <Typography variant="caption" color="text.secondary" display="block">Purchase Date</Typography>
-                          <Typography fontWeight={500} variant="body1">
-                            {mounted && asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : asset.purchaseDate ? "..." : "—"}
-                          </Typography>
-                        </Grid>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Typography variant="caption" color="text.secondary" display="block">Asset Tag</Typography>
+                      <Typography fontWeight={500} variant="body1">{asset.assetTag || "—"}</Typography>
                     </Grid>
-                  </Grid>
-
-                  {/* Condition Section */}
-                  <Grid size={{ xs: 12 }}>
-                    <Typography variant="overline" color="text.secondary" fontWeight={700}>
-                      Lifecycle & Notes
-                    </Typography>
-                    <Grid container spacing={2} sx={{ mt: 0.5 }}>
-                      <Grid size={{ xs: 12, sm: 4 }}>
-                        <Typography variant="caption" color="text.secondary" display="block">Current Status</Typography>
-                        <Typography fontWeight={500} variant="body1" color={statusConfig.color === "error" ? "error.main" : "text.primary"}>
-                          {statusConfig.label}
-                        </Typography>
-                      </Grid>
-                      {asset.description && (
-                        <Grid size={{ xs: 12 }}>
-                          <Typography variant="caption" color="text.secondary" display="block">Description</Typography>
-                          <Typography variant="body2">{asset.description}</Typography>
-                        </Grid>
-                      )}
-                      {asset.notes && (
-                        <Grid size={{ xs: 12 }}>
-                          <Typography variant="caption" color="text.secondary" display="block">Internal Notes</Typography>
-                          <Typography variant="body2">{asset.notes}</Typography>
-                        </Grid>
-                      )}
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Typography variant="caption" color="text.secondary" display="block">Asset Type</Typography>
+                      <Typography fontWeight={500} variant="body1">{asset.type}</Typography>
                     </Grid>
                   </Grid>
                 </Grid>
+
+                {/* Financial Section */}
+                <Grid size={{ xs: 12 }}>
+                  <Typography variant="overline" color="text.secondary" fontWeight={700}>
+                    Financial Details
+                  </Typography>
+                  <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <Typography variant="caption" color="text.secondary" display="block">Purchase Value</Typography>
+                        <Typography fontWeight={500} variant="body1">
+                          {asset.value ? `$${asset.value.toLocaleString()}` : "—"}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <Typography variant="caption" color="text.secondary" display="block">Purchase Date</Typography>
+                        <Typography fontWeight={500} variant="body1">
+                          {asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : "—"}
+                        </Typography>
+                      </Grid>
+                  </Grid>
+                </Grid>
+
+                {/* Responsibility block */}
+                <Grid size={{ xs: 12 }}>
+                  <Typography variant="overline" color="text.secondary" fontWeight={700}>
+                    Responsibility & Ownership
+                  </Typography>
+                  <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Typography variant="caption" color="text.secondary" display="block">Current Custodian</Typography>
+                      <Typography fontWeight={500} variant="body1">
+                        {asset.employee ? `${asset.employee.firstName} ${asset.employee.lastName}` : "—"}
+                      </Typography>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Typography variant="caption" color="text.secondary" display="block">Responsible Team</Typography>
+                      <Typography fontWeight={500} variant="body1">IT / Admin</Typography>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Typography variant="caption" color="text.secondary" display="block">Managed By</Typography>
+                      <Typography fontWeight={500} variant="body1">System Admin</Typography>
+                    </Grid>
+                  </Grid>
+                </Grid>
+              </Grid>
             </CardContent>
           </Card>
 
-          <Card variant="outlined" sx={{ borderRadius: 3 }}>
+          {/* Evidence & Attachments Panel */}
+          <Card variant="outlined" sx={{ borderRadius: 3, mb: 3 }}>
+            <Box sx={{ borderBottom: 1, borderColor: "divider", px: 2 }}>
+              <Tabs value={evidenceTab} onChange={(_, v) => setEvidenceTab(v)}>
+                <Tab label={`Evidence (${asset.evidence?.length || 0})`} />
+                <Tab label="Add Evidence" />
+              </Tabs>
+            </Box>
             <CardContent sx={{ p: 3 }}>
-                <Typography variant="overline" color="text.secondary" fontWeight={700} sx={{ mb: 2, display: "block" }}>
-                  Audit Trail
-                </Typography>
-                {history.length === 0 ? (
-                  <Box sx={{ py: 4, textAlign: "center" }}>
-                    <Typography color="text.disabled" variant="body2">No activity recorded yet</Typography>
-                  </Box>
-                ) : (
-                  <List disablePadding>
-                    {history.map((log, index) => {
-                      const isStatusChange = log.action.includes("status") || log.action.includes("RETURN");
-                      const isAssignment = log.action.includes("assign") || log.action.includes("EMPLOYEE");
-                      
-                      return (
-                        <ListItem key={log.id} sx={{ px: 0, py: 1.5, alignItems: "flex-start" }}>
-                          <ListItemAvatar sx={{ minWidth: 48 }}>
-                            <Avatar sx={{ 
-                              bgcolor: isStatusChange ? "info.lighter" : isAssignment ? "success.lighter" : "action.hover", 
-                              color: isStatusChange ? "info.main" : isAssignment ? "success.main" : "text.secondary",
-                              width: 32, 
-                              height: 32 
-                            }}>
-                              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                                {isStatusChange ? "published_with_changes" : isAssignment ? "person" : "history"}
+              {evidenceTab === 0 ? (
+                <Box>
+                  {!asset.evidence || asset.evidence.length === 0 ? (
+                    <Box sx={{ py: 4, textAlign: "center" }}>
+                      <Typography color="text.disabled" variant="body2">No evidence or attachments found</Typography>
+                    </Box>
+                  ) : (
+                    <List disablePadding>
+                      {asset.evidence.map((ev) => (
+                        <ListItem key={ev.id} sx={{ px: 0, py: 2, borderBottom: 1, borderColor: "divider", "&:last-child": { borderBottom: 0 } }}>
+                          <ListItemAvatar>
+                            <Avatar sx={{ bgcolor: "action.hover" }}>
+                              <span className="material-symbols-outlined" style={{ color: "var(--mui-palette-text-primary)" }}>
+                                {ev.type === "FILE" ? "description" : ev.type === "LINK" ? "link" : "notes"}
                               </span>
                             </Avatar>
                           </ListItemAvatar>
                           <ListItemText
                             primary={
-                              <Typography variant="body2" fontWeight={600}>
-                                {log.action
-                                  .replace(/asset\./g, "")
-                                  .replace(/_/g, " ")
-                                  .split(".")
-                                  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                                  .join(" → ")}
+                              <Typography variant="body2" fontWeight={700}>
+                                {ev.title || "Untitled"}
                               </Typography>
                             }
                             secondary={
-                                <Box component="span" sx={{ display: "block", mt: 0.5 }}>
-                                  <Typography variant="caption" color="text.secondary" display="block">
-                                    {log.user?.name || log.user?.email || "System"} • {mounted ? new Date(log.createdAt).toLocaleString() : "..."}
-                                  </Typography>
-                                  {log.newData && (
-                                  <Typography variant="caption" color="text.secondary" sx={{ display: "block", fontStyle: "italic", mt: 0.5 }}>
-                                    {Object.entries(log.newData).map(([key, val]) => `${key}: ${val}`).join(", ")}
+                              <Box>
+                                <Typography variant="caption" color="text.secondary" display="block">
+                                  Added by {ev.user.name || ev.user.email} • {new Date(ev.createdAt).toLocaleDateString()}
+                                </Typography>
+                                {ev.type === "LINK" && ev.linkUrl && (
+                                  <Link href={ev.linkUrl} target="_blank" style={{ textDecoration: "none" }}>
+                                    <Typography variant="caption" color="primary.main" sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
+                                      Open Link <span className="material-symbols-outlined" style={{ fontSize: 12 }}>open_in_new</span>
+                                    </Typography>
+                                  </Link>
+                                )}
+                                {ev.type === "FILE" && ev.fileUrl && (
+                                  <Link href={ev.fileUrl} target="_blank" style={{ textDecoration: "none" }}>
+                                    <Typography variant="caption" color="primary.main" sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
+                                      Download {ev.fileName} ({ev.fileSize ? `${(ev.fileSize / 1024).toFixed(1)} KB` : ""})
+                                    </Typography>
+                                  </Link>
+                                )}
+                                {ev.type === "NOTE" && ev.noteContent && (
+                                  <Typography variant="body2" sx={{ mt: 1, p: 1, bgcolor: "action.hover", borderRadius: 1 }}>
+                                    {ev.noteContent}
                                   </Typography>
                                 )}
                               </Box>
                             }
                           />
                         </ListItem>
-                      );
-                    })}
-                  </List>
-                )}
-              </CardContent>
+                      ))}
+                    </List>
+                  )}
+                </Box>
+              ) : (
+                <Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Upload files, add external links, or record notes as audit-grade evidence for this asset.
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Paper variant="outlined" sx={{ p: 2, textAlign: "center", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", cursor: "pointer", "&:hover": { bgcolor: "action.hover" } }} component="label">
+                        <input type="file" hidden onChange={handleFileUpload} disabled={uploading} />
+                        <span className="material-symbols-outlined" style={{ fontSize: 32, marginBottom: 8 }}>upload_file</span>
+                        <Typography variant="body2" fontWeight={600}>Upload File</Typography>
+                        {uploading && <CircularProgress size={20} sx={{ mt: 1 }} />}
+                      </Paper>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Paper variant="outlined" sx={{ p: 2, textAlign: "center", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", cursor: "pointer", "&:hover": { bgcolor: "action.hover" } }} onClick={() => {
+                        const title = prompt("Enter Link Title:");
+                        const url = prompt("Enter Link URL:");
+                        if (title && url) handleAddEvidence({ type: "LINK", title, linkUrl: url });
+                      }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 32, marginBottom: 8 }}>link</span>
+                        <Typography variant="body2" fontWeight={600}>Add Link</Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Paper variant="outlined" sx={{ p: 2, textAlign: "center", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", cursor: "pointer", "&:hover": { bgcolor: "action.hover" } }} onClick={() => {
+                        const title = prompt("Enter Note Title:");
+                        const content = prompt("Enter Note Content:");
+                        if (title && content) handleAddEvidence({ type: "NOTE", title, noteContent: content });
+                      }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 32, marginBottom: 8 }}>edit_note</span>
+                        <Typography variant="body2" fontWeight={600}>Record Note</Typography>
+                      </Paper>
+                    </Grid>
+                  </Grid>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Lifecycle Timeline UI */}
+          <Card variant="outlined" sx={{ borderRadius: 3, mb: 3 }} id="timeline-section">
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="overline" color="text.secondary" fontWeight={700} sx={{ mb: 3, display: "block" }}>
+                Lifecycle Timeline
+              </Typography>
+              {history.length === 0 ? (
+                <Box sx={{ py: 4, textAlign: "center" }}>
+                  <Typography color="text.disabled" variant="body2">No lifecycle events recorded yet</Typography>
+                </Box>
+              ) : (
+                <Box sx={{ position: "relative", pl: 4 }}>
+                  {/* Vertical Line */}
+                  <Box sx={{ position: "absolute", left: 15, top: 0, bottom: 0, width: 2, bgcolor: "divider" }} />
+                  
+                  {history.map((log, index) => {
+                    const isStatusChange = log.action.includes("status") || log.action.includes("RETURN");
+                    const isAssignment = log.action.includes("assign") || log.action.includes("EMPLOYEE");
+                    const isCreation = log.action.includes("create");
+                    
+                    return (
+                      <Box key={log.id} sx={{ position: "relative", mb: 4, "&:last-child": { mb: 0 } }}>
+                        {/* Timeline Node */}
+                        <Box sx={{ 
+                          position: "absolute", 
+                          left: -33, 
+                          top: 0, 
+                          width: 18, 
+                          height: 18, 
+                          borderRadius: "50%", 
+                          bgcolor: isCreation ? "primary.main" : isStatusChange ? "info.main" : isAssignment ? "success.main" : "text.secondary",
+                          border: "4px solid white",
+                          boxShadow: 1,
+                          zIndex: 2
+                        }} />
+                        
+                        <Box>
+                          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+                            <Typography variant="body2" fontWeight={700}>
+                              {log.action
+                                .replace(/asset\./g, "")
+                                .replace(/_/g, " ")
+                                .split(".")
+                                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                .join(" → ")}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {new Date(log.createdAt).toLocaleString()}
+                            </Typography>
+                          </Box>
+                          <Typography variant="caption" color="text.secondary" display="block">
+                            Actor: {log.user?.name || log.user?.email || "System"}
+                          </Typography>
+                          {log.newData && (
+                            <Box sx={{ mt: 1, p: 1.5, bgcolor: "action.hover", borderRadius: 2, border: "1px dashed", borderColor: "divider" }}>
+                              <Typography variant="caption" component="pre" sx={{ margin: 0, whiteSpace: "pre-wrap", fontFamily: "inherit" }}>
+                                {Object.entries(log.newData).map(([key, val]) => `${key}: ${val}`).join("\n")}
+                              </Typography>
+                            </Box>
+                          )}
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              )}
+            </CardContent>
           </Card>
         </Grid>
 
-          <Grid size={{ xs: 12, md: 4 }}>
+        <Grid size={{ xs: 12, md: 4 }}>
+          {/* Assignment Control */}
+          <Card variant="outlined" sx={{ borderRadius: 3, mb: 3 }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="overline" color="text.secondary" fontWeight={700} sx={{ mb: 2, display: "block" }}>
+                Assignment Control
+              </Typography>
+              {asset.employee ? (
+                <Box>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
+                    <Avatar sx={{ width: 40, height: 40 }}>{asset.employee.firstName[0]}{asset.employee.lastName[0]}</Avatar>
+                    <Box sx={{ overflow: "hidden" }}>
+                      <Typography fontWeight={600} noWrap>
+                        {asset.employee.firstName} {asset.employee.lastName}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" noWrap display="block">
+                        {asset.employee.email}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  {canManage && (
+                    <Button 
+                      variant="outlined" 
+                      color="warning" 
+                      fullWidth
+                      onClick={handleUnassign}
+                      disabled={loading}
+                      startIcon={<span className="material-symbols-outlined">person_remove</span>}
+                    >
+                      Unassign Asset
+                    </Button>
+                  )}
+                </Box>
+              ) : (
+                <Box sx={{ textAlign: "center", py: 2 }}>
+                  <Box sx={{ color: "text.disabled", mb: 1 }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 48 }}>person_off</span>
+                  </Box>
+                  <Typography color="text.secondary" variant="body2" sx={{ mb: 2 }}>
+                    This asset is currently unassigned and available in inventory.
+                  </Typography>
+                  {canManage && (
+                    <Tooltip title={(asset.status === "LOST" || asset.status === "WRITTEN_OFF") ? "Cannot assign: asset is not available" : ""}>
+                      <span>
+                        <Button 
+                          variant="contained" 
+                          fullWidth
+                          onClick={() => {
+                            if (asset.status === "DAMAGED") {
+                              if (confirm("Warning: This asset is marked as DAMAGED. Are you sure you want to assign it?")) {
+                                setAssignDialogOpen(true);
+                              }
+                            } else {
+                              setAssignDialogOpen(true);
+                            }
+                          }}
+                          disabled={asset.status === "LOST" || asset.status === "WRITTEN_OFF" || loading}
+                          startIcon={<span className="material-symbols-outlined">person_add</span>}
+                          sx={{ py: 1.2 }}
+                        >
+                          Assign Asset
+                        </Button>
+                      </span>
+                    </Tooltip>
+                  )}
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+
+          {canManage && (
             <Card variant="outlined" sx={{ borderRadius: 3, mb: 3 }}>
               <CardContent sx={{ p: 3 }}>
                 <Typography variant="overline" color="text.secondary" fontWeight={700} sx={{ mb: 2, display: "block" }}>
-                  Current Assignment
+                  Lifecycle Management
                 </Typography>
-                {asset.employee ? (
-                  <Box>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2, p: 1.5, bgcolor: "action.hover", borderRadius: 2 }}>
-                      <Avatar sx={{ width: 40, height: 40 }}>{asset.employee.firstName[0]}{asset.employee.lastName[0]}</Avatar>
-                      <Box sx={{ overflow: "hidden" }}>
-                        <Typography fontWeight={600} noWrap>
-                          {asset.employee.firstName} {asset.employee.lastName}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary" noWrap display="block">
-                          {asset.employee.email}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    {canManage && (
-                      <Button 
-                        variant="outlined" 
-                        color="warning" 
-                        fullWidth
-                        onClick={handleUnassign}
-                        disabled={loading}
-                        startIcon={<span className="material-symbols-outlined">person_remove</span>}
-                      >
-                        Unassign Asset
-                      </Button>
-                    )}
-                  </Box>
-                ) : (
-                  <Box sx={{ textAlign: "center", py: 2 }}>
-                    <Box sx={{ color: "text.disabled", mb: 1 }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: 48 }}>person_off</span>
-                    </Box>
-                    <Typography color="text.secondary" variant="body2" sx={{ mb: 2 }}>
-                      This asset is currently unassigned and available in inventory.
-                    </Typography>
-                    {canManage && (
-                      <Button 
-                        variant="contained" 
-                        fullWidth
-                        onClick={() => setAssignDialogOpen(true)}
-                        startIcon={<span className="material-symbols-outlined">person_add</span>}
-                        sx={{ py: 1.2 }}
-                      >
-                        Assign Asset
-                      </Button>
-                    )}
-                  </Box>
-                )}
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Update the asset's condition or operational state.
+                </Typography>
+                <Button 
+                  variant="outlined" 
+                  fullWidth
+                  onClick={() => setStatusDialogOpen(true)}
+                  startIcon={<span className="material-symbols-outlined">published_with_changes</span>}
+                >
+                  Update Condition
+                </Button>
               </CardContent>
             </Card>
+          )}
 
-            {canManage && (
-              <Card variant="outlined" sx={{ borderRadius: 3, mb: 3 }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Typography variant="overline" color="text.secondary" fontWeight={700} sx={{ mb: 2, display: "block" }}>
-                    Lifecycle Management
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Update the asset's condition or operational state.
-                  </Typography>
-                  <Button 
-                    variant="outlined" 
-                    fullWidth
-                    onClick={() => setStatusDialogOpen(true)}
-                    startIcon={<span className="material-symbols-outlined">published_with_changes</span>}
-                  >
-                    Update Condition
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+          {canManage && (
+            <Card 
+              variant="outlined" 
+              sx={{ 
+                borderRadius: 3, 
+                mb: 3, 
+                transition: "all 0.2s ease-in-out",
+                borderColor: "divider",
+                bgcolor: "background.paper",
+                "&:hover": {
+                  borderColor: "error.light",
+                  bgcolor: "error.lighter",
+                  boxShadow: (theme) => `0 0 15px ${theme.palette.error.main}15`,
+                },
+                "&:focus-within": {
+                  borderColor: "error.main",
+                  bgcolor: "error.lighter",
+                  boxShadow: (theme) => `0 0 20px ${theme.palette.error.main}25`,
+                  outline: "none",
+                }
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="overline" color="error.main" fontWeight={700} sx={{ mb: 2, display: "block" }}>
+                  Danger Zone
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Permanently remove this asset from the organization's inventory.
+                </Typography>
+                <Button 
+                  variant="outlined" 
+                  color="error" 
+                  fullWidth
+                  onClick={() => setDeleteDialogOpen(true)}
+                  startIcon={<span className="material-symbols-outlined">delete</span>}
+                >
+                  Delete Asset
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
-            {canManage && (
-              <Card 
-                variant="outlined" 
-                sx={{ 
-                  borderRadius: 3, 
-                  mb: 3, 
-                  transition: "all 0.2s ease-in-out",
-                  borderColor: "divider",
-                  bgcolor: "background.paper",
-                  "&:hover": {
-                    borderColor: "error.light",
-                    bgcolor: "error.lighter",
-                    boxShadow: (theme) => `0 0 15px ${theme.palette.error.main}15`,
-                  },
-                  "&:focus-within": {
-                    borderColor: "error.main",
-                    bgcolor: "error.lighter",
-                    boxShadow: (theme) => `0 0 20px ${theme.palette.error.main}25`,
-                    outline: "none",
-                  }
-                }}
-              >
-                <CardContent sx={{ p: 3 }}>
-                  <Typography variant="overline" color="error.main" fontWeight={700} sx={{ mb: 2, display: "block" }}>
-                    Danger Zone
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Permanently remove this asset from the organization's inventory.
-                  </Typography>
-                  <Button 
-                    variant="outlined" 
-                    color="error" 
-                    fullWidth
-                    onClick={() => setDeleteDialogOpen(true)}
-                    startIcon={<span className="material-symbols-outlined">delete</span>}
-                  >
-                    Delete Asset
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-
-            {asset.assetReturns.length > 0 && (
-              <Card variant="outlined" sx={{ borderRadius: 3 }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Typography variant="overline" color="text.secondary" fontWeight={700} sx={{ mb: 2, display: "block" }}>
-                    Recovery History
-                  </Typography>
-                  {asset.assetReturns.map((ar) => (
-                    <Box key={ar.id} sx={{ mb: 2, pb: 2, borderBottom: 1, borderColor: "divider", "&:last-child": { mb: 0, pb: 0, borderBottom: 0 } }}>
-                      <Typography variant="body2" fontWeight={600}>
-                        {ar.offboarding.employee.firstName} {ar.offboarding.employee.lastName}
+          {asset.assetReturns.length > 0 && (
+            <Card variant="outlined" sx={{ borderRadius: 3 }}>
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="overline" color="text.secondary" fontWeight={700} sx={{ mb: 2, display: "block" }}>
+                  Recovery History
+                </Typography>
+                {asset.assetReturns.map((ar) => (
+                  <Box key={ar.id} sx={{ mb: 2, pb: 2, borderBottom: 1, borderColor: "divider", "&:last-child": { mb: 0, pb: 0, borderBottom: 0 } }}>
+                    <Typography variant="body2" fontWeight={600}>
+                      {ar.offboarding.employee.firstName} {ar.offboarding.employee.lastName}
+                    </Typography>
+                    <Chip 
+                      label={ar.status} 
+                      size="small" 
+                      variant="outlined"
+                      color={ar.status === "RETURNED" ? "success" : ar.status === "PENDING" ? "warning" : "error"}
+                      sx={{ mt: 0.5, height: 20, fontSize: "0.7rem" }}
+                    />
+                    {ar.notes && (
+                      <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5, fontStyle: "italic" }}>
+                        "{ar.notes}"
                       </Typography>
-                      <Chip 
-                        label={ar.status} 
-                        size="small" 
-                        variant="outlined"
-                        color={ar.status === "RETURNED" ? "success" : ar.status === "PENDING" ? "warning" : "error"}
-                        sx={{ mt: 0.5, height: 20, fontSize: "0.7rem" }}
-                      />
-                      {ar.notes && (
-                        <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5, fontStyle: "italic" }}>
-                          "{ar.notes}"
-                        </Typography>
-                      )}
-                    </Box>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
-          </Grid>
+                    )}
+                  </Box>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+        </Grid>
       </Grid>
 
+      {/* Audit Metadata Footer */}
+      <Box sx={{ mt: 6, pb: 4, textAlign: "center", borderTop: 1, borderColor: "divider", pt: 3 }}>
+        <Grid container spacing={2} justifyContent="center">
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Typography variant="caption" color="text.secondary" display="block">Created At</Typography>
+            <Typography variant="caption" fontWeight={600}>{new Date(asset.createdAt).toLocaleString()}</Typography>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Typography variant="caption" color="text.secondary" display="block">Created By</Typography>
+            <Typography variant="caption" fontWeight={600}>{asset.createdBy?.name || asset.createdBy?.email || "System"}</Typography>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Typography variant="caption" color="text.secondary" display="block">Last Updated At</Typography>
+            <Typography variant="caption" fontWeight={600}>{new Date(asset.updatedAt).toLocaleString()}</Typography>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Typography variant="caption" color="text.secondary" display="block">Last Updated By</Typography>
+            <Typography variant="caption" fontWeight={600}>{asset.updatedBy?.name || asset.updatedBy?.email || "System"}</Typography>
+          </Grid>
+        </Grid>
+      </Box>
+
+      {/* Dialogs */}
       <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
         <form onSubmit={handleUpdate}>
           <DialogTitle fontWeight={700}>Edit Asset</DialogTitle>

@@ -64,11 +64,31 @@ export async function getAssetById(assetId: string) {
   const asset = await prisma.asset.findFirst({
     where: { id: assetId, organizationId: orgId },
     include: {
-      employee: { select: { id: true, firstName: true, lastName: true, email: true, employeeId: true } },
+      employee: { 
+        select: { 
+          id: true, 
+          firstName: true, 
+          lastName: true, 
+          email: true, 
+          employeeId: true,
+          offboardings: {
+            where: { status: { not: "CANCELLED" } },
+            select: { id: true, status: true },
+            orderBy: { createdAt: "desc" },
+            take: 1
+          }
+        } 
+      },
       assetReturns: {
         include: { offboarding: { select: { id: true, status: true, employee: { select: { firstName: true, lastName: true } } } } },
         orderBy: { createdAt: "desc" },
       },
+      evidence: {
+        include: { user: { select: { name: true, email: true } } },
+        orderBy: { createdAt: "desc" },
+      },
+      createdBy: { select: { name: true, email: true } },
+      updatedBy: { select: { name: true, email: true } },
     },
   });
 
@@ -140,7 +160,12 @@ export async function createAsset(formData: FormData) {
   }
 
   const asset = await prisma.asset.create({
-    data: { ...data, organizationId: orgId },
+    data: { 
+      ...data, 
+      organizationId: orgId,
+      createdById: session.user.id,
+      updatedById: session.user.id
+    },
   });
 
   await createAuditLog(session, orgId, {
@@ -182,7 +207,7 @@ export async function updateAsset(assetId: string, formData: FormData) {
 
   const updated = await prisma.asset.update({
     where: { id: assetId },
-    data,
+    data: { ...data, updatedById: session.user.id },
   });
 
   await createAuditLog(session, orgId, {
@@ -224,6 +249,7 @@ export async function assignAssetToEmployee(assetId: string, employeeId: string)
       status: "ASSIGNED",
       assigneeType: "EMPLOYEE",
       assigneeUserId: null,
+      updatedById: session.user.id,
     },
   });
 
@@ -281,6 +307,7 @@ export async function assignAssetToUser(assetId: string, userId: string) {
       status: "ASSIGNED",
       assigneeType: "ORG_USER",
       assigneeUserId: userId,
+      updatedById: session.user.id,
     },
   });
 
@@ -334,7 +361,8 @@ export async function unassignAsset(assetId: string) {
       employeeId: null, 
       assigneeType: null,
       assigneeUserId: null,
-      status: "RETURNED" 
+      status: "RETURNED",
+      updatedById: session.user.id,
     },
   });
 
@@ -372,13 +400,13 @@ export async function updateAssetReturnStatus(assetId: string, status: AssetStat
 
   const oldStatus = asset.status;
 
-  const updateData: Record<string, unknown> = { status };
+  const updateData: Record<string, unknown> = { status, updatedById: session.user.id };
   if (notes !== undefined) updateData.notes = notes;
   if (status === "RETURNED") updateData.employeeId = null;
 
   const updated = await prisma.asset.update({
     where: { id: assetId },
-    data: updateData,
+    data: updateData as any,
   });
 
   await createAuditLog(session, orgId, {
@@ -392,6 +420,43 @@ export async function updateAssetReturnStatus(assetId: string, status: AssetStat
   revalidatePath("/app/assets");
   revalidatePath(`/app/assets/${assetId}`);
   return { success: true, asset: updated };
+}
+
+export async function addAssetEvidence(assetId: string, data: {
+  type: "FILE" | "LINK" | "NOTE";
+  title: string;
+  description?: string;
+  fileName?: string;
+  fileUrl?: string;
+  fileSize?: number;
+  mimeType?: string;
+  linkUrl?: string;
+  noteContent?: string;
+}) {
+  const session = await requireActiveOrg();
+  await requirePermission(session, "asset:update");
+
+  const orgId = session.currentOrgId!;
+
+  const evidence = await prisma.assetEvidence.create({
+    data: {
+      ...data,
+      assetId,
+      organizationId: orgId,
+      createdByUserId: session.user.id,
+      type: data.type as any,
+    },
+  });
+
+  await createAuditLog(session, orgId, {
+    action: "asset.evidence_added",
+    entityType: "Asset",
+    entityId: assetId,
+    newData: { evidenceId: evidence.id, type: data.type, title: data.title },
+  });
+
+  revalidatePath(`/app/assets/${assetId}`);
+  return { success: true, evidence };
 }
 
 export async function deleteAsset(assetId: string) {
