@@ -182,6 +182,8 @@ export default function AssetDetailClient({ asset, history, employees, canManage
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" } | null>(null);
   const [newStatus, setNewStatus] = useState(asset.status);
@@ -189,6 +191,10 @@ export default function AssetDetailClient({ asset, history, employees, canManage
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [evidenceTab, setEvidenceTab] = useState(0);
   const [uploading, setUploading] = useState(false);
+
+  // Form states for new modals
+  const [linkForm, setLinkForm] = useState({ title: "", url: "" });
+  const [noteForm, setNoteForm] = useState({ title: "", content: "" });
 
   useEffect(() => {
     setMounted(true);
@@ -307,6 +313,20 @@ export default function AssetDetailClient({ asset, history, employees, canManage
     }
   };
 
+  const handleAddLink = async () => {
+    if (!linkForm.title || !linkForm.url) return;
+    await handleAddEvidence({ type: "LINK", title: linkForm.title, linkUrl: linkForm.url });
+    setLinkDialogOpen(false);
+    setLinkForm({ title: "", url: "" });
+  };
+
+  const handleAddNote = async () => {
+    if (!noteForm.title || !noteForm.content) return;
+    await handleAddEvidence({ type: "NOTE", title: noteForm.title, noteContent: noteForm.content });
+    setNoteDialogOpen(false);
+    setNoteForm({ title: "", content: "" });
+  };
+
   const statusConfig = STATUS_OPTIONS.find(s => s.value === asset.status) || STATUS_OPTIONS[0];
   const riskConfig = getRiskConfig(asset.status);
   const activeOffboarding = asset.employee?.offboardings?.[0];
@@ -322,7 +342,23 @@ export default function AssetDetailClient({ asset, history, employees, canManage
       </Box>
 
       {/* Top Banner: Assignment Context */}
-      <Card variant="outlined" sx={{ borderRadius: 3, mb: 3, borderLeft: 6, borderLeftColor: asset.employee ? "success.main" : "warning.main" }}>
+      <Card 
+        variant="outlined" 
+        sx={{ 
+          borderRadius: 3, 
+          mb: 3, 
+          borderLeft: 6, 
+          borderLeftColor: asset.employee ? "success.main" : "warning.main",
+          transition: "all 0.2s ease-in-out",
+          ...( !asset.employee && {
+            "&:hover": {
+              bgcolor: "warning.lighter",
+              transform: "translateY(-2px)",
+              boxShadow: "0 4px 20px rgba(237, 108, 2, 0.08)"
+            }
+          })
+        }}
+      >
         <CardContent sx={{ p: 3 }}>
           <Grid container spacing={2} alignItems="center">
             <Grid size={{ xs: 12, md: 8 }}>
@@ -571,26 +607,19 @@ export default function AssetDetailClient({ asset, history, employees, canManage
                         {uploading && <CircularProgress size={20} sx={{ mt: 1 }} />}
                       </Paper>
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                      <Paper variant="outlined" sx={{ p: 2, textAlign: "center", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", cursor: "pointer", "&:hover": { bgcolor: "action.hover" } }} onClick={() => {
-                        const title = prompt("Enter Link Title:");
-                        const url = prompt("Enter Link URL:");
-                        if (title && url) handleAddEvidence({ type: "LINK", title, linkUrl: url });
-                      }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: 32, marginBottom: 8 }}>link</span>
-                        <Typography variant="body2" fontWeight={600}>Add Link</Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                      <Paper variant="outlined" sx={{ p: 2, textAlign: "center", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", cursor: "pointer", "&:hover": { bgcolor: "action.hover" } }} onClick={() => {
-                        const title = prompt("Enter Note Title:");
-                        const content = prompt("Enter Note Content:");
-                        if (title && content) handleAddEvidence({ type: "NOTE", title, noteContent: content });
-                      }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: 32, marginBottom: 8 }}>edit_note</span>
-                        <Typography variant="body2" fontWeight={600}>Record Note</Typography>
-                      </Paper>
-                    </Grid>
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <Paper variant="outlined" sx={{ p: 2, textAlign: "center", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", cursor: "pointer", "&:hover": { bgcolor: "action.hover" } }} onClick={() => setLinkDialogOpen(true)}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 32, marginBottom: 8 }}>link</span>
+                          <Typography variant="body2" fontWeight={600}>Add Link</Typography>
+                        </Paper>
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <Paper variant="outlined" sx={{ p: 2, textAlign: "center", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", cursor: "pointer", "&:hover": { bgcolor: "action.hover" } }} onClick={() => setNoteDialogOpen(true)}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 32, marginBottom: 8 }}>edit_note</span>
+                          <Typography variant="body2" fontWeight={600}>Record Note</Typography>
+                        </Paper>
+                      </Grid>
+
                   </Grid>
                 </Box>
               )}
@@ -764,21 +793,32 @@ export default function AssetDetailClient({ asset, history, employees, canManage
               sx={{ 
                 borderRadius: 3, 
                 mb: 3, 
-                transition: "all 0.2s ease-in-out",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                 borderColor: "divider",
-                bgcolor: "background.paper",
-                  "&:hover": {
-                    borderColor: "error.light",
-                    bgcolor: "error.lighter",
-                    boxShadow: "0 0 15px rgba(211, 47, 47, 0.1)",
-                  },
-                  "&:focus-within": {
-                    borderColor: "error.main",
-                    bgcolor: "error.lighter",
-                    boxShadow: "0 0 20px rgba(211, 47, 47, 0.2)",
-                    outline: "none",
+                bgcolor: "transparent",
+                position: "relative",
+                overflow: "hidden",
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  bgcolor: "error.main",
+                  opacity: 0,
+                  transition: "opacity 0.3s ease",
+                  zIndex: 0,
+                },
+                "&:hover": {
+                  borderColor: "error.main",
+                  boxShadow: "0 8px 32px rgba(211, 47, 47, 0.15)",
+                  transform: "translateY(-2px)",
+                  "&::before": {
+                    opacity: 0.04,
                   }
-
+                },
+                "& > *": { position: "relative", zIndex: 1 }
               }}
             >
               <CardContent sx={{ p: 3 }}>
@@ -855,39 +895,59 @@ export default function AssetDetailClient({ asset, history, employees, canManage
       </Box>
 
       {/* Dialogs */}
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
-        <form onSubmit={handleUpdate}>
-          <DialogTitle fontWeight={700}>Edit Asset</DialogTitle>
-          <DialogContent>
-                <Grid container spacing={2} sx={{ mt: 1 }}>
+        <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
+          <form onSubmit={handleUpdate}>
+            <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>Edit Asset Details</DialogTitle>
+            <DialogContent>
+              <Box sx={{ mt: 1 }}>
+                <Typography variant="overline" color="text.secondary" fontWeight={700} sx={{ mb: 2, display: "block" }}>
+                  General Information
+                </Typography>
+                <Grid container spacing={2} sx={{ mb: 3 }}>
                   <Grid item xs={12}>
-                    <TextField fullWidth label="Asset Name" name="name" defaultValue={asset.name} required />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField fullWidth label="Serial Number" name="serialNumber" defaultValue={asset.serialNumber || ""} />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField fullWidth label="Asset Tag" name="assetTag" defaultValue={asset.assetTag || ""} />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField fullWidth label="Value ($)" name="value" type="number" defaultValue={asset.value || ""} />
+                    <TextField fullWidth label="Asset Name" name="name" defaultValue={asset.name} required variant="outlined" />
                   </Grid>
                   <Grid item xs={12}>
-                    <TextField fullWidth label="Description" name="description" multiline rows={2} defaultValue={asset.description || ""} />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField fullWidth label="Notes" name="notes" multiline rows={2} defaultValue={asset.notes || ""} />
+                    <TextField fullWidth label="Description" name="description" multiline rows={2} defaultValue={asset.description || ""} variant="outlined" />
                   </Grid>
                 </Grid>
-          </DialogContent>
-          <DialogActions sx={{ p: 2 }}>
-            <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="contained" disabled={loading}>
-              {loading ? "Saving..." : "Save Changes"}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
+
+                <Typography variant="overline" color="text.secondary" fontWeight={700} sx={{ mb: 2, display: "block" }}>
+                  Identification & Financials
+                </Typography>
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Serial Number" name="serialNumber" defaultValue={asset.serialNumber || ""} variant="outlined" />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Asset Tag" name="assetTag" defaultValue={asset.assetTag || ""} variant="outlined" />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Purchase Value ($)" name="value" type="number" defaultValue={asset.value || ""} variant="outlined" />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Purchase Date" name="purchaseDate" type="date" defaultValue={asset.purchaseDate ? new Date(asset.purchaseDate).toISOString().split('T')[0] : ""} InputLabelProps={{ shrink: true }} variant="outlined" />
+                  </Grid>
+                </Grid>
+
+                <Typography variant="overline" color="text.secondary" fontWeight={700} sx={{ mb: 2, display: "block" }}>
+                  Internal Documentation
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <TextField fullWidth label="Administrative Notes" name="notes" multiline rows={3} defaultValue={asset.notes || ""} variant="outlined" placeholder="Add any additional context for administrators..." />
+                  </Grid>
+                </Grid>
+              </Box>
+            </DialogContent>
+            <DialogActions sx={{ p: 2.5 }}>
+              <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+              <Button type="submit" variant="contained" disabled={loading} sx={{ px: 3 }}>
+                {loading ? "Saving..." : "Save Changes"}
+              </Button>
+            </DialogActions>
+          </form>
+        </Dialog>
 
       <Dialog open={assignDialogOpen} onClose={() => setAssignDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle fontWeight={700}>Assign Asset</DialogTitle>
@@ -971,6 +1031,68 @@ export default function AssetDetailClient({ asset, history, employees, canManage
           <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
           <Button variant="contained" color="error" onClick={handleDelete} disabled={loading}>
             {loading ? "Deleting..." : "Delete"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={linkDialogOpen} onClose={() => setLinkDialogOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>Add External Link</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Link to procurement records, warranty pages, or external documentation.
+          </Typography>
+          <TextField
+            fullWidth
+            label="Link Title"
+            placeholder="e.g. Warranty Certificate"
+            value={linkForm.title}
+            onChange={(e) => setLinkForm({ ...linkForm, title: e.target.value })}
+            sx={{ mb: 2, mt: 1 }}
+          />
+          <TextField
+            fullWidth
+            label="URL"
+            placeholder="https://..."
+            value={linkForm.url}
+            onChange={(e) => setLinkForm({ ...linkForm, url: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2.5 }}>
+          <Button onClick={() => setLinkDialogOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleAddLink} disabled={!linkForm.title || !linkForm.url || loading}>
+            Add Link
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={noteDialogOpen} onClose={() => setNoteDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>Record Administrative Note</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Capture context about condition, usage history, or specialized configurations.
+          </Typography>
+          <TextField
+            fullWidth
+            label="Note Title"
+            placeholder="e.g. Storage Location Change"
+            value={noteForm.title}
+            onChange={(e) => setNoteForm({ ...noteForm, title: e.target.value })}
+            sx={{ mb: 2, mt: 1 }}
+          />
+          <TextField
+            fullWidth
+            label="Note Content"
+            multiline
+            rows={4}
+            placeholder="Add detailed information here..."
+            value={noteForm.content}
+            onChange={(e) => setNoteForm({ ...noteForm, content: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2.5 }}>
+          <Button onClick={() => setNoteDialogOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleAddNote} disabled={!noteForm.title || !noteForm.content || loading}>
+            Save Note
           </Button>
         </DialogActions>
       </Dialog>
