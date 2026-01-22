@@ -369,20 +369,22 @@ export default function AssetDetailClient({ asset, history, employees, canManage
             "&:hover": {
               borderLeft: 6,
               borderLeftColor: "warning.main",
-              transform: "translateY(-2px)",
-              boxShadow: "0 8px 32px rgba(237, 108, 2, 0.12)",
+              transform: "translateY(-1px)",
+              boxShadow: "inset 12px 0 16px -10px rgba(237, 108, 2, 0.3)",
               "&::before": {
-                opacity: 0.04,
+                opacity: 0.08,
+                background: "linear-gradient(90deg, rgba(237, 108, 2, 0.08) 0%, transparent 40%)",
               }
             }
           }),
           ...( asset.employee && {
             "&:hover": {
               borderLeft: 6,
-              transform: "translateY(-1px)",
-              boxShadow: "0 4px 16px rgba(46, 125, 50, 0.08)",
+              transform: "translateY(-0.5px)",
+              boxShadow: "inset 10px 0 14px -10px rgba(46, 125, 50, 0.2)",
               "&::before": {
-                opacity: 0.02,
+                opacity: 0.04,
+                background: "linear-gradient(90deg, rgba(46, 125, 50, 0.05) 0%, transparent 30%)",
               }
             }
           })
