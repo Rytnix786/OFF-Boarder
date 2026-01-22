@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -124,7 +124,12 @@ const STATUS_OPTIONS = [
 
 export default function AssetDetailClient({ asset, history, employees, canManage }: AssetDetailClientProps) {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -281,18 +286,18 @@ export default function AssetDetailClient({ asset, history, employees, canManage
                       Financial Details
                     </Typography>
                     <Grid container spacing={2} sx={{ mt: 0.5 }}>
-                      <Grid size={{ xs: 12, sm: 4 }}>
-                        <Typography variant="caption" color="text.secondary" display="block">Purchase Value</Typography>
-                        <Typography fontWeight={500} variant="body1">
-                          {asset.value ? `$${asset.value.toLocaleString()}` : "—"}
-                        </Typography>
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 4 }}>
-                        <Typography variant="caption" color="text.secondary" display="block">Purchase Date</Typography>
-                        <Typography fontWeight={500} variant="body1">
-                          {asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : "—"}
-                        </Typography>
-                      </Grid>
+                        <Grid size={{ xs: 12, sm: 4 }}>
+                          <Typography variant="caption" color="text.secondary" display="block">Purchase Value</Typography>
+                          <Typography fontWeight={500} variant="body1">
+                            {mounted && asset.value ? `$${asset.value.toLocaleString()}` : asset.value ? "..." : "—"}
+                          </Typography>
+                        </Grid>
+                        <Grid size={{ xs: 12, sm: 4 }}>
+                          <Typography variant="caption" color="text.secondary" display="block">Purchase Date</Typography>
+                          <Typography fontWeight={500} variant="body1">
+                            {mounted && asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : asset.purchaseDate ? "..." : "—"}
+                          </Typography>
+                        </Grid>
                     </Grid>
                   </Grid>
 
@@ -367,11 +372,11 @@ export default function AssetDetailClient({ asset, history, employees, canManage
                               </Typography>
                             }
                             secondary={
-                              <Box component="span" sx={{ display: "block", mt: 0.5 }}>
-                                <Typography variant="caption" color="text.secondary" display="block">
-                                  {log.user?.name || log.user?.email || "System"} • {new Date(log.createdAt).toLocaleString()}
-                                </Typography>
-                                {log.newData && (
+                                <Box component="span" sx={{ display: "block", mt: 0.5 }}>
+                                  <Typography variant="caption" color="text.secondary" display="block">
+                                    {log.user?.name || log.user?.email || "System"} • {mounted ? new Date(log.createdAt).toLocaleString() : "..."}
+                                  </Typography>
+                                  {log.newData && (
                                   <Typography variant="caption" color="text.secondary" sx={{ display: "block", fontStyle: "italic", mt: 0.5 }}>
                                     {Object.entries(log.newData).map(([key, val]) => `${key}: ${val}`).join(", ")}
                                   </Typography>
