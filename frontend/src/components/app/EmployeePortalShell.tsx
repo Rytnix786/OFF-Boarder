@@ -194,11 +194,31 @@ export default function EmployeePortalShell({ session, children }: EmployeePorta
                         sx={{
                           borderRadius: 2,
                           py: 1.2,
-                          bgcolor: isActive ? "primary.main" : "transparent",
-                          color: isActive ? "white" : "text.primary",
-                          "&:hover": {
-                            bgcolor: isActive ? "primary.dark" : "action.hover",
-                          },
+                            bgcolor: isActive ? alpha(theme.palette.primary.main, 0.1) : "transparent",
+                            color: isActive ? theme.palette.primary.main : "text.primary",
+                            position: "relative",
+                            overflow: "hidden",
+                            "&::before": isActive ? {
+                              content: '""',
+                              position: "absolute",
+                              left: 0,
+                              top: "20%",
+                              bottom: "20%",
+                              width: 3,
+                              bgcolor: "primary.main",
+                              borderRadius: "0 4px 4px 0",
+                              boxShadow: `0 0 12px ${theme.palette.primary.main}`,
+                            } : {},
+                            "&::after": isActive ? {
+                              content: '""',
+                              position: "absolute",
+                              inset: 0,
+                              background: `linear-gradient(90deg, ${alpha(theme.palette.primary.main, 0.08)} 0%, transparent 100%)`,
+                            } : {},
+                            "&:hover": {
+                              bgcolor: isActive ? alpha(theme.palette.primary.main, 0.15) : "action.hover",
+                            },
+
                         }}
                       >
                         <ListItemIcon sx={{ minWidth: 40, color: "inherit" }}>
@@ -437,7 +457,18 @@ export default function EmployeePortalShell({ session, children }: EmployeePorta
           </Toolbar>
         </AppBar>
 
-        <Box component="main" sx={{ flex: 1, p: { xs: 2, md: 4 } }}>
+        <Box
+          component="main"
+          sx={{
+            flex: 1,
+            p: { xs: 2, md: 4 },
+            animation: "portalFadeIn 0.5s ease-out",
+            "@keyframes portalFadeIn": {
+              from: { opacity: 0, transform: "translateY(8px)" },
+              to: { opacity: 1, transform: "translateY(0)" },
+            }
+          }}
+        >
           {children}
         </Box>
       </Box>
