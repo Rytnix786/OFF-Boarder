@@ -783,33 +783,50 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
                 </Box>
               ) : (
                 recentSecurityEvents.map((event) => (
-                  <Box
-                    key={event.id}
-                    sx={{
-                      px: 3,
-                      py: 2,
-                      borderBottom: "1px solid",
-                      borderColor: "divider",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 2,
-                      "&:last-child": { borderBottom: "none" },
-                    }}
-                  >
                     <Box
+                      key={event.id}
                       sx={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 1,
-                        bgcolor: alpha("#6b7280", 0.08),
+                        px: 3,
+                        py: 2,
+                        borderBottom: "1px solid",
+                        borderColor: "divider",
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
+                        gap: 2,
+                        "&:last-child": { borderBottom: "none" },
+                        transition: "all 0.3s ease",
+                        cursor: "pointer",
+                        "&:hover": {
+                          bgcolor: alpha("#dc2626", 0.04),
+                          boxShadow: `inset 0 0 20px ${alpha("#dc2626", 0.08)}, 0 0 15px ${alpha("#dc2626", 0.12)}`,
+                          borderColor: alpha("#dc2626", 0.3),
+                          "& .event-icon-container": {
+                            bgcolor: alpha("#dc2626", 0.15),
+                            boxShadow: `0 0 10px ${alpha("#dc2626", 0.3)}`,
+                            transform: "scale(1.1)",
+                          },
+                          "& .event-icon": {
+                            color: "#dc2626",
+                          }
+                        }
                       }}
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: 20, color: "#6b7280" }}>notifications</span>
-                    </Box>
+                      <Box
+                        className="event-icon-container"
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 1,
+                          bgcolor: alpha("#6b7280", 0.08),
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                          transition: "all 0.3s ease",
+                        }}
+                      >
+                        <span className="material-symbols-outlined event-icon" style={{ fontSize: 20, color: "#6b7280", transition: "color 0.3s ease" }}>notifications</span>
+                      </Box>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Typography variant="body2" fontWeight={600}>
                         {event.eventType.replace(/_/g, " ")}
