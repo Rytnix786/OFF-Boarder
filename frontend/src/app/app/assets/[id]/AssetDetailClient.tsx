@@ -899,23 +899,32 @@ export default function AssetDetailClient({ asset, history, employees, canManage
           <form onSubmit={handleUpdate}>
             <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>Edit Asset Details</DialogTitle>
             <DialogContent>
-              <Box sx={{ mt: 1 }}>
+              <Box sx={{ mt: 2 }}>
                 <Typography variant="overline" color="text.secondary" fontWeight={700} sx={{ mb: 2, display: "block" }}>
                   General Information
                 </Typography>
-                <Grid container spacing={2} sx={{ mb: 3 }}>
-                  <Grid item xs={12}>
+                <Grid container spacing={2.5} sx={{ mb: 4 }}>
+                  <Grid item xs={12} sm={6}>
                     <TextField fullWidth label="Asset Name" name="name" defaultValue={asset.name} required variant="outlined" />
                   </Grid>
-                  <Grid item xs={12}>
-                    <TextField fullWidth label="Description" name="description" multiline rows={2} defaultValue={asset.description || ""} variant="outlined" />
+                  <Grid item xs={12} sm={6}>
+                    <TextField 
+                      fullWidth 
+                      label="Description" 
+                      name="description" 
+                      multiline 
+                      minRows={1} 
+                      maxRows={4} 
+                      defaultValue={asset.description || ""} 
+                      variant="outlined" 
+                    />
                   </Grid>
                 </Grid>
 
                 <Typography variant="overline" color="text.secondary" fontWeight={700} sx={{ mb: 2, display: "block" }}>
                   Identification & Financials
                 </Typography>
-                <Grid container spacing={2} sx={{ mb: 3 }}>
+                <Grid container spacing={2.5} sx={{ mb: 4 }}>
                   <Grid item xs={12} sm={6}>
                     <TextField fullWidth label="Serial Number" name="serialNumber" defaultValue={asset.serialNumber || ""} variant="outlined" />
                   </Grid>
@@ -933,14 +942,30 @@ export default function AssetDetailClient({ asset, history, employees, canManage
                 <Typography variant="overline" color="text.secondary" fontWeight={700} sx={{ mb: 2, display: "block" }}>
                   Internal Documentation
                 </Typography>
-                <Grid container spacing={2}>
+                <Grid container spacing={2.5}>
                   <Grid item xs={12}>
-                    <TextField fullWidth label="Administrative Notes" name="notes" multiline rows={3} defaultValue={asset.notes || ""} variant="outlined" placeholder="Add any additional context for administrators..." />
+                    <TextField 
+                      fullWidth 
+                      label="Administrative Notes" 
+                      name="notes" 
+                      multiline 
+                      minRows={3} 
+                      maxRows={8} 
+                      defaultValue={asset.notes || ""} 
+                      variant="outlined" 
+                      placeholder="Add any additional context for administrators..." 
+                      sx={{
+                        '& .MuiInputBase-root': {
+                          maxHeight: '200px',
+                          overflowY: 'auto'
+                        }
+                      }}
+                    />
                   </Grid>
                 </Grid>
               </Box>
             </DialogContent>
-            <DialogActions sx={{ p: 2.5 }}>
+            <DialogActions sx={{ p: 2.5, borderTop: 1, borderColor: "divider" }}>
               <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
               <Button type="submit" variant="contained" disabled={loading} sx={{ px: 3 }}>
                 {loading ? "Saving..." : "Save Changes"}
