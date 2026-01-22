@@ -378,8 +378,9 @@ export default function AssetDetailClient({ asset, history, employees, canManage
         </CardContent>
       </Card>
 
-      <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: 8 }}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={8}>
+
           <Card variant="outlined" sx={{ borderRadius: 3, mb: 3 }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 3 }}>
@@ -666,7 +667,7 @@ export default function AssetDetailClient({ asset, history, employees, canManage
           </Card>
         </Grid>
 
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid item xs={12} md={4}>
           {/* Assignment Control */}
           <Card variant="outlined" sx={{ borderRadius: 3, mb: 3 }}>
             <CardContent sx={{ p: 3 }}>
@@ -766,17 +767,18 @@ export default function AssetDetailClient({ asset, history, employees, canManage
                 transition: "all 0.2s ease-in-out",
                 borderColor: "divider",
                 bgcolor: "background.paper",
-                "&:hover": {
-                  borderColor: "error.light",
-                  bgcolor: "error.lighter",
-                  boxShadow: (theme) => `0 0 15px ${theme.palette.error.main}15`,
-                },
-                "&:focus-within": {
-                  borderColor: "error.main",
-                  bgcolor: "error.lighter",
-                  boxShadow: (theme) => `0 0 20px ${theme.palette.error.main}25`,
-                  outline: "none",
-                }
+                  "&:hover": {
+                    borderColor: "error.light",
+                    bgcolor: "error.lighter",
+                    boxShadow: "0 0 15px rgba(211, 47, 47, 0.1)",
+                  },
+                  "&:focus-within": {
+                    borderColor: "error.main",
+                    bgcolor: "error.lighter",
+                    boxShadow: "0 0 20px rgba(211, 47, 47, 0.2)",
+                    outline: "none",
+                  }
+
               }}
             >
               <CardContent sx={{ p: 3 }}>
@@ -833,19 +835,19 @@ export default function AssetDetailClient({ asset, history, employees, canManage
       {/* Audit Metadata Footer */}
       <Box sx={{ mt: 6, pb: 4, textAlign: "center", borderTop: 1, borderColor: "divider", pt: 3 }}>
         <Grid container spacing={2} justifyContent="center">
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
             <Typography variant="caption" color="text.secondary" display="block">Created At</Typography>
             <Typography variant="caption" fontWeight={600}>{new Date(asset.createdAt).toLocaleString()}</Typography>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
             <Typography variant="caption" color="text.secondary" display="block">Created By</Typography>
             <Typography variant="caption" fontWeight={600}>{asset.createdBy?.name || asset.createdBy?.email || "System"}</Typography>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
             <Typography variant="caption" color="text.secondary" display="block">Last Updated At</Typography>
             <Typography variant="caption" fontWeight={600}>{new Date(asset.updatedAt).toLocaleString()}</Typography>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
             <Typography variant="caption" color="text.secondary" display="block">Last Updated By</Typography>
             <Typography variant="caption" fontWeight={600}>{asset.updatedBy?.name || asset.updatedBy?.email || "System"}</Typography>
           </Grid>
@@ -857,26 +859,26 @@ export default function AssetDetailClient({ asset, history, employees, canManage
         <form onSubmit={handleUpdate}>
           <DialogTitle fontWeight={700}>Edit Asset</DialogTitle>
           <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid size={{ xs: 12 }}>
-                <TextField fullWidth label="Asset Name" name="name" defaultValue={asset.name} required />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField fullWidth label="Serial Number" name="serialNumber" defaultValue={asset.serialNumber || ""} />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField fullWidth label="Asset Tag" name="assetTag" defaultValue={asset.assetTag || ""} />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField fullWidth label="Value ($)" name="value" type="number" defaultValue={asset.value || ""} />
-              </Grid>
-              <Grid size={{ xs: 12 }}>
-                <TextField fullWidth label="Description" name="description" multiline rows={2} defaultValue={asset.description || ""} />
-              </Grid>
-              <Grid size={{ xs: 12 }}>
-                <TextField fullWidth label="Notes" name="notes" multiline rows={2} defaultValue={asset.notes || ""} />
-              </Grid>
-            </Grid>
+                <Grid container spacing={2} sx={{ mt: 1 }}>
+                  <Grid item xs={12}>
+                    <TextField fullWidth label="Asset Name" name="name" defaultValue={asset.name} required />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Serial Number" name="serialNumber" defaultValue={asset.serialNumber || ""} />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Asset Tag" name="assetTag" defaultValue={asset.assetTag || ""} />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Value ($)" name="value" type="number" defaultValue={asset.value || ""} />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField fullWidth label="Description" name="description" multiline rows={2} defaultValue={asset.description || ""} />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField fullWidth label="Notes" name="notes" multiline rows={2} defaultValue={asset.notes || ""} />
+                  </Grid>
+                </Grid>
           </DialogContent>
           <DialogActions sx={{ p: 2 }}>
             <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
