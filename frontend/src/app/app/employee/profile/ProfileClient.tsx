@@ -201,51 +201,66 @@ export default function ProfileClient({ session }: ProfileClientProps) {
       <Box
         sx={{
           mb: 4,
-          p: 3,
-          borderRadius: 2,
-          bgcolor: (theme) => theme.palette.mode === "dark" ? alpha("#fff", 0.02) : alpha("#000", 0.02),
-          border: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-          <Typography
-            variant="subtitle2"
-            sx={{ fontWeight: 600, fontSize: "0.875rem" }}
-          >
-            Account Status
-          </Typography>
-          <Chip
-            size="small"
-            label={portalStatus}
-            sx={{
-              height: 22,
-              fontSize: "0.7rem",
-              fontWeight: 600,
-              bgcolor: alpha("#10b981", 0.15),
-              color: "#10b981",
-              border: `1px solid ${alpha("#10b981", 0.3)}`,
-            }}
-          />
-          {session.hasActiveOffboarding && (
+            p: 3,
+            borderRadius: 4,
+            bgcolor: (theme) => theme.palette.mode === "dark" ? alpha("#fff", 0.02) : alpha("#000", 0.01),
+            border: "1px solid",
+            borderColor: "divider",
+            position: "relative",
+            overflow: "hidden",
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              right: 0,
+              width: "150px",
+              height: "150px",
+              background: (theme) => `radial-gradient(circle at top right, ${alpha(theme.palette.primary.main, 0.05)}, transparent 70%)`,
+              pointerEvents: "none",
+            }
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 700, fontSize: "0.9rem", color: "text.primary" }}
+            >
+              Account Status
+            </Typography>
             <Chip
               size="small"
-              label="Offboarding"
+              label={portalStatus}
               sx={{
                 height: 22,
                 fontSize: "0.7rem",
-                fontWeight: 600,
-                bgcolor: alpha("#f59e0b", 0.15),
-                color: "#f59e0b",
-                border: `1px solid ${alpha("#f59e0b", 0.3)}`,
+                fontWeight: 700,
+                bgcolor: alpha("#10b981", 0.1),
+                color: "#10b981",
+                border: `1px solid ${alpha("#10b981", 0.2)}`,
+                boxShadow: `0 0 10px ${alpha("#10b981", 0.1)}`,
               }}
             />
-          )}
+            {session.hasActiveOffboarding && (
+              <Chip
+                size="small"
+                label="Offboarding"
+                sx={{
+                  height: 22,
+                  fontSize: "0.7rem",
+                  fontWeight: 700,
+                  bgcolor: alpha("#f59e0b", 0.1),
+                  color: "#f59e0b",
+                  border: `1px solid ${alpha("#f59e0b", 0.2)}`,
+                  boxShadow: `0 0 10px ${alpha("#f59e0b", 0.1)}`,
+                }}
+              />
+            )}
+          </Box>
+          <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.85rem", opacity: 0.8 }}>
+            Employment status: <Box component="span" sx={{ color: "text.primary", fontWeight: 600 }}>{employeeStatus}</Box>
+          </Typography>
         </Box>
-        <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.8125rem" }}>
-          Employment status: {employeeStatus}
-        </Typography>
-      </Box>
+
 
       <Grid container spacing={4}>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -278,11 +293,16 @@ export default function ProfileClient({ session }: ProfileClientProps) {
             </Typography>
             <Box
               sx={{
-                p: 2.5,
-                borderRadius: 2,
-                bgcolor: (theme) => theme.palette.mode === "dark" ? alpha("#fff", 0.02) : alpha("#000", 0.02),
+                p: 3,
+                borderRadius: 4,
+                bgcolor: (theme) => theme.palette.mode === "dark" ? alpha("#fff", 0.015) : "#fff",
                 border: "1px solid",
                 borderColor: "divider",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  borderColor: alpha(theme.palette.primary.main, 0.3),
+                  boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.2)}`,
+                }
               }}
             >
               <InfoRow label="Full Name" value={`${session.employee.firstName} ${session.employee.lastName}`} />
@@ -330,11 +350,16 @@ export default function ProfileClient({ session }: ProfileClientProps) {
             </Typography>
             <Box
               sx={{
-                p: 2.5,
-                borderRadius: 2,
-                bgcolor: (theme) => theme.palette.mode === "dark" ? alpha("#fff", 0.02) : alpha("#000", 0.02),
+                p: 3,
+                borderRadius: 4,
+                bgcolor: (theme) => theme.palette.mode === "dark" ? alpha("#fff", 0.015) : "#fff",
                 border: "1px solid",
                 borderColor: "divider",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  borderColor: alpha(theme.palette.primary.main, 0.3),
+                  boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.2)}`,
+                }
               }}
             >
               <InfoRow label="Company" value={session.organizationName} />
@@ -356,10 +381,19 @@ export default function ProfileClient({ session }: ProfileClientProps) {
         sx={{
           mb: 4,
           p: 3,
-          borderRadius: 2,
-          bgcolor: (theme) => theme.palette.mode === "dark" ? alpha("#0ea5e9", 0.06) : alpha("#0ea5e9", 0.04),
+          borderRadius: 4,
+          bgcolor: (theme) => theme.palette.mode === "dark" ? alpha("#0ea5e9", 0.04) : alpha("#0ea5e9", 0.02),
           border: "1px solid",
-          borderColor: (theme) => theme.palette.mode === "dark" ? alpha("#0ea5e9", 0.2) : alpha("#0ea5e9", 0.15),
+          borderColor: (theme) => theme.palette.mode === "dark" ? alpha("#0ea5e9", 0.2) : alpha("#0ea5e9", 0.1),
+          position: "relative",
+          overflow: "hidden",
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            inset: 0,
+            background: (theme) => `linear-gradient(135deg, ${alpha("#0ea5e9", 0.05)} 0%, transparent 100%)`,
+            pointerEvents: "none",
+          }
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
