@@ -485,24 +485,37 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
           <Typography variant="overline" sx={{ color: "text.secondary", fontWeight: 700, letterSpacing: 1, mb: 2, display: "block" }}>
             Action Required
           </Typography>
-          <Card variant="outlined" sx={{ borderRadius: 2, borderColor: alpha("#dc2626", 0.2), overflow: "hidden" }}>
-            <Box sx={{ maxHeight: 400, overflow: "auto" }}>
-              {/* Overdue Tasks - Highest Priority */}
-              {overdueTasks.map((task) => (
-                <Link key={task.id} href={`/app/offboardings/${task.offboarding.id}`} style={{ textDecoration: "none", color: "inherit" }}>
-                  <Box
-                    sx={{
-                      px: 3,
-                      py: 2,
-                      borderBottom: "1px solid",
-                      borderColor: "divider",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 2,
-                      bgcolor: alpha("#dc2626", 0.03),
-                      "&:hover": { bgcolor: alpha("#dc2626", 0.06) },
-                    }}
-                  >
+            <Card 
+              variant="outlined" 
+              sx={{ 
+                borderRadius: 2, 
+                borderColor: "divider", 
+                overflow: "hidden",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  borderColor: alpha("#dc2626", 0.4),
+                  boxShadow: `0 0 20px ${alpha("#dc2626", 0.1)}`,
+                }
+              }}
+            >
+              <Box sx={{ maxHeight: 400, overflow: "auto" }}>
+                {/* Overdue Tasks - Highest Priority */}
+                {overdueTasks.map((task) => (
+                  <Link key={task.id} href={`/app/offboardings/${task.offboarding.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                    <Box
+                      sx={{
+                        px: 3,
+                        py: 2,
+                        borderBottom: "1px solid",
+                        borderColor: "divider",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                        bgcolor: "transparent",
+                        transition: "background-color 0.2s",
+                        "&:hover": { bgcolor: alpha("#dc2626", 0.04) },
+                      }}
+                    >
                     <Box
                       sx={{
                         width: 36,
@@ -690,20 +703,22 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
                 </Link>
               ))}
 
-              {/* Security Signals */}
-              {recentSecurityEvents.map((event) => (
-                <Box
-                  key={event.id}
-                  sx={{
-                    px: 3,
-                    py: 2,
-                    borderBottom: "1px solid",
-                    borderColor: "divider",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                  }}
-                >
+                {/* Security Signals */}
+                {recentSecurityEvents.map((event) => (
+                  <Box
+                    key={event.id}
+                    sx={{
+                      px: 3,
+                      py: 2,
+                      borderBottom: "1px solid",
+                      borderColor: "divider",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      transition: "background-color 0.2s",
+                      "&:hover": { bgcolor: "action.hover" },
+                    }}
+                  >
                   <Box
                     sx={{
                       width: 36,
