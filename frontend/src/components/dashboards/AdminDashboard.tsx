@@ -503,11 +503,11 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
                       transition: "all 0.2s ease",
                       borderColor: control.warning ? alpha("#d97706", 0.3) : "divider",
                       bgcolor: control.warning ? alpha("#d97706", 0.02) : "transparent",
-                      "&:hover": {
-                        borderColor: control.warning ? alpha("#d97706", 0.5) : "primary.main",
-                        boxShadow: `0 0 15px ${alpha(control.warning ? "#d97706" : "#3b82f6", 0.1)}`,
-                        transform: "translateY(-2px)",
-                      }
+                        "&:hover": {
+                          borderColor: control.warning ? alpha("#d97706", 0.5) : "primary.main",
+                          bgcolor: control.warning ? alpha("#d97706", 0.04) : alpha("#3b82f6", 0.02),
+                          transform: "translateY(-2px)",
+                        }
                     }}
                   >
                     <CardContent sx={{ p: 2, display: "flex", alignItems: "center", gap: 2 }}>
@@ -548,16 +548,15 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
           {(overdueTasksCount > 0 || highRiskCases.length > 0 || assetIssues.length > 0 || pendingApprovals.length > 0) && (
             <Card 
               variant="outlined" 
-              sx={{ 
-                borderRadius: 2, 
-                borderColor: "divider", 
-                overflow: "hidden",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  borderColor: alpha("#dc2626", 0.4),
-                  boxShadow: `0 0 20px ${alpha("#dc2626", 0.1)}`,
-                }
-              }}
+                sx={{ 
+                  borderRadius: 2, 
+                  borderColor: "divider", 
+                  overflow: "hidden",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    borderColor: alpha("#dc2626", 0.25),
+                  }
+                }}
             >
               <Box sx={{ maxHeight: 400, overflow: "auto" }}>
                 {/* Overdue Tasks */}
@@ -794,21 +793,34 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
                         alignItems: "center",
                         gap: 2,
                         "&:last-child": { borderBottom: "none" },
-                        transition: "all 0.3s ease",
-                        cursor: "pointer",
-                        "&:hover": {
-                          bgcolor: alpha("#dc2626", 0.04),
-                          boxShadow: `inset 0 0 20px ${alpha("#dc2626", 0.08)}, 0 0 15px ${alpha("#dc2626", 0.12)}`,
-                          borderColor: alpha("#dc2626", 0.3),
-                          "& .event-icon-container": {
-                            bgcolor: alpha("#dc2626", 0.15),
-                            boxShadow: `0 0 10px ${alpha("#dc2626", 0.3)}`,
-                            transform: "scale(1.1)",
+                          transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                          cursor: "pointer",
+                          position: "relative",
+                          "&::before": {
+                            content: '""',
+                            position: "absolute",
+                            left: 0,
+                            top: "15%",
+                            bottom: "15%",
+                            width: 3,
+                            bgcolor: "#dc2626",
+                            borderRadius: "0 4px 4px 0",
+                            opacity: 0,
+                            transition: "opacity 0.2s ease",
                           },
-                          "& .event-icon": {
-                            color: "#dc2626",
+                          "&:hover": {
+                            bgcolor: alpha("#dc2626", 0.02),
+                            borderColor: alpha("#dc2626", 0.15),
+                            "&::before": {
+                              opacity: 1,
+                            },
+                            "& .event-icon-container": {
+                              bgcolor: alpha("#dc2626", 0.08),
+                            },
+                            "& .event-icon": {
+                              color: "#dc2626",
+                            }
                           }
-                        }
                       }}
                     >
                       <Box
