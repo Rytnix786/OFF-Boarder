@@ -27,6 +27,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ColorModeContext } from "@/theme/ThemeRegistry";
+import { ThemeToggle } from "../layout/ThemeToggle";
 import { createClient, clearRememberMe } from "@/lib/supabase/client";
 import type { EmployeePortalSession } from "@/lib/employee-auth.server";
 import { getUnreadNotificationCount, getRecentNotifications, markNotificationAsRead, type EmployeeNotification } from "@/lib/actions/employee-notifications";
@@ -366,15 +367,13 @@ export default function EmployeePortalShell({ session, children }: EmployeePorta
                           >
                             View all notifications
                           </Button>
-                        </Box>
-                      </Popover>
-                      <IconButton size="small" onClick={colorMode.toggleColorMode}>
-                      <span className="material-symbols-outlined">
-                        {theme.palette.mode === "dark" ? "light_mode" : "dark_mode"}
-                      </span>
-                    </IconButton>
+                          </Box>
+                        </Popover>
+                        
+                        <ThemeToggle size="small" />
+  
+                      <Box
 
-                    <Box
                       onClick={(e) => setUserMenuAnchor(e.currentTarget)}
                       sx={{
                         display: "flex",
