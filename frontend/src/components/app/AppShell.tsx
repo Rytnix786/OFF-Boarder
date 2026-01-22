@@ -43,6 +43,7 @@ import { PermissionCode } from "@/lib/permissions";
 import { SystemRole } from "@prisma/client";
 import { stitchTokens } from "@/theme/tokens";
 import CommandPalette from "./CommandPalette";
+import { ThemeToggle } from "../layout/ThemeToggle";
 
 const t = stitchTokens;
 
@@ -297,12 +298,10 @@ export default function AppShell({ session, userPermissions, children }: AppShel
                 <Typography variant="caption" sx={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: "text.disabled", fontSize: "0.6875rem", fontWeight: 600, bgcolor: isDark ? t.colors.background.surfaceLight : "#E2E8F0", px: 0.75, py: 0.25, borderRadius: 0.75 }}>⌘K</Typography>
               </Search>
             <Box sx={{ flexGrow: 1 }} />
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-<IconButton size="small" onClick={colorMode.toggleColorMode} sx={{ width: 32, height: 32, color: isDark ? t.colors.icon.default.dark : t.colors.icon.default.light, "&:hover": { bgcolor: isDark ? t.colors.glass.hover : "#F1F5F9" } }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{isDark ? "light_mode" : "dark_mode"}</span>
-                </IconButton>
-              <IconButton size="small" onClick={(e) => setNotificationAnchor(e.currentTarget)} sx={{ width: 32, height: 32, color: isDark ? t.colors.icon.default.dark : t.colors.icon.default.light, "&:hover": { bgcolor: isDark ? t.colors.glass.hover : "#F1F5F9" } }}>
-                <Badge badgeContent={unreadCount} color="error" sx={{ "& .MuiBadge-badge": { fontSize: 9, height: 14, minWidth: 14 } }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <ThemeToggle size="small" />
+                <IconButton size="small" onClick={(e) => setNotificationAnchor(e.currentTarget)} sx={{ width: 32, height: 32, color: isDark ? t.colors.icon.default.dark : t.colors.icon.default.light, "&:hover": { bgcolor: isDark ? t.colors.glass.hover : "#F1F5F9" } }}>
+                  <Badge badgeContent={unreadCount} color="error" sx={{ "& .MuiBadge-badge": { fontSize: 9, height: 14, minWidth: 14 } }}>
                   <span className="material-symbols-outlined" style={{ fontSize: 18 }}>notifications</span>
                 </Badge>
               </IconButton>

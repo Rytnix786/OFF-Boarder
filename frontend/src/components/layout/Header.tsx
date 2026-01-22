@@ -15,6 +15,7 @@ import {
     Typography,
 } from "@mui/material";
 import { ColorModeContext } from "@/theme/ThemeRegistry";
+import { ThemeToggle } from "./ThemeToggle";
 
 const Search = styled("div")(({ theme }) => ({
     position: "relative",
@@ -85,13 +86,7 @@ export default function Header() {
                 <Box sx={{ flexGrow: 1 }} />
 
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <IconButton size="large" onClick={colorMode.toggleColorMode} color="inherit">
-                        {theme.palette.mode === 'dark' ? (
-                            <span className="material-symbols-outlined">light_mode</span>
-                        ) : (
-                            <span className="material-symbols-outlined">dark_mode</span>
-                        )}
-                    </IconButton>
+                    <ThemeToggle />
 
                     <IconButton size="large" color="inherit">
                         <Badge badgeContent={3} color="error">
