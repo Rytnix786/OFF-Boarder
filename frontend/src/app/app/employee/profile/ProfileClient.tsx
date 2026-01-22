@@ -13,6 +13,7 @@ import {
   CircularProgress,
   alpha,
   Divider,
+  useTheme,
 } from "@mui/material";
 import type { EmployeePortalSession } from "@/lib/employee-auth.server";
 import { createClient } from "@/lib/supabase/client";
@@ -63,6 +64,7 @@ function InfoRow({ label, value, isLocked = true }: { label: string; value: stri
 }
 
 export default function ProfileClient({ session }: ProfileClientProps) {
+  const theme = useTheme();
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
