@@ -38,12 +38,15 @@ export async function GET(
     const sanitizedConversation = {
       id: conversation.id,
       organizationId: conversation.organizationId,
-      orgName: conversation.organization.name,
-      orgSlug: conversation.organization.slug,
+      orgName: conversation.organization?.name || conversation.companyName || "External Inquiry",
+      orgSlug: conversation.organization?.slug || "external",
       subject: conversation.subject,
       status: conversation.status,
       createdAt: conversation.createdAt,
       lastMessageAt: conversation.lastMessageAt,
+      isExternal: !conversation.organizationId,
+      contactName: conversation.contactName,
+      contactEmail: conversation.contactEmail,
     };
 
     return NextResponse.json(sanitizedConversation);
