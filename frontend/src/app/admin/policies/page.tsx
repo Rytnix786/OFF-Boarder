@@ -31,6 +31,7 @@ type GlobalPolicy = {
   createdAt: string;
   updatedAt: string;
   enforcementCount30d: number;
+  enforcementStatus?: "ENFORCED" | "PARTIAL" | "UI_ONLY";
 };
 
 type PolicyDomain = {
@@ -42,168 +43,145 @@ type PolicyDomain = {
 };
 
 const DOMAIN_CONFIG: Record<string, { name: string; description: string; icon: string; order: number }> = {
-  ACCESS_CONTROL: {
-    name: "Access Control",
-    description: "Policies governing authentication, authorization, and session management across all tenants.",
-    icon: "lock",
+  AUTHENTICATION: {
+    name: "Identity & Access",
+    description: "Policies governing how users and systems authenticate to the platform.",
+    icon: "fingerprint",
     order: 1,
   },
-  COMPLIANCE_EVIDENCE: {
-    name: "Compliance & Evidence",
-    description: "Policies ensuring audit trail integrity, evidence preservation, and regulatory compliance.",
-    icon: "verified_user",
+  NETWORK: {
+    name: "Network & Perimeter",
+    description: "Controls for IP filtering, regional blocking, and request-level guards.",
+    icon: "public",
     order: 2,
   },
-  RISK_ENFORCEMENT: {
-    name: "Risk Enforcement",
-    description: "Policies controlling risk assessment, escalation protocols, and security baseline enforcement.",
-    icon: "shield",
+  DATA: {
+    name: "Data & Privacy",
+    description: "Governance for data export, retention, and cryptographic protection.",
+    icon: "database",
     order: 3,
+  },
+  WORKFLOW: {
+    name: "Operational Governance",
+    description: "Mandatory workflows for offboarding and high-risk administrative actions.",
+    icon: "account_tree",
+    order: 4,
+  },
+  COMPLIANCE: {
+    name: "Audit & Compliance",
+    description: "Ensuring immutable record keeping and evidence collection.",
+    icon: "verified",
+    order: 5,
   },
 };
 
 const POLICY_TO_DOMAIN: Record<string, string> = {
-  MFA_REQUIRED: "ACCESS_CONTROL",
-  SESSION_TIMEOUT: "ACCESS_CONTROL",
-  PASSWORD_COMPLEXITY: "ACCESS_CONTROL",
-  IP_ALLOWLIST: "ACCESS_CONTROL",
-  ACCESS_LOCKDOWN_ON_OFFBOARDING: "ACCESS_CONTROL",
-  SESSION_REVOCATION_RULES: "ACCESS_CONTROL",
-  IP_BLOCKING_THRESHOLDS: "ACCESS_CONTROL",
-  DATA_RETENTION: "COMPLIANCE_EVIDENCE",
-  AUDIT_LOG_RETENTION: "COMPLIANCE_EVIDENCE",
-  EVIDENCE_REQUIRED: "COMPLIANCE_EVIDENCE",
-  COMPLIANCE_ATTESTATION: "COMPLIANCE_EVIDENCE",
-  EVIDENCE_PACK_RETENTION: "COMPLIANCE_EVIDENCE",
-  AUDIT_LOG_REQUIREMENTS: "COMPLIANCE_EVIDENCE",
-  DATA_EXPORT_CONTROLS: "COMPLIANCE_EVIDENCE",
-  RISK_ASSESSMENT: "RISK_ENFORCEMENT",
-  HIGH_RISK_APPROVAL: "RISK_ENFORCEMENT",
-  OFFBOARDING_TIMEOUT: "RISK_ENFORCEMENT",
-  ACCESS_REVIEW_FREQUENCY: "RISK_ENFORCEMENT",
-  MANDATORY_APPROVAL_CHAIN: "RISK_ENFORCEMENT",
-  HIGH_RISK_ESCALATION: "RISK_ENFORCEMENT",
+  SESSION_REVOCATION: "AUTHENTICATION",
+  IP_BLOCKING: "NETWORK",
+  DATA_EXPORT: "DATA",
+  EVIDENCE_RETENTION: "COMPLIANCE",
+  AUDIT_LOGGING: "COMPLIANCE",
+  APPROVAL_CHAIN: "WORKFLOW",
+  ACCESS_LOCKDOWN: "AUTHENTICATION",
+  RISK_ESCALATION: "WORKFLOW",
 };
 
-const EXECUTION_SUMMARIES: Record<string, (config: PolicyConfig) => string> = {
-  HIGH_RISK_ESCALATION: (config) => {
-    const responseTime = Number(config.maxResponseTimeMinutes || config.maxResponseTime || 4);
-    const triggers = [];
-    if (config.escalateOnCritical) triggers.push("critical risk events");
-    if (config.escalateOnDataAccess) triggers.push("sensitive data access");
-    return `When ${triggers.join(" or ")} is detected, the platform escalates within ${responseTime} minutes, notifies platform administrators${config.notifyPlatformAdmin ? "" : " (disabled)"}, and ${config.requirePlatformApproval ? "requires platform approval before proceeding" : "restricts sensitive data access pending review"}.`;
-  },
-  MANDATORY_APPROVAL_CHAIN: (config) => {
-    const approvals = Number(config.minApprovals || 2);
-    const hours = Number(config.escalateAfterHours || 24);
-    const roles = [];
-    if (config.requireManagerApproval) roles.push("direct manager");
-    if (config.requireHRApproval) roles.push("HR representative");
-    return `All high-risk offboardings require ${approvals} approvals from ${roles.join(" and ")}. If not approved within ${hours} hours, the request auto-escalates to platform administrators.`;
-  },
-  ACCESS_LOCKDOWN_ON_OFFBOARDING: (config) => {
-    const delay = Number(config.lockdownDelay || 0);
-    const grace = config.allowGracePeriod ? `with a ${config.gracePeriodHours}-hour grace period` : "immediately";
-    return `Upon offboarding initiation, all user access is revoked ${delay > 0 ? `within ${delay} minutes` : grace}. ${config.notifyEmployee ? "The employee receives notification. " : ""}${config.notifyManager ? "The manager is notified." : ""}`;
-  },
-  SESSION_REVOCATION_RULES: (config) => {
-    const maxAge = Number(config.maxSessionAge || 24);
-    const triggers = [];
-    if (config.revokeOnOffboardingStart) triggers.push("offboarding initiation");
-    if (config.revokeOnHighRisk) triggers.push("high-risk detection");
-    return `Active sessions are terminated upon ${triggers.join(" or ")}. Maximum session duration is ${maxAge} hours. ${config.allowReauthentication ? "Re-authentication is permitted after review." : "Re-authentication is blocked until offboarding completes."}`;
-  },
-  EVIDENCE_PACK_RETENTION: (config) => {
-    const days = Number(config.minRetentionDays || 365);
-    const years = Math.floor(days / 365);
-    return `All evidence packs are retained for a minimum of ${years > 1 ? `${years} years` : `${days} days`}. ${config.requireSealing ? "Evidence is cryptographically sealed upon creation. " : ""}${config.allowDeletion ? "" : "Manual deletion is prohibited. "}${config.requireAuditTrail ? "All access is logged." : ""}`;
-  },
-  AUDIT_LOG_REQUIREMENTS: (config) => {
-    const days = Number(config.retentionDays || 730);
-    const years = Math.floor(days / 365);
-    return `${config.logAllActions ? "All security-relevant actions are logged" : "Selected actions are logged"}${config.logIPAddresses ? " with IP addresses" : ""}${config.logUserAgents ? " and user agents" : ""}. Logs are retained for ${years > 1 ? `${years} years` : `${days} days`}${config.immutable ? " and are immutable once written" : ""}.`;
-  },
-};
-
-const CONFIG_LABELS: Record<string, string> = {
-  minApprovals: "Minimum Approvals Required",
-  requireManagerApproval: "Require Manager Approval",
-  requireHRApproval: "Require HR Approval",
-  escalateAfterHours: "Auto-Escalate After (hours)",
-  lockdownDelay: "Lockdown Delay (minutes)",
-  notifyEmployee: "Notify Employee",
-  notifyManager: "Notify Manager",
-  allowGracePeriod: "Allow Grace Period",
-  gracePeriodHours: "Grace Period Duration (hours)",
-  revokeOnOffboardingStart: "Revoke on Offboarding Start",
-  revokeOnHighRisk: "Revoke on High Risk Detection",
-  maxSessionAge: "Maximum Session Age (hours)",
-  allowReauthentication: "Allow Re-authentication",
-  maxFailedAttempts: "Failed Attempts Before Block",
-  blockDurationMinutes: "Block Duration (minutes)",
-  escalateAfterBlocks: "Escalate After Blocks",
-  notifyOnBlock: "Notify on Block",
-  minRetentionDays: "Minimum Retention (days)",
-  requireSealing: "Require Cryptographic Sealing",
-  allowDeletion: "Allow Manual Deletion",
-  requireAuditTrail: "Require Audit Trail",
-  logAllActions: "Log All Actions",
-  logIPAddresses: "Log IP Addresses",
-  logUserAgents: "Log User Agents",
-  retentionDays: "Retention Period (days)",
-  immutable: "Immutable Logs",
-  escalateOnCritical: "Escalate on Critical Events",
-  escalateOnDataAccess: "Escalate on Data Access",
-  notifyPlatformAdmin: "Notify Platform Admin",
-  requirePlatformApproval: "Require Platform Approval",
-  maxResponseTimeMinutes: "Response Time Limit (minutes)",
-  maxResponseTime: "Response Time Limit (minutes)",
-  blockExportsDuringOffboarding: "Block Exports During Offboarding",
-  requireApprovalForExport: "Require Export Approval",
-  logAllExports: "Log All Exports",
-  maxExportSizeMB: "Maximum Export Size (MB)",
-  maxExportSize: "Maximum Export Size (MB)",
+const EXECUTION_SUMMARIES: Record<string, (config: any) => string> = {
+  IP_BLOCKING: (c) => `Automatically blocks IPs after ${c.maxFailedAttempts} failed attempts. Block duration set to ${c.blockDurationMinutes} minutes. Global blocks apply across all tenants.`,
+  SESSION_REVOCATION: (c) => `Forces absolute session expiration after ${c.maxSessionAge} hours. Idle timeout enforced at ${c.idleTimeoutMinutes} minutes. Sessions are globally revoked upon user disablement.`,
+  APPROVAL_CHAIN: (c) => `Requires ${c.minApprovals} independent approvals for sensitive offboarding actions. One approval MUST come from ${c.requireSecurityRole ? "Security Admin" : "any Admin"}.`,
+  DATA_EXPORT: (c) => `Restricts data exports to ${c.allowedRegions.join(", ")}. Exports larger than ${c.maxExportRows} rows require secondary approval.`,
+  AUDIT_LOGGING: (c) => `Guarantees ${c.retentionDays} days of immutable platform logs. Critical events are mirrored to secondary vault within ${c.syncIntervalSeconds}s.`,
+  ACCESS_LOCKDOWN: (c) => `Triggers immediate API token invalidation and SSO session killing upon offboarding initiation. Coverage: ${c.coverCloudResources ? "All Cloud Assets" : "Primary SaaS Only"}.`,
+  EVIDENCE_RETENTION: (c) => `Locks offboarding evidence packs for ${c.retentionYears} years. Compliance hash generated and signed at completion.`,
+  RISK_ESCALATION: (c) => `Triggers executive escalation for ${c.severityThreshold}+ risk scores. Requires resolution within ${c.slaHours} hours.`,
 };
 
 const CONFIG_GROUPS: Record<string, { label: string; fields: string[] }[]> = {
-  HIGH_RISK_ESCALATION: [
-    { label: "Escalation Triggers", fields: ["escalateOnCritical", "escalateOnDataAccess"] },
-    { label: "Response Actions", fields: ["notifyPlatformAdmin", "requirePlatformApproval"] },
-    { label: "Timing", fields: ["maxResponseTimeMinutes", "maxResponseTime"] },
+  IP_BLOCKING: [
+    { label: "Thresholds", fields: ["maxFailedAttempts", "blockDurationMinutes"] },
+    { label: "Scope", fields: ["enableGlobalBlocking"] },
   ],
-  MANDATORY_APPROVAL_CHAIN: [
-    { label: "Approval Requirements", fields: ["minApprovals", "requireManagerApproval", "requireHRApproval"] },
-    { label: "Escalation", fields: ["escalateAfterHours"] },
+  SESSION_REVOCATION: [
+    { label: "Lifetimes", fields: ["maxSessionAge", "idleTimeoutMinutes"] },
+    { label: "Security", fields: ["forceMfaOnNewDevice"] },
   ],
-  ACCESS_LOCKDOWN_ON_OFFBOARDING: [
-    { label: "Timing", fields: ["lockdownDelay", "allowGracePeriod", "gracePeriodHours"] },
-    { label: "Notifications", fields: ["notifyEmployee", "notifyManager"] },
+  APPROVAL_CHAIN: [
+    { label: "Requirements", fields: ["minApprovals", "requireSecurityRole"] },
+  ],
+  AUDIT_LOGGING: [
+    { label: "Storage", fields: ["retentionDays", "syncIntervalSeconds"] },
   ],
 };
 
+const CONFIG_LABELS: Record<string, string> = {
+  maxFailedAttempts: "Max Failed Attempts",
+  blockDurationMinutes: "Block Duration (min)",
+  maxSessionAge: "Max Session Age (hrs)",
+  idleTimeoutMinutes: "Idle Timeout (min)",
+  minApprovals: "Required Approvals",
+  requireSecurityRole: "Require Security Admin",
+  retentionDays: "Log Retention (days)",
+  syncIntervalSeconds: "Sync Interval (sec)",
+  enableGlobalBlocking: "Global Blocking Enabled",
+  forceMfaOnNewDevice: "Force MFA on New Device",
+};
+
 function SeverityBadge({ severity }: { severity: string }) {
-  const colors: Record<string, { bg: string; text: string; border: string }> = {
+  const colors = {
     CRITICAL: { bg: "rgba(220, 38, 38, 0.08)", text: "#dc2626", border: "rgba(220, 38, 38, 0.2)" },
     HIGH: { bg: "rgba(234, 88, 12, 0.08)", text: "#ea580c", border: "rgba(234, 88, 12, 0.2)" },
     MEDIUM: { bg: "rgba(202, 138, 4, 0.08)", text: "#ca8a04", border: "rgba(202, 138, 4, 0.2)" },
-    LOW: { bg: "rgba(22, 163, 74, 0.08)", text: "#16a34a", border: "rgba(22, 163, 74, 0.2)" },
+    LOW: { bg: "rgba(37, 99, 235, 0.08)", text: "#2563eb", border: "rgba(37, 99, 235, 0.2)" },
   };
-  const color = colors[severity] || colors.MEDIUM;
-  
+
+  const config = colors[severity as keyof typeof colors] || colors.LOW;
+
+  return (
+    <Box
+      sx={{
+        px: 1,
+        py: 0.25,
+        borderRadius: 0.5,
+        bgcolor: config.bg,
+        border: `1px solid ${config.border}`,
+        display: "inline-flex",
+      }}
+    >
+      <Typography sx={{ fontSize: "0.625rem", fontWeight: 700, color: config.text, letterSpacing: "0.02em" }}>
+        {severity}
+      </Typography>
+    </Box>
+  );
+}
+
+function StatusPill({ isEnforced, enforcementStatus }: { isEnforced: boolean; enforcementStatus?: string }) {
+  const statusLabel = enforcementStatus === "ENFORCED" ? "Enforced" : enforcementStatus === "PARTIAL" ? "Partial" : "UI Only";
+  const isReal = enforcementStatus === "ENFORCED" || enforcementStatus === "PARTIAL";
+
   return (
     <Box
       sx={{
         display: "inline-flex",
         alignItems: "center",
-        px: 1.25,
-        py: 0.375,
-        borderRadius: 0.75,
-        bgcolor: color.bg,
-        border: `1px solid ${color.border}`,
+        gap: 1,
+        px: 1.5,
+        py: 0.5,
+        borderRadius: 1,
+        bgcolor: isEnforced && isReal ? "rgba(22, 163, 74, 0.06)" : "rgba(113, 113, 122, 0.06)",
+        border: `1px solid ${isEnforced && isReal ? "rgba(22, 163, 74, 0.15)" : "rgba(113, 113, 122, 0.15)"}`,
       }}
     >
-      <Typography sx={{ fontSize: "0.625rem", fontWeight: 700, color: color.text, letterSpacing: "0.05em" }}>
-        {severity}
+      <Box
+        sx={{
+          width: 6,
+          height: 6,
+          borderRadius: "50%",
+          bgcolor: isEnforced && isReal ? "#16a34a" : "#71717a",
+        }}
+      />
+      <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: isEnforced && isReal ? "#16a34a" : "#71717a" }}>
+        {statusLabel}
       </Typography>
     </Box>
   );
@@ -230,35 +208,6 @@ function AuthorityBadge({ isMandatory, canBeWeakened }: { isMandatory: boolean; 
       <span className="material-symbols-outlined" style={{ fontSize: 12, color: "#6366f1" }}>lock</span>
       <Typography sx={{ fontSize: "0.625rem", fontWeight: 700, color: "#6366f1", letterSpacing: "0.05em" }}>
         {label}
-      </Typography>
-    </Box>
-  );
-}
-
-function StatusPill({ isEnforced }: { isEnforced: boolean }) {
-  return (
-    <Box
-      sx={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 1,
-        px: 1.5,
-        py: 0.5,
-        borderRadius: 1,
-        bgcolor: isEnforced ? "rgba(22, 163, 74, 0.06)" : "rgba(113, 113, 122, 0.06)",
-        border: `1px solid ${isEnforced ? "rgba(22, 163, 74, 0.15)" : "rgba(113, 113, 122, 0.15)"}`,
-      }}
-    >
-      <Box
-        sx={{
-          width: 6,
-          height: 6,
-          borderRadius: "50%",
-          bgcolor: isEnforced ? "#16a34a" : "#71717a",
-        }}
-      />
-      <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: isEnforced ? "#16a34a" : "#71717a" }}>
-        {isEnforced ? "Enforced" : "Not Enforced"}
       </Typography>
     </Box>
   );
@@ -390,7 +339,7 @@ function PolicyCard({
             </Typography>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
-            <StatusPill isEnforced={isEnforced} />
+            <StatusPill isEnforced={isEnforced} enforcementStatus={policy.enforcementStatus} />
             <Button
               variant="outlined"
               size="small"
@@ -726,20 +675,25 @@ export default function AdminPoliciesPage() {
     fetchPolicies();
   }, []);
 
-  const handleUpdate = async (id: string, config: PolicyConfig) => {
-    try {
-      const res = await fetch("/api/platform/policies", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, config }),
-      });
-      if (res.ok) {
-        await fetchPolicies();
+    const handleUpdate = async (id: string, config: PolicyConfig) => {
+      try {
+        const res = await fetch("/api/platform/policies", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, config }),
+        });
+        if (res.ok) {
+          await fetchPolicies();
+        } else {
+          const error = await res.json();
+          console.error("Failed to update policy:", error);
+          alert(`Failed to update policy: ${error.error || "Unknown error"}`);
+        }
+      } catch (e) {
+        console.error("Failed to update policy", e);
+        alert("A network error occurred while updating the policy.");
       }
-    } catch (e) {
-      console.error("Failed to update policy", e);
-    }
-  };
+    };
 
   const domains: PolicyDomain[] = Object.entries(DOMAIN_CONFIG)
     .sort(([, a], [, b]) => a.order - b.order)

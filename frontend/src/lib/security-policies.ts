@@ -226,6 +226,35 @@ export async function checkOffboardingCompletion(
 ): Promise<{ allowed: boolean; violations: PolicyViolation[] }> {
   const violations: PolicyViolation[] = [];
 
+  // 1. Check Global Policies First (Mandatory Baseline)
+  const globalApprovalPolicy = await prisma.globalSecurityPolicy.findUnique({
+    where: { policyType: "MANDATORY_APPROVAL_CHAIN" }
+  });
+
+  if (globalApprovalPolicy?.isActive) {
+    const config = globalApprovalPolicy.config as any;
+    const minApprovals = config.minApprovals || 1;
+    
+    const approvedCount = await prisma.approval.count({
+      where: { 
+        offboardingId, 
+        status: "APPROVED",
+        type: "OFFBOARDING" 
+      },
+    });
+
+    if (approvedCount < minApprovals) {
+      violations.push({
+        policyType: "MANDATORY_APPROVAL_CHAIN" as any,
+        policyName: "Global: Mandatory Approval Chain",
+        violation: `Global policy requires at least ${minApprovals} approvals (currently have ${approvedCount})`,
+        severity: "HIGH",
+        canBypass: false,
+      });
+    }
+  }
+
+  // 2. Check Organization Policies
   const approvalPolicy = await getPolicy(organizationId, "REQUIRE_APPROVAL_COMPLETION");
   if (approvalPolicy.isActive && approvalPolicy.enabled) {
     const pendingApprovals = await prisma.approval.count({

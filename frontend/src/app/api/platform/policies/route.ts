@@ -161,10 +161,20 @@ export async function GET() {
       return acc;
     }, {} as Record<string, number>);
 
-    const policiesWithStats = policies.map((policy) => ({
-      ...policy,
-      enforcementCount30d: statsMap[policy.policyType] || 0,
-    }));
+    const policiesWithStats = policies.map((policy) => {
+      let enforcementStatus = "UI_ONLY";
+      if (["IP_BLOCKING_THRESHOLDS", "SESSION_REVOCATION_RULES", "MANDATORY_APPROVAL_CHAIN"].includes(policy.policyType)) {
+        enforcementStatus = "ENFORCED";
+      } else if (policy.policyType === "AUDIT_LOG_REQUIREMENTS") {
+        enforcementStatus = "PARTIAL";
+      }
+
+      return {
+        ...policy,
+        enforcementStatus,
+        enforcementCount30d: statsMap[policy.policyType] || 0,
+      };
+    });
 
     return NextResponse.json({ policies: policiesWithStats });
   } catch (error) {
