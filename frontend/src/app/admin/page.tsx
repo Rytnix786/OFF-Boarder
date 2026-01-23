@@ -187,6 +187,11 @@ function MetricCard({
 function SignalRow({ signal, incidentMode }: { signal: PlatformData["signals"]["recent"][0]; incidentMode: boolean }) {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const severityColors: Record<string, string> = {
     LOW: "#22c55e",
@@ -251,7 +256,7 @@ function SignalRow({ signal, incidentMode }: { signal: PlatformData["signals"]["
         </Typography>
       </Box>
       <Typography sx={{ fontSize: t.typography.fontSize.xs, color: isDark ? "#52525b" : "#9ca3af", flexShrink: 0 }}>
-        {new Date(signal.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+        {mounted ? new Date(signal.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
       </Typography>
     </Box>
   );

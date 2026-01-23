@@ -39,7 +39,31 @@ export async function getUserPermissions(session: AuthSession): Promise<Permissi
     a.customRole.permissions.map((p) => p.permission.code as PermissionCode)
   );
 
-  return [...new Set([...systemPerms, ...customPerms])];
+  let permissions = [...new Set([...systemPerms, ...customPerms])];
+
+  // Global Security Policy Enforcement
+  const globalPolicies = await prisma.globalSecurityPolicy.findMany({
+    where: { isActive: true },
+  });
+
+  for (const policy of globalPolicies) {
+    const config = policy.config as any;
+
+    // Enforcement: DATA_EXPORT_CONTROLS
+    if (policy.policyType === "DATA_EXPORT_CONTROLS") {
+      if (config.blockExportsDuringOffboarding) {
+        const isOffboarding = await isUserOffboardingSubject(session.user.id, session.currentOrgId!);
+        if (isOffboarding) {
+          permissions = permissions.filter((p) => p !== "report:export");
+        }
+      }
+    }
+
+    // Enforcement: MANDATORY_APPROVAL_CHAIN (Impacts UI behavior/requirements, handled in specific actions)
+    // Enforcement: IP_BLOCKING_THRESHOLDS (Handled in middleware)
+  }
+
+  return permissions;
 }
 
 export async function hasPermission(session: AuthSession, permission: PermissionCode): Promise<boolean> {

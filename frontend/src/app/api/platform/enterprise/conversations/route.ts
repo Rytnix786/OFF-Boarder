@@ -1,23 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma.server";
 import { requirePlatformAdmin } from "@/lib/platform-auth";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     await requirePlatformAdmin();
 
-    const enterpriseConversation = (prisma as any).enterpriseConversation;
-
-    if (!enterpriseConversation) {
-      console.warn("Prisma model 'enterpriseConversation' is not available in the current client.");
-      return NextResponse.json([]);
-    }
-
-    const conversations = await enterpriseConversation.findMany({
+    const conversations = await prisma.enterpriseConversation.findMany({
       include: {
         organization: {
           select: {
-            id: true,
             name: true,
             slug: true,
           },
@@ -29,11 +21,10 @@ export async function GET(req: NextRequest) {
       orderBy: { lastMessageAt: "desc" },
     });
 
-    // Explicitly select metadata only to avoid PII leak
-    const sanitizedConversations = conversations.map((c: any) => ({
+    const formatted = conversations.map((c) => ({
       id: c.id,
       organizationId: c.organizationId,
-      orgName: c.organization?.name || c.companyName || "External Inquiry",
+      orgName: c.organization?.name || "External Visitor",
       orgSlug: c.organization?.slug || "external",
       subject: c.subject,
       status: c.status,
@@ -46,12 +37,9 @@ export async function GET(req: NextRequest) {
       source: c.source,
     }));
 
-    return NextResponse.json(sanitizedConversations);
+    return NextResponse.json(formatted);
   } catch (error) {
-    console.error("Platform enterprise conversations error:", error);
-    if (error instanceof Error && error.message === "FORBIDDEN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    console.error("Fetch enterprise conversations error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
