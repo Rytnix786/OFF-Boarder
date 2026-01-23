@@ -26,7 +26,7 @@ export default async function OrgViewDashboard({
       </Box>
 
       {/* Reuse the AuditorDashboard for read-only view */}
-      <AuditorDashboard session={session} />
+      <AuditorDashboard session={session} isOrgView={true} />
     </Box>
   );
 }

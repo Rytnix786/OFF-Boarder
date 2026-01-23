@@ -71,6 +71,7 @@ interface OffboardingsClientProps {
   workflowTemplates: WorkflowTemplate[];
   departments: { id: string; name: string }[];
   canCreate: boolean;
+  isOrgView?: boolean;
 }
 
 export default function OffboardingsClient({ 
@@ -78,7 +79,8 @@ export default function OffboardingsClient({
   employees, 
   workflowTemplates,
   departments,
-  canCreate 
+  canCreate,
+  isOrgView
 }: OffboardingsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -299,12 +301,12 @@ export default function OffboardingsClient({
                   const progress = getProgress(o.tasks);
                   const pendingApprovals = o.approvals.filter(a => a.status === "PENDING").length;
                   return (
-                    <TableRow
-                      key={o.id}
-                      hover
-                      sx={{ cursor: "pointer" }}
-                      onClick={() => router.push(`/app/offboardings/${o.id}`)}
-                    >
+                      <TableRow
+                        key={o.id}
+                        hover
+                        sx={{ cursor: isOrgView ? "default" : "pointer" }}
+                        onClick={() => !isOrgView && router.push(`/app/offboardings/${o.id}`)}
+                      >
                       <TableCell>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                           <Avatar sx={{ 

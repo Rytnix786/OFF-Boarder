@@ -19,6 +19,7 @@ import {
   Button,
   Avatar,
   CircularProgress,
+  Divider,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { setOrgView } from "@/lib/actions/org-view";

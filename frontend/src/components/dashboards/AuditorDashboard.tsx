@@ -12,9 +12,10 @@ import {
 
 interface AuditorDashboardProps {
   session: AuthSession;
+  isOrgView?: boolean;
 }
 
-export async function AuditorDashboard({ session }: AuditorDashboardProps) {
+export async function AuditorDashboard({ session, isOrgView }: AuditorDashboardProps) {
   const orgId = session.currentOrgId!;
   const now = new Date();
   const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -78,10 +79,10 @@ export async function AuditorDashboard({ session }: AuditorDashboardProps) {
   ];
 
   const auditorActions = [
-    { id: "audit", label: "View Audit Logs", description: "Full activity trail", icon: "receipt_long", href: "/app/audit-logs" },
-    { id: "offboardings", label: "View Offboardings", description: "All offboarding cases", icon: "folder_open", href: "/app/offboardings" },
-    { id: "employees", label: "View Employees", description: "Employee directory", icon: "people", href: "/app/employees" },
-    { id: "reports", label: "Generate Report", description: "Export compliance data", icon: "analytics", href: "/app/reports" },
+    { id: "audit", label: "View Audit Logs", description: "Full activity trail", icon: "receipt_long", href: isOrgView ? "#" : "/app/audit-logs" },
+    { id: "offboardings", label: "View Offboardings", description: "All offboarding cases", icon: "folder_open", href: isOrgView ? `/admin/org-view/${orgId}/offboardings` : "/app/offboardings" },
+    { id: "employees", label: "View Employees", description: "Employee directory", icon: "people", href: isOrgView ? `/admin/org-view/${orgId}/employees` : "/app/employees" },
+    { id: "reports", label: "Generate Report", description: "Export compliance data", icon: "analytics", href: isOrgView ? "#" : "/app/reports" },
   ];
 
   const getActionIcon = (action: string) => {
