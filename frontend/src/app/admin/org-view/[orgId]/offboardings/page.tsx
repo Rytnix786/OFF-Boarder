@@ -2,8 +2,9 @@ import { redirect } from "next/navigation";
 import { getOrgViewSession } from "@/lib/auth.server";
 import { prisma } from "@/lib/prisma.server";
 import OffboardingsClient from "@/app/app/offboardings/OffboardingsClient";
-import { Box, Typography, CircularProgress } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import { Suspense } from "react";
+import { OrgViewPageHeader } from "../OrgViewPageHeader";
 
 export default async function OrgViewOffboardingsPage({
   params,
@@ -67,26 +68,48 @@ export default async function OrgViewOffboardingsPage({
   ]);
 
   return (
-    <Box sx={{ p: 4 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight={800} gutterBottom>
-          Offboardings
-        </Typography>
-        <Typography color="text.secondary">
-          Managing offboarding requests for {session.currentMembership?.organization.name} (Read-only).
-        </Typography>
-      </Box>
+    <Box>
+      <OrgViewPageHeader 
+        title="Offboarding Cases"
+        description={`Audit offboarding lifecycle and compliance status for ${session.currentMembership?.organization.name}.`}
+        icon="group_remove"
+      />
 
-      <Suspense fallback={<Box sx={{ display: "flex", justifyContent: "center", py: 8 }}><CircularProgress /></Box>}>
-        <OffboardingsClient
-          offboardings={offboardings as any}
-          employees={employees}
-          workflowTemplates={workflowTemplates}
-          departments={departments}
-          canCreate={false} // Force read-only
-          isOrgView={true}
-        />
-      </Suspense>
+      <Box sx={{ px: { xs: 3, md: 6 }, pb: 6 }}>
+        <Box
+          sx={{
+            bgcolor: "#ffffff",
+            borderRadius: "24px",
+            border: "1px solid",
+            borderColor: "#e2e8f0",
+            p: { xs: 2, md: 4 },
+            boxShadow: "0 4px 30px rgba(0,0,0,0.03)",
+            position: "relative",
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: "4px",
+              bgcolor: "#6366f1",
+              borderTopLeftRadius: "24px",
+              borderTopRightRadius: "24px",
+            }
+          }}
+        >
+          <Suspense fallback={<Box sx={{ display: "flex", justifyContent: "center", py: 8 }}><CircularProgress /></Box>}>
+            <OffboardingsClient
+              offboardings={offboardings as any}
+              employees={employees}
+              workflowTemplates={workflowTemplates}
+              departments={departments}
+              canCreate={false}
+              isOrgView={true}
+            />
+          </Suspense>
+        </Box>
+      </Box>
     </Box>
   );
 }
