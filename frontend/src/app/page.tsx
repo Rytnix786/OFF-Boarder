@@ -1335,3 +1335,69 @@ export default function LandingPage() {
     </Box>
   );
 }
+
+const fadeInUp = {
+  initial: { y: 20, opacity: 0 },
+  animate: { y: 0, opacity: 1, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }
+};
+
+const stagger = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const TRUST_BADGES = [
+  { icon: "security", label: "Enterprise Security" },
+  { icon: "verified_user", label: "Compliance Guaranteed" },
+  { icon: "analytics", label: "Audit Trails" },
+];
+
+const RISK_STATS = [
+  { value: "76%", label: "Fail to revoke access immediately" },
+  { value: "$4.4M", label: "Avg. cost of a data breach" },
+  { value: "48h", label: "Critical window for revocation" },
+];
+
+const CONTROL_FEATURES = [
+  { icon: "key", title: "Access Revocation", description: "Instantly revoke access across SaaS, VPN, and cloud providers." },
+  { icon: "inventory_2", title: "Asset Recovery", description: "Track physical hardware returns with automated shipping labels." },
+  { icon: "rule", title: "Policy Enforcement", description: "Ensure every exit follows HR and Security mandates." },
+  { icon: "history_edu", title: "Audit Records", description: "Generate immutable logs for SOC2 and ISO compliance." },
+];
+
+const OUTCOME_FEATURES = [
+  { icon: "verified", title: "Zero Trust Verified", description: "Every access point is double-checked and verified." },
+  { icon: "receipt_long", title: "Evidence Packs", description: "Download complete evidence for every offboarding case." },
+  { icon: "notifications_active", title: "Risk Alerts", description: "Get notified of any missed steps or residual access." },
+];
+
+const PRICING = [
+  {
+    name: "Starter",
+    description: "Essential offboarding for small teams.",
+    price: "$49",
+    period: "mo",
+    cta: "Start Free Trial",
+    features: ["Up to 10 employees", "Core access revocation", "Email support"],
+    isTrial: true
+  },
+  {
+    name: "Professional",
+    description: "Advanced automation for growing companies.",
+    price: "$199",
+    period: "mo",
+    cta: "Start Free Trial",
+    popular: true,
+    features: ["Up to 100 employees", "Full asset tracking", "Priority support", "Audit logs"]
+  },
+  {
+    name: "Enterprise",
+    description: "Complete control for large organizations.",
+    price: "Custom",
+    cta: "Talk to Security",
+    features: ["Unlimited employees", "SSO integration", "Dedicated success manager", "Custom workflows"]
+  }
+];

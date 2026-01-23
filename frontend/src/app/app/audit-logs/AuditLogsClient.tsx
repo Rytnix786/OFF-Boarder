@@ -616,6 +616,7 @@ export default function AuditLogsClient({ logs, total }: AuditLogsClientProps) {
         </Box>
         <Button
           variant="outlined"
+          onClick={() => window.open(`/api/reports/compliance/export`, "_blank")}
           startIcon={<span className="material-symbols-outlined">download</span>}
           sx={{ borderRadius: 2 }}
         >
