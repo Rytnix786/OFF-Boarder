@@ -79,45 +79,49 @@ export async function getEmployeePortalSession(): Promise<EmployeePortalSession 
 
   if (!user) return null;
 
-  const employeeLink = await prisma.employeeUserLink.findFirst({
-    where: {
-      userId: user.id,
-      status: "VERIFIED",
-    },
-    include: {
-      organization: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          status: true,
-        },
+    const employeeLink = await prisma.employeeUserLink.findFirst({
+      where: {
+        userId: user.id,
+        status: { in: ["VERIFIED", "REVOKED"] },
       },
-      employee: {
-        include: {
-          department: {
-            select: { id: true, name: true },
+      include: {
+        organization: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            status: true,
           },
-          jobTitle: {
-            select: { id: true, title: true },
-          },
-          location: {
-            select: { id: true, name: true },
-          },
-          managerMembership: {
-            select: {
-              id: true,
-              user: { select: { name: true, email: true } },
+        },
+        employee: {
+          include: {
+            department: {
+              select: { id: true, name: true },
+            },
+            jobTitle: {
+              select: { id: true, title: true },
+            },
+            location: {
+              select: { id: true, name: true },
+            },
+            managerMembership: {
+              select: {
+                id: true,
+                user: { select: { name: true, email: true } },
+              },
             },
           },
         },
       },
-    },
-  });
+    });
 
-  if (!employeeLink || employeeLink.organization.status !== "ACTIVE") {
-    return null;
-  }
+    if (!employeeLink) {
+      return null;
+    }
+
+    if (employeeLink.organization.status !== "ACTIVE") {
+      return null;
+    }
 
   const activeOffboarding = await prisma.offboarding.findFirst({
     where: {
@@ -203,6 +207,15 @@ export async function requireEmployeePortalAuth(): Promise<EmployeePortalSession
       throw new Error("Employee portal access required.");
     }
     redirect("/app?error=not_portal_user");
+  }
+
+  // Handle revoked employee portal access
+  if (session.employeeLink.status === "REVOKED") {
+    const inServerAction = await isServerAction();
+    if (inServerAction) {
+      throw new Error("Your access to the employee portal has been revoked.");
+    }
+    redirect("/app/access-suspended");
   }
   
   return session;

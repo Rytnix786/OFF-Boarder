@@ -54,6 +54,8 @@ model Membership {
   approvedBy       String?
   invitedBy        String?
   status           MembershipStatus           @default(PENDING)
+  revokedAt        DateTime?
+  revokedBy        String?
   managedEmployees Employee[]                 @relation("ManagedEmployees")
   organization     Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user             User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1134,6 +1136,7 @@ enum MembershipStatus {
   PENDING
   ACTIVE
   SUSPENDED
+  REVOKED
 }
 
 enum InvitationStatus {

@@ -54,30 +54,29 @@ export async function getAuthSession(orgSlug?: string): Promise<AuthSession | nu
     where: { supabaseId: supabaseUser.id },
     include: {
       memberships: {
-        where: { status: "ACTIVE" },
-          include: {
-            organization: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-                logoUrl: true,
-                status: true,
-                isSetupComplete: true,
-              },
+        include: {
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              logoUrl: true,
+              status: true,
+              isSetupComplete: true,
             },
           },
+        },
       },
     },
   });
 
   if (!user) return null;
 
-  const activeMemberships = user.memberships.filter(
+  const validMemberships = user.memberships.filter(
     (m) => m.organization.status === "ACTIVE"
   );
 
-  const memberships: MembershipWithOrg[] = activeMemberships.map((m) => ({
+  const memberships: MembershipWithOrg[] = validMemberships.map((m) => ({
     id: m.id,
     organizationId: m.organizationId,
     systemRole: m.systemRole,
@@ -85,11 +84,17 @@ export async function getAuthSession(orgSlug?: string): Promise<AuthSession | nu
     organization: m.organization,
   }));
 
+  // Find the most appropriate current membership
   let currentMembership: MembershipWithOrg | null = null;
+  
   if (orgSlug) {
     currentMembership = memberships.find((m) => m.organization.slug === orgSlug) || null;
-  } else if (memberships.length > 0) {
-    currentMembership = memberships[0];
+  } else {
+    // Prefer ACTIVE over other statuses if no slug provided
+    currentMembership = 
+      memberships.find((m) => m.status === "ACTIVE") || 
+      memberships[0] || 
+      null;
   }
 
   return {
@@ -167,6 +172,7 @@ export async function requirePlatformAdmin(): Promise<AuthSession> {
 
 export async function requireActiveOrg(orgSlug?: string): Promise<AuthSession> {
   const session = await requireAuth(orgSlug);
+  
   if (!session.currentMembership) {
     const inServerAction = await isServerAction();
     if (inServerAction) {
@@ -174,6 +180,17 @@ export async function requireActiveOrg(orgSlug?: string): Promise<AuthSession> {
     }
     redirect("/pending");
   }
+
+  // Handle suspended or revoked memberships
+  if (session.currentMembership.status === "SUSPENDED" || session.currentMembership.status === "REVOKED") {
+    const inServerAction = await isServerAction();
+    if (inServerAction) {
+      throw new AuthError("Your access has been suspended or revoked.", "UNAUTHORIZED");
+    }
+    // Redirect to a specific suspended page to avoid loops
+    redirect("/app/access-suspended");
+  }
+
   if (session.currentMembership.organization.status !== "ACTIVE") {
     const inServerAction = await isServerAction();
     if (inServerAction) {

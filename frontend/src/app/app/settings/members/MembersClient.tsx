@@ -47,7 +47,7 @@ type Member = {
   id: string;
   userId: string;
   systemRole: "OWNER" | "ADMIN" | "CONTRIBUTOR" | "AUDITOR";
-  status: "PENDING" | "ACTIVE" | "SUSPENDED";
+  status: "PENDING" | "ACTIVE" | "SUSPENDED" | "REVOKED";
   createdAt: Date;
   user: { id: string; name: string | null; email: string; avatarUrl: string | null };
   roleAssignments?: { customRole: { id: string; name: string } }[];
@@ -134,6 +134,7 @@ export default function MembersClient({
   const [inviteCustomRoleId, setInviteCustomRoleId] = useState<string>("");
 
   const activeMembers = members.filter((m) => m.status === "ACTIVE");
+  const nonActiveMembers = members.filter((m) => m.status === "SUSPENDED" || m.status === "REVOKED");
   const memberRequests = joinRequests.filter((jr) => jr.status === "REQUESTED_MEMBER");
   const adminRequests = joinRequests.filter((jr) => jr.status === "REQUESTED_ADMIN");
 
@@ -277,14 +278,15 @@ export default function MembersClient({
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "ACTIVE": return "success";
-      case "PENDING": return "warning";
-      case "SUSPENDED": return "error";
-      default: return "default";
-    }
-  };
+    const getStatusColor = (status: string) => {
+      switch (status) {
+        case "ACTIVE": return "success";
+        case "PENDING": return "warning";
+        case "SUSPENDED": return "error";
+        case "REVOKED": return "error";
+        default: return "default";
+      }
+    };
 
   const totalPendingRequests = memberRequests.length + adminRequests.length;
 
@@ -310,33 +312,34 @@ export default function MembersClient({
       </Box>
 
       <Card variant="outlined" sx={{ borderRadius: 3 }}>
-        <Tabs
-          value={tab}
-          onChange={(_, v) => setTab(v)}
-          sx={{ borderBottom: "1px solid", borderColor: "divider", px: 2 }}
-        >
-          <Tab label={`Active (${activeMembers.length})`} />
-          <Tab
-            label={
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                Join Requests
-                {totalPendingRequests > 0 && (
-                  <Chip label={totalPendingRequests} size="small" color="warning" sx={{ height: 20, fontSize: 11 }} />
-                )}
-              </Box>
-            }
-          />
-          <Tab
-            label={
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                Invitations
-                {invitations.length > 0 && (
-                  <Chip label={invitations.length} size="small" color="info" sx={{ height: 20, fontSize: 11 }} />
-                )}
-              </Box>
-            }
-          />
-        </Tabs>
+          <Tabs
+            value={tab}
+            onChange={(_, v) => setTab(v)}
+            sx={{ borderBottom: "1px solid", borderColor: "divider", px: 2 }}
+          >
+            <Tab label={`Active (${activeMembers.length})`} />
+            <Tab
+              label={
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  Join Requests
+                  {totalPendingRequests > 0 && (
+                    <Chip label={totalPendingRequests} size="small" color="warning" sx={{ height: 20, fontSize: 11 }} />
+                  )}
+                </Box>
+              }
+            />
+            <Tab
+              label={
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  Invitations
+                  {invitations.length > 0 && (
+                    <Chip label={invitations.length} size="small" color="info" sx={{ height: 20, fontSize: 11 }} />
+                  )}
+                </Box>
+              }
+            />
+            <Tab label={`Suspended/Revoked (${nonActiveMembers.length})`} />
+          </Tabs>
 
         {tab === 0 && (
           <TableContainer>
@@ -579,6 +582,89 @@ export default function MembersClient({
                           <Button size="small" variant="outlined" color="error" onClick={() => handleRevokeInvitation(inv.id)} disabled={loading}>
                             Revoke
                           </Button>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+
+        {tab === 3 && (
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ "& th": { fontWeight: 700, color: "text.secondary", fontSize: 12, textTransform: "uppercase" } }}>
+                  <TableCell>Member</TableCell>
+                  <TableCell>Account Type</TableCell>
+                  {hasCustomRoles && <TableCell>Access Role</TableCell>}
+                  <TableCell>Status</TableCell>
+                  <TableCell>Joined</TableCell>
+                  {canManage && <TableCell align="right">Actions</TableCell>}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {nonActiveMembers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={hasCustomRoles ? 6 : 5} sx={{ py: 8, textAlign: "center" }}>
+                      <Typography color="text.secondary">No suspended or revoked members</Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  nonActiveMembers.map((member) => (
+                    <TableRow key={member.id} hover>
+                      <TableCell>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                          <Avatar src={member.user.avatarUrl || undefined} sx={{ bgcolor: "grey.400" }}>
+                            {member.user.name?.charAt(0) || member.user.email.charAt(0)}
+                          </Avatar>
+                          <Box>
+                            <Typography fontWeight={600} color="text.secondary">
+                              {member.user.name || "No name"}
+                            </Typography>
+                            <Typography variant="caption" color="text.disabled">{member.user.email}</Typography>
+                          </Box>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Chip label={member.systemRole} size="small" variant="outlined" color="default" sx={{ opacity: 0.7 }} />
+                      </TableCell>
+                      {hasCustomRoles && (
+                        <TableCell>
+                          <Typography variant="caption" color="text.disabled">Read-only</Typography>
+                        </TableCell>
+                      )}
+                      <TableCell>
+                        <Chip 
+                          label={member.status} 
+                          size="small" 
+                          color={member.status === "REVOKED" ? "error" : "warning"} 
+                          variant="filled" 
+                          sx={{ fontWeight: 700 }}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ color: "text.disabled" }}>{new Date(member.createdAt).toISOString().split("T")[0]}</TableCell>
+                      {canManage && (
+                        <TableCell align="right">
+                          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
+                            {member.status === "SUSPENDED" && (
+                              <Button 
+                                size="small" 
+                                variant="outlined" 
+                                color="success" 
+                                onClick={() => handleReactivate(member.id)}
+                              >
+                                Reactivate
+                              </Button>
+                            )}
+                            {member.status === "REVOKED" && (
+                              <Tooltip title="This member has been revoked and access is blocked.">
+                                <Chip label="Revoked" size="small" color="error" variant="outlined" sx={{ fontWeight: 700 }} />
+                              </Tooltip>
+                            )}
+                          </Box>
                         </TableCell>
                       )}
                     </TableRow>
