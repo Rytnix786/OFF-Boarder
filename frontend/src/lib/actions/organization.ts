@@ -724,6 +724,25 @@ export async function suspendOrganization(orgId: string) {
     data: { status: "SUSPENDED" },
   });
 
+  const memberships = await prisma.membership.findMany({
+    where: { organizationId: orgId },
+    select: { userId: true },
+  });
+
+  if (memberships.length > 0) {
+    const supabase = await (await import("@/lib/supabase/server")).createClient();
+    await supabase.from("Notification").insert(
+      memberships.map((m) => ({
+        userId: m.userId,
+        organizationId: orgId,
+        type: "org_suspended",
+        title: "Organization Suspended",
+        message: "Your organization has been suspended by a platform administrator.",
+        link: "/org-blocked",
+      }))
+    );
+  }
+
   revalidatePath("/admin/organizations");
   return { success: true };
 }

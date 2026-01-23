@@ -281,13 +281,31 @@ export async function updateOffboarding(offboardingId: string, formData: FormDat
     });
   }
 
-  await createAuditLog(session, orgId, {
-    action: data.status === "COMPLETED" ? "offboarding.completed" : "offboarding.updated",
-    entityType: "Offboarding",
-    entityId: offboardingId,
-    oldData: { status: offboarding.status },
-    newData: { status: data.status },
-  });
+    await createAuditLog(session, orgId, {
+      action: data.status === "COMPLETED" ? "offboarding.completed" : "offboarding.updated",
+      entityType: "Offboarding",
+      entityId: offboardingId,
+      oldData: { status: offboarding.status },
+      newData: { status: data.status },
+    });
+
+    if (data.status === "COMPLETED" && offboarding.status !== "COMPLETED") {
+      const employee = await prisma.employee.findUnique({
+        where: { id: offboarding.employeeId },
+        select: { firstName: true, lastName: true },
+      });
+
+      await createNotificationForOrgMembers(
+        orgId,
+        session.user.id,
+        "offboarding_completed",
+        "Offboarding Completed",
+        `${employee?.firstName} ${employee?.lastName}'s offboarding has been completed.`,
+        `/app/offboardings/${offboardingId}`,
+        offboarding.employeeId
+      );
+    }
+
 
   const { invalidateOrgCache, refreshAnalyticsSnapshot } = await import("@/lib/cache.server");
   invalidateOrgCache(orgId);
@@ -527,6 +545,16 @@ export async function updateOffboardingTask(taskId: string, status: "PENDING" | 
         where: { id: task.offboarding.employeeId },
         data: { status: "TERMINATED" },
       });
+
+      await createNotificationForOrgMembers(
+        orgId,
+        session.user.id,
+        "offboarding_completed",
+        "Offboarding Completed",
+        `${task.offboarding.employee.firstName} ${task.offboarding.employee.lastName}'s offboarding has been completed.`,
+        `/app/offboardings/${task.offboardingId}`,
+        task.offboarding.employeeId
+      );
     }
   }
 
