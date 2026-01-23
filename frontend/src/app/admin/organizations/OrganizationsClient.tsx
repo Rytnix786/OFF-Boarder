@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Box,
   Typography,
@@ -23,7 +25,7 @@ import {
   TextField,
   Tabs,
   Tab,
-  alpha,
+  Link as MuiLink,
 } from "@mui/material";
 import { approveOrganization, rejectOrganization, suspendOrganization, reactivateOrganization } from "@/lib/actions/organization";
 
@@ -45,6 +47,7 @@ interface OrganizationsClientProps {
 }
 
 export default function OrganizationsClient({ organizations, initialStatus, initialTab }: OrganizationsClientProps) {
+  const router = useRouter();
   const getInitialTab = () => {
     if (initialStatus === "PENDING") return 0;
     if (initialStatus === "ACTIVE") return 1;
