@@ -11,7 +11,14 @@ export async function GET(
     await requirePlatformAdmin();
     const { id } = await (params as any); // Next.js 15+ params handling
 
-    const messages = await prisma.enterpriseMessage.findMany({
+    const enterpriseMessage = (prisma as any).enterpriseMessage;
+
+    if (!enterpriseMessage) {
+      console.warn("Prisma model 'enterpriseMessage' is not available in the current client.");
+      return NextResponse.json([]);
+    }
+
+    const messages = await enterpriseMessage.findMany({
       where: { conversationId: id },
       orderBy: { createdAt: "asc" },
     });
@@ -39,7 +46,14 @@ export async function POST(
       return NextResponse.json({ error: "Message content required" }, { status: 400 });
     }
 
-    const conversation = await prisma.enterpriseConversation.findUnique({
+    const enterpriseConversation = (prisma as any).enterpriseConversation;
+    const enterpriseMessage = (prisma as any).enterpriseMessage;
+
+    if (!enterpriseConversation || !enterpriseMessage) {
+      return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
+    }
+
+    const conversation = await enterpriseConversation.findUnique({
       where: { id },
       include: { organization: true },
     });

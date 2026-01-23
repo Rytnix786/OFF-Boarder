@@ -8,8 +8,14 @@ export async function GET(req: NextRequest) {
     const session = await requireActiveOrg();
     const organizationId = session.currentOrgId!;
 
+    const enterpriseConversation = (prisma as any).enterpriseConversation;
+    if (!enterpriseConversation) {
+      console.warn("Prisma model 'enterpriseConversation' is not available in the current client.");
+      return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
+    }
+
     // Find or create the single security thread for this org
-    let conversation = await prisma.enterpriseConversation.findFirst({
+    let conversation = await enterpriseConversation.findFirst({
       where: { organizationId },
       include: {
         messages: {

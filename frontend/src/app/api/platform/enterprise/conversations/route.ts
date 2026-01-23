@@ -6,7 +6,14 @@ export async function GET(req: NextRequest) {
   try {
     await requirePlatformAdmin();
 
-    const conversations = await prisma.enterpriseConversation.findMany({
+    const enterpriseConversation = (prisma as any).enterpriseConversation;
+
+    if (!enterpriseConversation) {
+      console.warn("Prisma model 'enterpriseConversation' is not available in the current client.");
+      return NextResponse.json([]);
+    }
+
+    const conversations = await enterpriseConversation.findMany({
       include: {
         organization: {
           select: {
