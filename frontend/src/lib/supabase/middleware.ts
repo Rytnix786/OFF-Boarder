@@ -15,26 +15,25 @@ function getClientIPFromRequest(request: NextRequest): string {
 }
 
 async function checkIPBlocked(
-  request: NextRequest,
+  supabase: any,
   ipAddress: string
 ): Promise<boolean> {
   try {
-    const baseUrl = request.nextUrl.origin;
-    const response = await fetch(`${baseUrl}/api/blocked-ips/check`, {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        "x-internal-skip-middleware": "true"
-      },
-      body: JSON.stringify({
-        ipAddress,
-        path: request.nextUrl.pathname,
-        method: request.method,
-        userAgent: request.headers.get("user-agent") || undefined,
-      }),
-    });
-    const data = await response.json();
-    return data.blocked === true;
+    const { data, error } = await supabase
+      .from("BlockedIP")
+      .select("id")
+      .eq("ipAddress", ipAddress)
+      .eq("isActive", true)
+      .or("expiresAt.is.null,expiresAt.gt.now()")
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.error("IP block query error:", error);
+      return false;
+    }
+
+    return !!data;
   } catch (error) {
     console.error("IP block check failed:", error);
     return false;
@@ -49,27 +48,6 @@ export async function updateSession(request: NextRequest) {
   }
 
   const ipAddress = getClientIPFromRequest(request);
-
-  const isBlockCheckRequired =
-    pathname === "/login" ||
-    pathname === "/register" ||
-    pathname.startsWith("/invite") ||
-    pathname.startsWith("/app") ||
-    pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/api/invitations");
-
-  if (isBlockCheckRequired) {
-    const isBlocked = await checkIPBlocked(request, ipAddress);
-    if (isBlocked) {
-      return new NextResponse(
-        JSON.stringify({ error: "Access denied" }),
-        {
-          status: 403,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-  }
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-pathname", pathname);
@@ -110,7 +88,32 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
+  const isBlockCheckRequired =
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname.startsWith("/invite") ||
+    pathname.startsWith("/app") ||
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/invitations");
+
+  if (isBlockCheckRequired) {
+    const isBlocked = await checkIPBlocked(supabase, ipAddress);
+    if (isBlocked) {
+      return new NextResponse(
+        JSON.stringify({ error: "Access denied" }),
+        {
+          status: 403,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+  }
+
   const isProtectedRoute = pathname.startsWith("/app");
+  const isStatusPageRoute = 
+    pathname === "/org-blocked" || 
+    pathname === "/app/pending" || 
+    pathname === "/app/access-suspended";
 
   const hasSupabaseCookie = request.cookies.getAll().some(
     (cookie) => cookie.name.includes("sb-")
@@ -118,7 +121,7 @@ export async function updateSession(request: NextRequest) {
   const hasDeviceSession = request.cookies.has("device_session");
   const hasAnyAuthCookie = hasSupabaseCookie || hasDeviceSession;
 
-  if (isProtectedRoute) {
+  if (isProtectedRoute && !isStatusPageRoute) {
     if (!hasAnyAuthCookie) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
@@ -145,6 +148,49 @@ export async function updateSession(request: NextRequest) {
           });
           return redirectResponse;
         }
+      } else {
+        // Fix 2: Redirect suspended users directly in middleware to avoid hops
+        const { data: userData } = await supabase
+          .from("User")
+          .select(`
+            id,
+            memberships:Membership (
+              status,
+              organization:Organization (
+                status,
+                slug
+              )
+            )
+          `)
+          .eq("supabaseId", user.id)
+          .single();
+
+        if (userData?.memberships?.length > 0) {
+          // Find active membership or first one
+          const membership = userData.memberships.find((m: any) => m.status === "ACTIVE") || userData.memberships[0];
+          const orgStatus = membership.organization.status;
+          const memStatus = membership.status;
+
+          if (memStatus === "SUSPENDED" || memStatus === "REVOKED") {
+            if (pathname !== "/app/access-suspended") {
+              const url = request.nextUrl.clone();
+              url.pathname = "/app/access-suspended";
+              return NextResponse.redirect(url);
+            }
+          } else if (orgStatus === "SUSPENDED") {
+            if (pathname !== "/org-blocked") {
+              const url = request.nextUrl.clone();
+              url.pathname = "/org-blocked";
+              return NextResponse.redirect(url);
+            }
+          } else if (orgStatus !== "ACTIVE") {
+            if (pathname !== "/app/pending" && pathname !== "/app/setup") {
+              const url = request.nextUrl.clone();
+              url.pathname = "/app/pending";
+              return NextResponse.redirect(url);
+            }
+          }
+        }
       }
     }
   } else if (hasSupabaseCookie) {
@@ -153,3 +199,4 @@ export async function updateSession(request: NextRequest) {
 
   return supabaseResponse;
 }
+
