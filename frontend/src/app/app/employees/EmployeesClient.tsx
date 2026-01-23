@@ -34,6 +34,7 @@ import {
   TablePagination,
   TableSortLabel,
   Tooltip,
+  alpha,
 } from "@mui/material";
 import { createEmployee, deleteEmployee, archiveEmployee, unarchiveEmployee } from "@/lib/actions/employees";
 import { useRouter } from "next/navigation";

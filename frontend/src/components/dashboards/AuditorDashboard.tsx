@@ -20,70 +20,105 @@ export async function AuditorDashboard({ session, isOrgView }: AuditorDashboardP
   const now = new Date();
   const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-  const [
-    totalOffboardings,
-    completedOffboardings,
-    totalAuditLogs,
-    recentLogsCount,
-    totalEvidencePacks,
-    sealedEvidencePacks,
-    recentAuditLogs,
-    recentOffboardings,
-    evidencePacks,
-  ] = await Promise.all([
-    prisma.offboarding.count({ where: { organizationId: orgId } }),
-    prisma.offboarding.count({
-      where: { organizationId: orgId, status: "COMPLETED" },
-    }),
-    prisma.auditLog.count({ where: { organizationId: orgId } }),
-    prisma.auditLog.count({
-      where: { organizationId: orgId, createdAt: { gte: twentyFourHoursAgo } },
-    }),
-    prisma.evidencePack.count({ where: { offboarding: { organizationId: orgId } } }),
-    prisma.evidencePack.count({ where: { offboarding: { organizationId: orgId }, sealed: true } }),
-    prisma.auditLog.findMany({
-      where: { organizationId: orgId },
-      include: { user: { select: { name: true, email: true } } },
-      orderBy: { createdAt: "desc" },
-      take: 15,
-    }),
-    prisma.offboarding.findMany({
-      where: { organizationId: orgId },
-      include: {
-        employee: { select: { firstName: true, lastName: true, email: true, employeeId: true } },
-        tasks: { select: { id: true, status: true, completedAt: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 10,
-    }),
-    prisma.evidencePack.findMany({
-      where: { offboarding: { organizationId: orgId } },
-      include: {
-        offboarding: {
-          select: {
-            employee: { select: { firstName: true, lastName: true } },
-            status: true,
+    const [
+      activeEmployees,
+      pendingOffboardings,
+      highRiskEvents,
+      lastAuditLog,
+      totalOffboardings,
+      completedOffboardings,
+      totalAuditLogs,
+      recentLogsCount,
+      totalEvidencePacks,
+      sealedEvidencePacks,
+      recentAuditLogs,
+      recentOffboardings,
+      evidencePacks,
+    ] = await Promise.all([
+      prisma.employee.count({ where: { organizationId: orgId, status: "ACTIVE" } }),
+      prisma.offboarding.count({ 
+        where: { 
+          organizationId: orgId, 
+          status: { in: ["PENDING", "IN_PROGRESS", "PENDING_APPROVAL"] } 
+        } 
+      }),
+      prisma.monitoringEvent.count({
+        where: { 
+          organizationId: orgId, 
+          severity: { in: ["HIGH", "CRITICAL"] },
+          acknowledged: false
+        }
+      }),
+      prisma.auditLog.findFirst({
+        where: { organizationId: orgId },
+        orderBy: { createdAt: "desc" },
+        select: { createdAt: true }
+      }),
+      prisma.offboarding.count({ where: { organizationId: orgId } }),
+      prisma.offboarding.count({
+        where: { organizationId: orgId, status: "COMPLETED" },
+      }),
+      prisma.auditLog.count({ where: { organizationId: orgId } }),
+      prisma.auditLog.count({
+        where: { organizationId: orgId, createdAt: { gte: twentyFourHoursAgo } },
+      }),
+      prisma.evidencePack.count({ where: { offboarding: { organizationId: orgId } } }),
+      prisma.evidencePack.count({ where: { offboarding: { organizationId: orgId }, sealed: true } }),
+      prisma.auditLog.findMany({
+        where: { organizationId: orgId },
+        include: { user: { select: { name: true, email: true } } },
+        orderBy: { createdAt: "desc" },
+        take: 15,
+      }),
+      prisma.offboarding.findMany({
+        where: { organizationId: orgId },
+        include: {
+          employee: { select: { firstName: true, lastName: true, email: true, employeeId: true } },
+          tasks: { select: { id: true, status: true, completedAt: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      }),
+      prisma.evidencePack.findMany({
+        where: { offboarding: { organizationId: orgId } },
+        include: {
+          offboarding: {
+            select: {
+              employee: { select: { firstName: true, lastName: true } },
+              status: true,
+            },
           },
         },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 10,
-    }),
-  ]);
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      }),
+    ]);
 
-  const stats = [
-    { label: "Total Offboardings", value: totalOffboardings, icon: "folder", color: "#6366f1" },
-    { label: "Completed Cases", value: completedOffboardings, icon: "check_circle", color: "#10b981" },
-    { label: "Evidence Packs", value: `${sealedEvidencePacks}/${totalEvidencePacks}`, icon: "inventory_2", color: "#3b82f6" },
-    { label: "Actions (24h)", value: recentLogsCount, icon: "schedule", color: "#f59e0b" },
-  ];
+    const lastSyncText = lastAuditLog 
+      ? (() => {
+          const diff = now.getTime() - lastAuditLog.createdAt.getTime();
+          const mins = Math.floor(diff / 60000);
+          if (mins < 1) return "Just now";
+          if (mins < 60) return `${mins}m ago`;
+          const hours = Math.floor(mins / 60);
+          if (hours < 24) return `${hours}h ago`;
+          return `${Math.floor(hours / 24)}d ago`;
+        })()
+      : "Never";
 
-  const auditorActions = [
-    { id: "audit", label: "View Audit Logs", description: "Full activity trail", icon: "receipt_long", href: isOrgView ? "#" : "/app/audit-logs" },
-    { id: "offboardings", label: "View Offboardings", description: "All offboarding cases", icon: "folder_open", href: isOrgView ? `/admin/org-view/${orgId}/offboardings` : "/app/offboardings" },
-    { id: "employees", label: "View Employees", description: "Employee directory", icon: "people", href: isOrgView ? `/admin/org-view/${orgId}/employees` : "/app/employees" },
-    { id: "reports", label: "Generate Report", description: "Export compliance data", icon: "analytics", href: isOrgView ? "#" : "/app/reports" },
-  ];
+    const stats = [
+      { label: "Active Employees", value: activeEmployees, icon: "badge", color: "#6366f1" },
+      { label: "Pending Offboardings", value: pendingOffboardings, icon: "schedule", color: "#f59e0b" },
+      { label: "Risk Signals", value: highRiskEvents > 0 ? "High" : "Normal", icon: "warning", color: highRiskEvents > 0 ? "#ef4444" : "#10b981" },
+      { label: "Last Sync", value: lastSyncText, icon: "sync", color: "#3b82f6" },
+    ];
+
+    const auditorActions = [
+      { id: "audit", label: "View Audit Logs", description: "Full activity trail", icon: "receipt_long", href: isOrgView ? `/admin/org-view/${orgId}/audit-logs` : "/app/audit-logs" },
+      { id: "offboardings", label: "View Offboardings", description: "All offboarding cases", icon: "folder_open", href: isOrgView ? `/admin/org-view/${orgId}/offboardings` : "/app/offboardings" },
+      { id: "employees", label: "View Employees", description: "Employee directory", icon: "people", href: isOrgView ? `/admin/org-view/${orgId}/employees` : "/app/employees" },
+      { id: "reports", label: "Generate Report", description: "Export compliance data", icon: "analytics", href: isOrgView ? `/admin/org-view/${orgId}/reports` : "/app/reports" },
+    ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
