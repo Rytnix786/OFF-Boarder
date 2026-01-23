@@ -10,7 +10,14 @@ export async function GET(
     await requirePlatformAdmin();
     const { id } = await (params as any);
 
-    const conversation = await prisma.enterpriseConversation.findUnique({
+    const enterpriseConversation = (prisma as any).enterpriseConversation;
+
+    if (!enterpriseConversation) {
+      console.warn("Prisma model 'enterpriseConversation' is not available in the current client.");
+      return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
+    }
+
+    const conversation = await enterpriseConversation.findUnique({
       where: { id },
       include: {
         organization: {
@@ -62,7 +69,12 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
 
-    const conversation = await prisma.enterpriseConversation.update({
+    const enterpriseConversation = (prisma as any).enterpriseConversation;
+    if (!enterpriseConversation) {
+      return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
+    }
+
+    const conversation = await enterpriseConversation.update({
       where: { id },
       data: { status },
       include: { organization: true },
