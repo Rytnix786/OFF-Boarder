@@ -174,16 +174,34 @@ export async function getEmployeePortalSession(): Promise<EmployeePortalSession 
   };
 }
 
+async function isServerAction(): Promise<boolean> {
+  try {
+    const headersList = await headers();
+    const nextAction = headersList.get("next-action");
+    return !!nextAction;
+  } catch {
+    return false;
+  }
+}
+
 export async function requireEmployeePortalAuth(): Promise<EmployeePortalSession> {
   const supabaseUser = await getSupabaseUser();
   
   if (!supabaseUser) {
+    const inServerAction = await isServerAction();
+    if (inServerAction) {
+      throw new Error("Session expired. Please refresh the page.");
+    }
     redirect("/login?redirect=/app/employee");
   }
   
   const session = await getEmployeePortalSession();
   
   if (!session) {
+    const inServerAction = await isServerAction();
+    if (inServerAction) {
+      throw new Error("Employee portal access required.");
+    }
     redirect("/app?error=not_portal_user");
   }
   
