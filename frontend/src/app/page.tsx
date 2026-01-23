@@ -7,12 +7,13 @@ import {
   Typography,
   Button,
   Grid,
-  Card,
-  CardContent,
-  IconButton,
-  Divider,
-  alpha,
-  useTheme,
+    Card,
+    CardContent,
+    IconButton,
+    Divider,
+    Tooltip,
+    alpha,
+    useTheme,
 } from "@mui/material";
 import Link from "next/link";
 import { ColorModeContext } from "@/theme/ThemeRegistry";
@@ -98,7 +99,7 @@ const PRICING = [
     description: "14 days to evaluate with your team",
     isTrial: true,
     features: [
-      "Up to 5 offboardings",
+      { text: "Up to 5 Employees", tooltip: "Individuals tracked for offboarding via the Employee Portal. Distinct from Org users (HR/IT/Admins) who manage the platform." },
       "Full Growth features",
       "Risk Radar access",
       "Evidence pack samples",
@@ -113,7 +114,7 @@ const PRICING = [
     period: "month",
     description: "For small teams getting compliant",
     features: [
-      "Unlimited employees",
+      { text: "Unlimited Employees", tooltip: "Unlimited individuals managed via the Employee Portal." },
       "Core offboarding workflows",
       "Asset recovery tracking",
       "Standard audit logs",
@@ -134,6 +135,7 @@ const PRICING = [
     popular: true,
     features: [
       "Everything in Starter",
+      { text: "Unlimited Employees", tooltip: "Unlimited employee records, lifecycle states, and Employee Portal access for all departing staff." },
       "Risk Radar dashboard",
       "High-risk offboarding enforcement",
       "Custom workflows",
@@ -150,6 +152,7 @@ const PRICING = [
     description: "For regulated organizations",
     features: [
       "Everything in Growth",
+      { text: "Unlimited Employees", tooltip: "Formal scope management for all Employees via the Employee Portal, including complete audit history." },
       "SSO & SCIM provisioning",
       "Advanced security policies",
       "Custom SLAs",
@@ -1051,21 +1054,37 @@ export default function LandingPage() {
                           )}
                         </Box>
 
-                        <Box sx={{ flex: 1, mb: 3 }}>
-                          {plan.features.map((feature, idx) => (
-                            <Box key={idx} sx={{ display: "flex", alignItems: "flex-start", gap: 1, mb: 1.25 }}>
-                              <span
-                                className="material-symbols-outlined"
-                                style={{ fontSize: 14, color: theme.palette.primary.main, marginTop: 2 }}
-                              >
-                                check
-                              </span>
-                              <Typography variant="body2" sx={{ fontSize: "0.8rem", lineHeight: 1.4 }}>
-                                {feature}
-                              </Typography>
-                            </Box>
-                          ))}
-                          {plan.limitations?.map((limitation, idx) => (
+                          <Box sx={{ flex: 1, mb: 3 }}>
+                            {plan.features.map((feature, idx) => {
+                              const isObject = typeof feature === "object";
+                              const text = isObject ? feature.text : feature;
+                              const tooltip = isObject ? feature.tooltip : null;
+                              
+                              return (
+                                <Box key={idx} sx={{ display: "flex", alignItems: "flex-start", gap: 1, mb: 1.25 }}>
+                                  <span
+                                    className="material-symbols-outlined"
+                                    style={{ fontSize: 14, color: theme.palette.primary.main, marginTop: 2 }}
+                                  >
+                                    check
+                                  </span>
+                                  <Typography variant="body2" sx={{ fontSize: "0.8rem", lineHeight: 1.4, display: "flex", alignItems: "center", gap: 0.5 }}>
+                                    {text}
+                                    {tooltip && (
+                                      <Tooltip title={tooltip} arrow placement="top">
+                                        <span 
+                                          className="material-symbols-outlined" 
+                                          style={{ fontSize: 14, opacity: 0.5, cursor: "help" }}
+                                        >
+                                          info
+                                        </span>
+                                      </Tooltip>
+                                    )}
+                                  </Typography>
+                                </Box>
+                              );
+                            })}
+                            {plan.limitations?.map((limitation, idx) => (
                             <Box key={idx} sx={{ display: "flex", alignItems: "flex-start", gap: 1, mb: 1.25 }}>
                               <span
                                 className="material-symbols-outlined"
@@ -1110,34 +1129,44 @@ export default function LandingPage() {
               ))}
             </Grid>
 
-          <Box
-            sx={{
-              mt: 8,
-              display: "flex",
-              justifyContent: "center",
-              flexWrap: "wrap",
-              gap: { xs: 2, md: 4 },
-            }}
-          >
-            {[
-              { icon: "group", label: "Unlimited employees" },
-              { icon: "block", label: "No per-seat pricing" },
-              { icon: "trending_flat", label: "No surprise overages" },
-              { icon: "event_available", label: "Cancel anytime" },
-            ].map((item) => (
-              <Box key={item.label} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <span
-                  className="material-symbols-outlined"
-                  style={{ fontSize: 18, color: theme.palette.text.secondary }}
-                >
-                  {item.icon}
-                </span>
-                <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 500 }}>
-                  {item.label}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
+            <Box
+              sx={{
+                mt: 8,
+                display: "flex",
+                justifyContent: "center",
+                flexWrap: "wrap",
+                gap: { xs: 2, md: 4 },
+              }}
+            >
+              {[
+                { icon: "group", label: "Unlimited Employees", tooltip: "Employees refers to individuals who access the Employee Portal to complete assigned tasks. They are distinct from administrative Org users." },
+                { icon: "block", label: "No per-seat pricing" },
+                { icon: "trending_flat", label: "No surprise overages" },
+                { icon: "event_available", label: "Cancel anytime" },
+              ].map((item) => (
+                <Box key={item.label} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: 18, color: theme.palette.text.secondary }}
+                  >
+                    {item.icon}
+                  </span>
+                  <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 500, display: "flex", alignItems: "center", gap: 0.5 }}>
+                    {item.label}
+                    {item.tooltip && (
+                      <Tooltip title={item.tooltip} arrow placement="top">
+                        <span 
+                          className="material-symbols-outlined" 
+                          style={{ fontSize: 14, opacity: 0.5, cursor: "help" }}
+                        >
+                          info
+                        </span>
+                      </Tooltip>
+                    )}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
 
             <Typography
               variant="body2"
