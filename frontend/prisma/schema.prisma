@@ -1021,7 +1021,7 @@ model PlatformSignal {
 }
 
 model GlobalSecurityPolicy {
-  id            String   @id
+  id            String   @id @default(cuid())
   policyType    String   @unique
   name          String
   description   String?
@@ -1039,7 +1039,7 @@ model GlobalSecurityPolicy {
 }
 
 model PlatformAuditLog {
-  id             String   @id
+  id             String   @id @default(cuid())
   action         String
   entityType     String
   entityId       String?
@@ -1064,7 +1064,7 @@ model PlatformAuditLog {
 }
 
 model PlatformStatus {
-  id              String         @id
+  id              String         @id @default(cuid())
   status          PlatformHealth @default(OPERATIONAL)
   message         String?
   incidentMode    Boolean        @default(false)
@@ -1079,7 +1079,7 @@ model PlatformStatus {
 }
 
 model PolicyEnforcementLog {
-  id             String         @id
+  id             String         @id @default(cuid())
   organizationId String
   policyId       String
   policyType     String
@@ -1102,7 +1102,7 @@ model PolicyEnforcementLog {
 }
 
 model SecurityEvent {
-  id             String            @id
+  id             String            @id @default(cuid())
   offboardingId  String?
   organizationId String
   employeeId     String?

@@ -115,7 +115,7 @@ export async function recordBlockedAttempt(params: {
   userAgent?: string;
 }) {
   try {
-    await prisma.blockedIPAttempt.create({
+    const attempt = await prisma.blockedIPAttempt.create({
       data: {
         ipAddress: params.ipAddress,
         blockedIPId: params.blockedIPId,
@@ -125,6 +125,55 @@ export async function recordBlockedAttempt(params: {
         userAgent: params.userAgent,
       },
     });
+
+    // Enforcement logic for IP_BLOCKING_THRESHOLDS
+    const policy = await prisma.globalSecurityPolicy.findUnique({
+      where: { policyType: "IP_BLOCKING_THRESHOLDS" }
+    });
+
+    if (policy?.isActive) {
+      const config = policy.config as any;
+      const maxAttempts = config.maxFailedAttempts || 5;
+      const duration = config.blockDurationMinutes || 60;
+
+      const attemptCount = await prisma.blockedIPAttempt.count({
+        where: {
+          ipAddress: params.ipAddress,
+          createdAt: { gte: new Date(Date.now() - 15 * 60 * 1000) } // Check last 15 mins
+        }
+      });
+
+      if (attemptCount >= maxAttempts) {
+        await prisma.blockedIP.upsert({
+          where: { ipAddress_scope_organizationId: { ipAddress: params.ipAddress, scope: BlockScope.GLOBAL, organizationId: "" } },
+          create: {
+            ipAddress: params.ipAddress,
+            scope: BlockScope.GLOBAL,
+            reason: `Automatic block: Exceeded threshold of ${maxAttempts} failed attempts.`,
+            expiresAt: new Date(Date.now() + duration * 60 * 1000),
+            isActive: true,
+            createdById: "system"
+          },
+          update: {
+            isActive: true,
+            expiresAt: new Date(Date.now() + duration * 60 * 1000)
+          }
+        });
+
+        await prisma.policyEnforcementLog.create({
+          data: {
+            policyType: "IP_BLOCKING_THRESHOLDS",
+            policyId: policy.id,
+            organizationId: "platform", // Global block
+            action: "IP_BLOCKED",
+            status: "ENFORCED",
+            targetType: "IP",
+            targetId: params.ipAddress,
+            details: { attempts: attemptCount, threshold: maxAttempts }
+          }
+        });
+      }
+    }
   } catch (error) {
     console.error("Failed to record blocked attempt:", error);
   }

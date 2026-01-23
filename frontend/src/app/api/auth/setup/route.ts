@@ -98,6 +98,20 @@ async function createUserSession(
     .digest("hex")
     .substring(0, 32);
 
+  // Enforcement logic for SESSION_REVOCATION_RULES
+  const policy = await prisma.globalSecurityPolicy.findUnique({
+    where: { policyType: "SESSION_REVOCATION_RULES" }
+  });
+
+  let sessionExpiry = rememberDevice ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+  
+  if (policy?.isActive) {
+    const config = policy.config as any;
+    if (config.maxSessionAge) {
+      sessionExpiry = Math.min(sessionExpiry, config.maxSessionAge * 60 * 60 * 1000);
+    }
+  }
+
   const sessionToken = generateSecureToken();
   const refreshToken = rememberDevice ? generateSecureToken() : null;
   const sessionTokenHash = hashToken(sessionToken);
@@ -106,7 +120,16 @@ async function createUserSession(
   const sessionExpiry = rememberDevice ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
   const refreshExpiry = 90 * 24 * 60 * 60 * 1000;
 
-  const expiresAt = new Date(Date.now() + sessionExpiry);
+  let actualSessionExpiry = sessionExpiry;
+  
+  if (policy?.isActive) {
+    const config = policy.config as any;
+    if (config.maxSessionAge) {
+      actualSessionExpiry = Math.min(sessionExpiry, config.maxSessionAge * 60 * 60 * 1000);
+    }
+  }
+
+  const expiresAt = new Date(Date.now() + actualSessionExpiry);
   const refreshExpiresAt = refreshToken ? new Date(Date.now() + refreshExpiry) : null;
 
   await prisma.userSession.updateMany({
