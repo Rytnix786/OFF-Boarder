@@ -24,10 +24,13 @@ export default async function MembersPage() {
     ? ["REQUESTED_MEMBER", "REQUESTED_ADMIN"] 
     : ["REQUESTED_MEMBER"];
 
-  const [members, invitations, customRoles, joinRequests] = await Promise.all([
-    prisma.membership.findMany({
-      where: { organizationId: session.currentOrgId!, status: "ACTIVE" },
-      include: {
+    const [members, invitations, customRoles, joinRequests] = await Promise.all([
+      prisma.membership.findMany({
+        where: { 
+          organizationId: session.currentOrgId!, 
+          status: { in: ["ACTIVE", "SUSPENDED", "REVOKED"] } 
+        },
+        include: {
         user: { select: { id: true, name: true, email: true, avatarUrl: true } },
         roleAssignments: {
           include: {

@@ -171,13 +171,22 @@ export async function removeMember(membershipId: string) {
     return { error: "Cannot remove yourself" };
   }
 
-  await prisma.membership.delete({ where: { id: membershipId } });
+  // Soft revocation instead of hard delete
+  await prisma.membership.update({
+    where: { id: membershipId },
+    data: {
+      status: "REVOKED",
+      revokedAt: new Date(),
+      revokedBy: session.user.id,
+    },
+  });
 
   await createAuditLog(session, session.currentOrgId!, {
-    action: "member.removed",
+    action: "member.revoked",
     entityType: "Membership",
     entityId: membershipId,
     oldData: { userId: membership.userId, email: membership.user.email, role: membership.systemRole },
+    newData: { status: "REVOKED" },
   });
 
   revalidatePath("/app/settings/members");
