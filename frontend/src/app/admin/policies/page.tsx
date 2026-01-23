@@ -354,9 +354,11 @@ function PolicyCard({
         borderColor: incidentMode ? alpha("#dc2626", 0.12) : isDark ? "#1f1f23" : "#e5e7eb",
         borderRadius: 2,
         overflow: "hidden",
-        transition: "border-color 150ms ease",
+        transition: "all 200ms cubic-bezier(0.4, 0, 0.2, 1)",
         "&:hover": {
-          borderColor: incidentMode ? alpha("#dc2626", 0.2) : isDark ? "#27272a" : "#d1d5db",
+          borderColor: incidentMode ? alpha("#dc2626", 0.3) : isDark ? "#2d2d33" : "#cbd5e1",
+          transform: "translateY(-2px)",
+          boxShadow: isDark ? "0 8px 30px rgba(0,0,0,0.4)" : "0 8px 30px rgba(0,0,0,0.06)",
         },
       }}
     >
@@ -796,6 +798,7 @@ export default function AdminPoliciesPage() {
             bgcolor: incidentMode ? alpha("#dc2626", 0.04) : isDark ? "#141416" : "#fff",
             border: "1px solid",
             borderColor: incidentMode ? alpha("#dc2626", 0.15) : isDark ? "#1f1f23" : "#e5e7eb",
+            boxShadow: isDark ? "0 4px 20px rgba(0,0,0,0.2)" : "0 4px 20px rgba(0,0,0,0.03)",
           }}
         >
           <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2.5, mb: 3 }}>
