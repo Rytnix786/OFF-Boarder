@@ -108,6 +108,39 @@ export async function getAuthSession(orgSlug?: string): Promise<AuthSession | nu
     };
 }
 
+export async function getOrgViewSession(orgId: string): Promise<AuthSession | null> {
+  const session = await getAuthSession();
+  if (!session || !session.user.isPlatformAdmin) return null;
+
+  const org = await prisma.organization.findUnique({
+    where: { id: orgId },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      logoUrl: true,
+      status: true,
+      isSetupComplete: true,
+    },
+  });
+
+  if (!org) return null;
+
+  const orgViewMembership: MembershipWithOrg = {
+    id: `ov_${org.id}`,
+    organizationId: org.id,
+    systemRole: "AUDITOR", // Force read-only role
+    status: "ACTIVE",
+    organization: org,
+  };
+
+  return {
+    ...session,
+    currentMembership: orgViewMembership,
+    currentOrgId: org.id,
+  };
+}
+
 export async function requireAuth(orgSlug?: string): Promise<AuthSession> {
   const session = await getAuthSession(orgSlug);
   if (!session) {

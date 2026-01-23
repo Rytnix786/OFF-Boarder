@@ -215,14 +215,14 @@ export default function AdminProfileMenu({ session }: AdminProfileMenuProps) {
             </MenuItem>
           </Link>
           
-          <Link href="/app" style={{ textDecoration: "none", color: "inherit" }}>
-            <MenuItem onClick={handleClose} sx={{ py: 1.25, px: 2.5 }}>
-              <ListItemIcon>
-                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>switch_account</span>
-              </ListItemIcon>
-              <Typography sx={{ fontSize: "0.875rem", fontWeight: 500 }}>Switch to Org View</Typography>
-            </MenuItem>
-          </Link>
+            <Link href="/admin/org-view/select" style={{ textDecoration: "none", color: "inherit" }}>
+              <MenuItem onClick={handleClose} sx={{ py: 1.25, px: 2.5 }}>
+                <ListItemIcon>
+                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>switch_account</span>
+                </ListItemIcon>
+                <Typography sx={{ fontSize: "0.875rem", fontWeight: 500 }}>Switch to Org View</Typography>
+              </MenuItem>
+            </Link>
         </Box>
 
         <Divider sx={{ my: 1, borderColor: isDark ? "#18181b" : "#f4f4f5" }} />
