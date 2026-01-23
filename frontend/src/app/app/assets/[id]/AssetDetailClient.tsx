@@ -752,16 +752,22 @@ export default function AssetDetailClient({ asset, history, employees, canManage
                     </Box>
                   </Box>
                   {canManage && (
-                    <Button 
-                      variant="outlined" 
-                      color="warning" 
-                      fullWidth
-                      onClick={handleUnassign}
-                      disabled={loading}
-                      startIcon={<span className="material-symbols-outlined">person_remove</span>}
-                    >
-                      Unassign Asset
-                    </Button>
+                      <Button 
+                        variant="outlined" 
+                        color="warning" 
+                        fullWidth
+                        onClick={handleUnassign}
+                        disabled={loading}
+                        startIcon={<span className="material-symbols-outlined">person_remove</span>}
+                        sx={{
+                          "&:hover": {
+                            borderColor: "warning.main",
+                            bgcolor: (theme) => alpha(theme.palette.warning.main, 0.04),
+                          }
+                        }}
+                      >
+                        Unassign Asset
+                      </Button>
                   )}
                 </Box>
               ) : (
@@ -879,12 +885,13 @@ export default function AssetDetailClient({ asset, history, employees, canManage
                       py: 1,
                       borderWidth: "1.5px",
                       transition: "all 0.2s ease",
-                      "&:hover": {
-                        borderWidth: "1.5px",
-                        bgcolor: "rgba(211, 47, 47, 0.04)",
-                        boxShadow: "0 4px 12px rgba(211, 47, 47, 0.15)",
-                        transform: "translateY(-1px)",
-                      }
+                        "&:hover": {
+                          borderColor: "error.main",
+                          borderWidth: "1.5px",
+                          bgcolor: "rgba(211, 47, 47, 0.04)",
+                          boxShadow: "0 4px 12px rgba(211, 47, 47, 0.15)",
+                          transform: "translateY(-1px)",
+                        }
                     }}
                   >
                     Delete Asset

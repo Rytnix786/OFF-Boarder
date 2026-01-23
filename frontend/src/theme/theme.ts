@@ -244,14 +244,35 @@ export const getThemePalette = (mode: PaletteMode): ThemeOptions => {
               boxShadow: t.shadows.neon,
             },
           },
-          outlined: {
-            borderColor: isDark ? t.colors.border.subtle : t.colors.border.light,
-            backgroundColor: isDark ? t.colors.background.surfaceLight : "transparent",
-            "&:hover": {
-              borderColor: t.colors.primary.main,
-              backgroundColor: isDark ? alpha(t.colors.primary.main, 0.08) : alpha(t.colors.primary.main, 0.04),
+            outlined: {
+              borderColor: isDark ? t.colors.border.subtle : t.colors.border.light,
+              backgroundColor: isDark ? t.colors.background.surfaceLight : "transparent",
+              transition: t.transitions.default,
             },
-          },
+            outlinedPrimary: {
+              "&:hover": {
+                borderColor: t.colors.primary.main,
+                backgroundColor: isDark ? alpha(t.colors.primary.main, 0.08) : alpha(t.colors.primary.main, 0.04),
+              },
+            },
+            outlinedError: {
+              "&:hover": {
+                borderColor: t.colors.status.error,
+                backgroundColor: alpha(t.colors.status.error, 0.04),
+              },
+            },
+            outlinedWarning: {
+              "&:hover": {
+                borderColor: t.colors.status.warning,
+                backgroundColor: alpha(t.colors.status.warning, 0.04),
+              },
+            },
+            outlinedSuccess: {
+              "&:hover": {
+                borderColor: t.colors.status.success,
+                backgroundColor: alpha(t.colors.status.success, 0.04),
+              },
+            },
           text: {
             "&:hover": {
               backgroundColor: isDark ? t.colors.glass.hover : alpha(t.colors.primary.main, 0.04),
