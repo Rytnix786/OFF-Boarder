@@ -829,9 +829,9 @@ export default function LandingPage() {
                 }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 18 }}>auto_awesome</span>
-                <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: 1, textTransform: "uppercase" }}>
-                  14-Day Free Trial Available on All Plans
-                </Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: 1, textTransform: "uppercase" }}>
+                    14-Day Free Trial Available
+                  </Typography>
               </MotionBox>
               <Typography
                 variant="h2"
@@ -989,12 +989,12 @@ export default function LandingPage() {
                                 )}
                               </Box>
                               <Typography variant="caption" sx={{ color: "text.secondary", mt: 1.5, display: "block", fontWeight: 600, fontSize: "0.75rem", display: "flex", alignItems: "center", gap: 0.5 }}>
-                                {plan.isTrial ? (
-                                  <>
-                                    <span className="material-symbols-outlined" style={{ fontSize: 16, color: theme.palette.primary.main }}>schedule</span>
-                                    Trial period (14 days)
-                                  </>
-                                ) : (
+                                  {plan.isTrial ? (
+                                    <>
+                                      <span className="material-symbols-outlined" style={{ fontSize: 16, color: theme.palette.primary.main }}>schedule</span>
+                                      14-day free trial
+                                    </>
+                                  ) : (
                                   <>
                                     <span className="material-symbols-outlined" style={{ fontSize: 16 }}>calendar_today</span>
                                     Billed monthly
@@ -1458,6 +1458,7 @@ const PRICING = [
     period: "mo",
     cta: "Start Free Trial",
     popular: true,
+    isTrial: true,
     features: [
       "Higher limits for growing teams",
       "Full asset tracking",
