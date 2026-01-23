@@ -22,7 +22,10 @@ async function checkIPBlocked(
     const baseUrl = request.nextUrl.origin;
     const response = await fetch(`${baseUrl}/api/blocked-ips/check`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "x-internal-skip-middleware": "true"
+      },
       body: JSON.stringify({
         ipAddress,
         path: request.nextUrl.pathname,
@@ -41,7 +44,7 @@ async function checkIPBlocked(
 export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  if (pathname.startsWith("/api/blocked-ips/check")) {
+  if (pathname.startsWith("/api/blocked-ips/check") || request.headers.get("x-internal-skip-middleware") === "true") {
     return NextResponse.next({ request });
   }
 

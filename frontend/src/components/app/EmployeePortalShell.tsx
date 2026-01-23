@@ -60,17 +60,27 @@ export default function EmployeePortalShell({ session, children }: EmployeePorta
   const [notifLoading, setNotifLoading] = useState(false);
 
   const fetchUnreadCount = useCallback(async () => {
+    // Prevent fetching if window is not focused to reduce server load and potential loops
+    if (typeof document !== "undefined" && document.hidden) return;
+
     try {
       const count = await getUnreadNotificationCount();
       setUnreadCount(count);
     } catch (error) {
-      console.error("Failed to fetch unread count:", error);
+      // If session expired, we'll just stop polling rather than looping
+      console.warn("Failed to fetch unread count (session may be expired):", error);
     }
   }, []);
 
   useEffect(() => {
+    // Initial fetch
     fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000);
+
+    // Set up interval with a check to prevent multiple intervals
+    const interval = setInterval(() => {
+      fetchUnreadCount();
+    }, 30000);
+
     return () => clearInterval(interval);
   }, [fetchUnreadCount]);
 
