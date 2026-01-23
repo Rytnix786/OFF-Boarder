@@ -58,7 +58,7 @@ export default function PlatformEnterprisePage() {
     <Box>
       <Box sx={{ mb: 6 }}>
         <Typography variant="h4" fontWeight={800} sx={{ letterSpacing: -1, mb: 1 }}>
-          Enterprise Support
+          Enterprise Messages
         </Typography>
         <Typography variant="body2" color="text.secondary" fontWeight={500}>
           Manage secure in-platform security threads for enterprise organizations.
@@ -88,10 +88,10 @@ export default function PlatformEnterprisePage() {
       ) : conversations.length === 0 ? (
         <Paper variant="outlined" sx={{ p: 10, textAlign: "center", borderRadius: 4, bgcolor: "background.paper" }}>
           <span className="material-symbols-outlined" style={{ fontSize: 48, opacity: 0.2, marginBottom: 16 }}>
-            forum
+            shield
           </span>
           <Typography variant="body1" fontWeight={600} color="text.secondary">
-            No enterprise support threads yet.
+            No enterprise messages yet.
           </Typography>
         </Paper>
       ) : (

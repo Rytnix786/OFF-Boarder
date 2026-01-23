@@ -1,12 +1,20 @@
-"use client";
-
-import React, { use } from "react";
-import { Box, Typography, IconButton } from "@mui/material";
+import React, { use, useState, useEffect } from "react";
+import { Box, Typography, IconButton, Skeleton } from "@mui/material";
 import Link from "next/link";
 import { SecurityThread } from "@/components/app/SecurityThread";
 
 export default function PlatformEnterpriseDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const [metadata, setMetadata] = useState<{ orgName: string; subject: string } | null>(null);
+
+  useEffect(() => {
+    fetch(`/api/platform/enterprise/conversations/${id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.orgName) setMetadata(data);
+      })
+      .catch(console.error);
+  }, [id]);
 
   return (
     <Box sx={{ height: "calc(100vh - 120px)", display: "flex", flexDirection: "column" }}>
@@ -18,10 +26,10 @@ export default function PlatformEnterpriseDetailPage({ params }: { params: Promi
         </Link>
         <Box>
           <Typography variant="h4" fontWeight={800} sx={{ letterSpacing: -1 }}>
-            Enterprise Security Thread
+            {metadata ? metadata.subject : <Skeleton width={300} />}
           </Typography>
           <Typography variant="body2" color="text.secondary" fontWeight={500}>
-            Platform Support Interface • Support ID: {id}
+            {metadata ? `${metadata.orgName} • Security Thread` : <Skeleton width={200} />}
           </Typography>
         </Box>
       </Box>

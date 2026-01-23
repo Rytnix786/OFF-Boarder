@@ -44,33 +44,33 @@ export function SecurityThread({ isAdmin = false, conversationId }: SecurityThre
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const fetchConversation = async () => {
-    try {
-      const url = isAdmin 
-        ? `/api/platform/enterprise/conversations/${conversationId}/messages`
-        : `/api/enterprise/conversation`;
-      
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed to load thread");
-      
-      const data = await res.json();
-      
-      if (isAdmin) {
-        setConversation({
-          id: conversationId!,
-          subject: "Security Thread", // Admin view might not have the full object initially
-          status: "OPEN",
-          messages: data
-        });
-      } else {
-        setConversation(data);
+    const fetchConversation = async () => {
+      try {
+        const url = isAdmin 
+          ? `/api/platform/enterprise/conversations/${conversationId}`
+          : `/api/enterprise/conversation`;
+        
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Failed to load thread");
+        
+        const data = await res.json();
+        
+        if (isAdmin) {
+          const msgRes = await fetch(`/api/platform/enterprise/conversations/${conversationId}/messages`);
+          const messages = await msgRes.json();
+          setConversation({
+            ...data,
+            messages
+          });
+        } else {
+          setConversation(data);
+        }
+      } catch (err) {
+        setError("Unable to load security thread. Please try again.");
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError("Unable to load security thread. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
   useEffect(() => {
     fetchConversation();
@@ -193,9 +193,9 @@ export function SecurityThread({ isAdmin = false, conversationId }: SecurityThre
                     {msg.content}
                   </Typography>
                 </Box>
-                <Typography variant="caption" sx={{ mt: 0.75, color: "text.secondary", fontSize: "0.7rem", fontWeight: 600 }}>
-                  {msg.senderType === "PLATFORM_ADMIN" ? "Security Team" : "Organization Admin"} • {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </Typography>
+                  <Typography variant="caption" sx={{ mt: 0.75, color: "text.secondary", fontSize: "0.7rem", fontWeight: 600 }}>
+                    {msg.senderType === "PLATFORM_ADMIN" ? "Platform Admin" : "Organization"} • {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </Typography>
               </Box>
             );
           })
