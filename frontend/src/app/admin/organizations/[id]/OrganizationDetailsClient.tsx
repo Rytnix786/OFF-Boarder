@@ -23,7 +23,7 @@ import {
   Link as MuiLink,
 } from "@mui/material";
 import Link from "next/link";
-import { usePlatformContext } from "../../AdminClientLayout";
+import { usePlatformContext } from "../../AdminPlatformContext";
 import { stitchTokens } from "@/theme/tokens";
 
 const t = stitchTokens;

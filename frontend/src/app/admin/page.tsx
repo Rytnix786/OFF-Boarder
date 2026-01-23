@@ -15,7 +15,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { usePlatformContext } from "./AdminClientLayout";
+import { usePlatformContext } from "./AdminPlatformContext";
 import { stitchTokens } from "@/theme/tokens";
 
 const t = stitchTokens;

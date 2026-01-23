@@ -21,7 +21,7 @@ import {
   Tab,
   Tabs,
 } from "@mui/material";
-import { usePlatformContext } from "../AdminClientLayout";
+import { usePlatformContext } from "../AdminPlatformContext";
 
 type SupportTicket = {
   id: string;
