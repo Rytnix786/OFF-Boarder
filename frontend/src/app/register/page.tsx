@@ -85,9 +85,12 @@ function RegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  const inviteToken = searchParams.get("invite");
-  const prefillEmail = searchParams.get("email");
-  const decodedEmail = prefillEmail ? decodeURIComponent(prefillEmail).trim().toLowerCase() : "";
+    const inviteToken = searchParams.get("invite");
+    const prefillEmail = searchParams.get("email");
+    const plan = searchParams.get("plan");
+    const isTrial = searchParams.get("trial") === "true";
+    const decodedEmail = prefillEmail ? decodeURIComponent(prefillEmail).trim().toLowerCase() : "";
+
 
   // Tab state: 0 = Create Org, 1 = Join Existing Org
   const [activeTab, setActiveTab] = useState(0);
@@ -549,6 +552,29 @@ function RegisterContent() {
               iconPosition="start"
             />
           </Tabs>
+          )}
+
+          {isTrial && (
+            <Alert 
+              severity="success" 
+              sx={{ 
+                mb: 3, 
+                borderRadius: 2,
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                borderColor: alpha(theme.palette.primary.main, 0.2),
+                color: "primary.main",
+                border: "1px solid",
+                "& .MuiAlert-icon": { color: "primary.main" }
+              }}
+              icon={<span className="material-symbols-outlined">auto_awesome</span>}
+            >
+              <Typography variant="body2" fontWeight={800} sx={{ letterSpacing: 0.5, textTransform: "uppercase", fontSize: "0.75rem" }}>
+                14-Day Free Trial Activated
+              </Typography>
+              <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                You are signing up for the <strong>{plan}</strong> plan. No credit card required.
+              </Typography>
+            </Alert>
           )}
 
           {employeeInvite && (

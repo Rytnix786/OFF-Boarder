@@ -810,9 +810,32 @@ export default function LandingPage() {
 
       <Box id="pricing" sx={{ py: { xs: 14, md: 20 } }}>
         <Container maxWidth="lg">
-          <Box sx={{ textAlign: "center", mb: 8 }}>
-            <Typography
-              variant="h2"
+            <Box sx={{ textAlign: "center", mb: 8 }}>
+              <MotionBox
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 1,
+                  px: 2,
+                  py: 0.75,
+                  borderRadius: 100,
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  color: "primary.main",
+                  border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                  mb: 3,
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>auto_awesome</span>
+                <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: 1, textTransform: "uppercase" }}>
+                  14-Day Free Trial Available on All Plans
+                </Typography>
+              </MotionBox>
+              <Typography
+                variant="h2"
+
               sx={{
                 fontWeight: 800,
                 letterSpacing: -1.5,
@@ -840,155 +863,194 @@ export default function LandingPage() {
           <Grid container spacing={2.5} justifyContent="center">
               {PRICING.map((plan, index) => (
                 <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={index}>
-                  <MotionBox
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.08, duration: 0.4 }}
-                    viewport={{ once: true }}
-                    sx={{ height: "100%" }}
-                  >
-                      <Card
-                        variant="outlined"
-                        sx={{
-                          height: "100%",
-                          borderRadius: 4,
-                          borderColor: plan.isTrial 
-                            ? alpha(theme.palette.primary.main, 0.3)
-                            : isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
-                          bgcolor: plan.isTrial
-                            ? alpha(theme.palette.primary.main, 0.04)
-                            : isDark ? alpha("#fff", 0.02) : "#fff",
-                          display: "flex",
-                          flexDirection: "column",
-                          transition: "all 0.25s cubic-bezier(0.22, 1, 0.36, 1)",
-                          userSelect: "none",
-                          "&:hover": {
-                            borderColor: alpha(theme.palette.primary.main, plan.isTrial ? 0.5 : 0.3),
-                            transform: "translateY(-4px)",
-                            boxShadow: isDark 
-                              ? `0 12px 24px -8px ${alpha("#000", 0.5)}`
-                              : `0 12px 24px -8px ${alpha(theme.palette.primary.main, 0.1)}`,
-                          },
-                          "&:active": {
-                            transform: "translateY(-2px)",
-                          }
-                        }}
-                      >
-                        <CardContent sx={{ p: 3.5, flex: 1, display: "flex", flexDirection: "column" }}>
-                          <Box sx={{ mb: 3 }}>
-                            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
-                              <Typography 
-                                variant="overline" 
-                                sx={{ 
-                                  fontWeight: 800, 
-                                  fontSize: "0.7rem",
-                                  letterSpacing: 1,
-                                  color: plan.isTrial || plan.popular ? "primary.main" : "text.secondary"
-                                }}
-                              >
-                                {plan.name}
-                              </Typography>
-                              {plan.isTrial && (
-                                <Typography
-                                  variant="caption"
-                                  sx={{
-                                    px: 1,
-                                    py: 0.25,
-                                    borderRadius: 1,
-                                    bgcolor: alpha(theme.palette.primary.main, 0.1),
-                                    color: "primary.main",
-                                    fontWeight: 700,
-                                    fontSize: "0.6rem",
-                                    letterSpacing: 0.5,
-                                    textTransform: "uppercase",
-                                  }}
-                                >
-                                  No Card
-                                </Typography>
-                              )}
-                              {plan.popular && (
-                                <Typography
-                                  variant="caption"
-                                  sx={{
-                                    px: 1,
-                                    py: 0.25,
-                                    borderRadius: 1,
-                                    bgcolor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.05),
-                                    color: "text.primary",
-                                    fontWeight: 700,
-                                    fontSize: "0.6rem",
-                                    letterSpacing: 0.5,
-                                    textTransform: "uppercase",
-                                  }}
-                                >
-                                  Popular
-                                </Typography>
-                              )}
-                            </Box>
-                            <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.85rem", lineHeight: 1.5, minHeight: "2.25rem" }}>
-                              {plan.description}
-                            </Typography>
-                          </Box>
-  
-                          <Box sx={{ mb: 4, minHeight: "4rem", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                            <Box sx={{ display: "flex", alignItems: "baseline" }}>
-                              <Typography sx={{ fontSize: "2.5rem", fontWeight: 800, lineHeight: 1, letterSpacing: -1 }}>
-                                {plan.price}
-                              </Typography>
-                              {plan.period && (
-                                <Typography sx={{ color: "text.secondary", ml: 1, fontSize: "0.9rem", fontWeight: 500 }}>
-                                  /{plan.period}
-                                </Typography>
-                              )}
-                            </Box>
-                            <Typography variant="caption" sx={{ color: "text.secondary", mt: 1, display: "block", fontWeight: 500 }}>
-                              {plan.isTrial ? "Trial period (14 days)" : "Billed monthly"}
-                            </Typography>
-                          </Box>
-  
-                            <Box sx={{ mb: 4 }}>
-                              <Button
-                                fullWidth
-                                variant={plan.isTrial || plan.popular ? "contained" : "outlined"}
-                                onClick={() => {
-                                  if (plan.name === "Enterprise") {
-                                    handleContactClick("I'm interested in the Enterprise plan for my organization.");
-                                  } else {
-                                    // Other plans could also trigger contact if needed, but they are trial/direct currently
-                                    window.location.href = "/register";
-                                  }
-                                }}
-                                sx={{
-                                  fontWeight: 700,
+                    <MotionBox
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.08, duration: 0.4 }}
+                      viewport={{ once: true }}
+                      sx={{ height: "100%" }}
+                    >
+                        <Card
+                            variant="outlined"
+                            sx={{
+                              height: "100%",
 
-                                py: 1.5,
-                                borderRadius: 2.5,
-                                fontSize: "0.85rem",
-                                textTransform: "none",
-                                transition: "all 0.2s ease",
-                                ...(plan.isTrial && {
-                                  bgcolor: theme.palette.primary.main,
-                                  "&:hover": {
-                                    bgcolor: theme.palette.primary.dark,
-                                    boxShadow: `0 8px 16px ${alpha(theme.palette.primary.main, 0.25)}`,
-                                  }
-                                }),
-                                ...(!plan.isTrial && !plan.popular && {
-                                  borderColor: isDark ? alpha("#fff", 0.15) : alpha("#000", 0.15),
-                                  color: "text.primary",
-                                  "&:hover": {
-                                    borderColor: theme.palette.primary.main,
-                                    bgcolor: alpha(theme.palette.primary.main, 0.04),
-                                  },
-                                }),
-                                "&:active": {
-                                  transform: "scale(0.98)",
-                                }
+                            borderRadius: 4,
+                            position: "relative",
+                            overflow: "hidden",
+                            borderColor: plan.isTrial || plan.popular
+                              ? alpha(theme.palette.primary.main, 0.4)
+                              : isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
+                            bgcolor: plan.isTrial || plan.popular
+                              ? isDark ? alpha(theme.palette.primary.main, 0.08) : alpha(theme.palette.primary.main, 0.04)
+                              : isDark ? alpha("#fff", 0.02) : "#fff",
+                            display: "flex",
+                            flexDirection: "column",
+                            transition: "all 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
+                            userSelect: "none",
+                            ...( (plan.isTrial || plan.popular) && {
+                              animation: "pricing-glow 3s ease-in-out infinite",
+                              "@keyframes pricing-glow": {
+                                "0%, 100%": { boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.1)}` },
+                                "50%": { boxShadow: `0 0 40px ${alpha(theme.palette.primary.main, 0.25)}` },
+                              },
+                            }),
+                            "&:hover": {
+                              borderColor: alpha(theme.palette.primary.main, 0.6),
+                              transform: "translateY(-8px)",
+                              boxShadow: `0 20px 40px -12px ${alpha(theme.palette.primary.main, 0.2)}`,
+                            },
+                            "&:active": {
+                              transform: "translateY(-4px)",
+                            }
+                          }}
+                        >
+                          {(plan.isTrial || plan.popular) && (
+                            <Box
+                              sx={{
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                height: 4,
+                                background: `linear-gradient(90deg, transparent, ${theme.palette.primary.main}, transparent)`,
+                                opacity: 0.6,
                               }}
-                            >
-                              {plan.cta}
-                            </Button>
-                          </Box>
+                            />
+                          )}
+                          <CardContent sx={{ p: 4, flex: 1, display: "flex", flexDirection: "column" }}>
+                            <Box sx={{ mb: 3 }}>
+                              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+                                <Typography 
+                                  variant="overline" 
+                                  sx={{ 
+                                    fontWeight: 800, 
+                                    fontSize: "0.75rem",
+                                    letterSpacing: 1.5,
+                                    color: plan.isTrial || plan.popular ? "primary.main" : "text.secondary"
+                                  }}
+                                >
+                                  {plan.name}
+                                </Typography>
+                                {plan.isTrial && (
+                                  <Box sx={{ display: "flex", gap: 1 }}>
+                                    <Typography
+                                      variant="caption"
+                                      sx={{
+                                        px: 1.5,
+                                        py: 0.5,
+                                        borderRadius: 1.5,
+                                        bgcolor: alpha(theme.palette.primary.main, 0.15),
+                                        color: "primary.main",
+                                        fontWeight: 800,
+                                        fontSize: "0.65rem",
+                                        letterSpacing: 0.5,
+                                        textTransform: "uppercase",
+                                        border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                                      }}
+                                    >
+                                      No Card
+                                    </Typography>
+                                  </Box>
+                                )}
+                                {plan.popular && (
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      px: 1.5,
+                                      py: 0.5,
+                                      borderRadius: 1.5,
+                                      bgcolor: isDark ? alpha("#fff", 0.1) : alpha("#000", 0.06),
+                                      color: "text.primary",
+                                      fontWeight: 800,
+                                      fontSize: "0.65rem",
+                                      letterSpacing: 0.5,
+                                      textTransform: "uppercase",
+                                    }}
+                                  >
+                                    Popular
+                                  </Typography>
+                                )}
+                              </Box>
+                              <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.9rem", lineHeight: 1.6, minHeight: "3rem" }}>
+                                {plan.description}
+                              </Typography>
+                            </Box>
+    
+                            <Box sx={{ mb: 5, minHeight: "4.5rem", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                              <Box sx={{ display: "flex", alignItems: "baseline" }}>
+                                <Typography sx={{ fontSize: "3rem", fontWeight: 800, lineHeight: 1, letterSpacing: -2 }}>
+                                  {plan.price}
+                                </Typography>
+                                {plan.period && (
+                                  <Typography sx={{ color: "text.secondary", ml: 1, fontSize: "1rem", fontWeight: 600 }}>
+                                    /{plan.period}
+                                  </Typography>
+                                )}
+                              </Box>
+                              <Typography variant="caption" sx={{ color: "text.secondary", mt: 1.5, display: "block", fontWeight: 600, fontSize: "0.75rem", display: "flex", alignItems: "center", gap: 0.5 }}>
+                                {plan.isTrial ? (
+                                  <>
+                                    <span className="material-symbols-outlined" style={{ fontSize: 16, color: theme.palette.primary.main }}>schedule</span>
+                                    Trial period (14 days)
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>calendar_today</span>
+                                    Billed monthly
+                                  </>
+                                )}
+                              </Typography>
+                            </Box>
+    
+                              <Box sx={{ mb: 4 }}>
+                                <Button
+                                  fullWidth
+                                  variant={plan.isTrial || plan.popular ? "contained" : "outlined"}
+                                  onClick={() => {
+                                    if (plan.name === "Enterprise") {
+                                      handleContactClick("I'm interested in the Enterprise plan for my organization.");
+                                    } else {
+                                      const params = new URLSearchParams();
+                                      params.set("plan", plan.name.toLowerCase());
+                                      if (plan.isTrial) params.set("trial", "true");
+                                      window.location.href = `/register?${params.toString()}`;
+                                    }
+                                  }}
+                                  sx={{
+                                    fontWeight: 800,
+                                    py: 2,
+                                    borderRadius: 3,
+                                    fontSize: "0.95rem",
+                                    textTransform: "none",
+                                    transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+                                    ...( (plan.isTrial || plan.popular) && {
+                                      bgcolor: theme.palette.primary.main,
+                                      "&:hover": {
+                                        bgcolor: theme.palette.primary.dark,
+                                        boxShadow: `0 8px 25px ${alpha(theme.palette.primary.main, 0.4)}`,
+                                        transform: "scale(1.02)",
+                                      }
+                                    }),
+                                    ...(!plan.isTrial && !plan.popular && {
+                                      borderColor: isDark ? alpha("#fff", 0.15) : alpha("#000", 0.15),
+                                      color: "text.primary",
+                                      borderWidth: 2,
+                                      "&:hover": {
+                                        borderColor: theme.palette.primary.main,
+                                        bgcolor: alpha(theme.palette.primary.main, 0.04),
+                                        borderWidth: 2,
+                                      },
+                                    }),
+                                    "&:active": {
+                                      transform: "scale(0.96)",
+                                    }
+                                  }}
+                                >
+                                  {plan.cta}
+                                </Button>
+                              </Box>
+
   
                           <Box sx={{ flex: 1 }}>
                             <Typography 
