@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 import { getOrgViewSession } from "@/lib/auth.server";
 import { prisma } from "@/lib/prisma.server";
 import EmployeesClient from "@/app/app/employees/EmployeesClient";
-import { Box, alpha } from "@mui/material";
+import { Box } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { OrgViewPageHeader } from "../OrgViewPageHeader";
 
 export default async function OrgViewEmployeesPage({
