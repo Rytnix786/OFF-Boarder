@@ -141,7 +141,7 @@ export default function PlatformEnterprisePage() {
                     )}
                   </TableCell>
                   <TableCell sx={{ textAlign: "right" }}>
-                    <Link href={`/platform/enterprise/${c.id}`} passHref style={{ textDecoration: "none" }}>
+                    <Link href={`/admin/enterprise/${c.id}`} passHref style={{ textDecoration: "none" }}>
                       <Button
                         variant="outlined"
                         size="small"

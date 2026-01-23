@@ -28,7 +28,7 @@ const NAV_ITEMS = [
   { href: "/admin", label: "Overview", icon: "monitoring" },
   { href: "/admin/organizations", label: "Organizations", icon: "corporate_fare" },
   { href: "/admin/support-tickets", label: "Support Tickets", icon: "support_agent" },
-  { href: "/platform/enterprise", label: "Enterprise Messages", icon: "shield" },
+  { href: "/admin/enterprise", label: "Enterprise Messages", icon: "shield" },
   { href: "/admin/policies", label: "Global Policies", icon: "gavel" },
   { href: "/admin/signals", label: "Signals", icon: "notifications_active" },
   { href: "/admin/audit", label: "Audit Log", icon: "history" },
@@ -201,34 +201,6 @@ function PlatformSidebar({ incidentMode }: { incidentMode: boolean }) {
             </Link>
           );
         })}
-      </Box>
-
-      <Box sx={{ p: 2, borderTop: "1px solid", borderColor: incidentMode ? alpha("#dc2626", 0.2) : isDark ? "#1f1f23" : "#f1f5f9" }}>
-        <Link href="/app" style={{ textDecoration: "none" }}>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1.5,
-              px: 2,
-              py: 1.25,
-              borderRadius: "10px",
-              transition: "all 200ms ease",
-              color: isDark ? "#94a3b8" : "#64748b",
-              "&:hover": {
-                bgcolor: isDark ? alpha("#ffffff", 0.05) : alpha("#000000", 0.03),
-                color: isDark ? "#ffffff" : "#0f172a",
-              },
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-              arrow_back
-            </span>
-            <Typography sx={{ fontSize: "0.875rem", fontWeight: 500 }}>
-              Back to App
-            </Typography>
-          </Box>
-        </Link>
       </Box>
     </Box>
   );

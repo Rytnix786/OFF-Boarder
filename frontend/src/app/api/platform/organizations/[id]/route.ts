@@ -27,6 +27,18 @@ export async function GET(
           },
           orderBy: { createdAt: "asc" },
         },
+        employees: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            status: true,
+            jobTitle: true,
+            department: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "desc" },
+        },
         _count: {
           select: {
             employees: true,
