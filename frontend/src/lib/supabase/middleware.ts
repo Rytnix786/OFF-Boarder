@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 function getClientIPFromRequest(request: NextRequest): string {
@@ -14,12 +15,21 @@ function getClientIPFromRequest(request: NextRequest): string {
   return "127.0.0.1";
 }
 
-async function checkIPBlocked(
-  supabase: any,
-  ipAddress: string
-): Promise<boolean> {
+async function checkIPBlocked(ipAddress: string): Promise<boolean> {
+  const adminClient = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false
+      }
+    }
+  );
+
   try {
-    const { data, error } = await supabase
+    const { data, error } = await adminClient
       .from("BlockedIP")
       .select("id")
       .eq("ipAddress", ipAddress)
@@ -96,9 +106,10 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/invitations");
 
-  if (isBlockCheckRequired) {
-    const isBlocked = await checkIPBlocked(supabase, ipAddress);
-    if (isBlocked) {
+    if (isBlockCheckRequired) {
+      const isBlocked = await checkIPBlocked(ipAddress);
+      if (isBlocked) {
+
       return new NextResponse(
         JSON.stringify({ error: "Access denied" }),
         {
