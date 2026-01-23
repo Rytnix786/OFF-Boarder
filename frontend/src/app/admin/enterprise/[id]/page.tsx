@@ -19,7 +19,7 @@ export default function PlatformEnterpriseDetailPage({ params }: { params: Promi
   return (
     <Box sx={{ height: "calc(100vh - 120px)", display: "flex", flexDirection: "column" }}>
       <Box sx={{ mb: 4, display: "flex", alignItems: "center", gap: 2 }}>
-        <Link href="/platform/enterprise" passHref style={{ textDecoration: "none" }}>
+        <Link href="/admin/enterprise" passHref style={{ textDecoration: "none" }}>
           <IconButton sx={{ bgcolor: "background.paper", border: "1px solid", borderColor: "divider" }}>
             <span className="material-symbols-outlined">arrow_back</span>
           </IconButton>
