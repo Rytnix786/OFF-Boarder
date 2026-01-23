@@ -1378,26 +1378,42 @@ const PRICING = [
   {
     name: "Starter",
     description: "Essential offboarding for small teams.",
-    price: "$49",
+    price: "$9.99",
     period: "mo",
     cta: "Start Free Trial",
-    features: ["Up to 10 employees", "Core access revocation", "Email support"],
+    features: [
+      { text: "Up to 30 Employees", tooltip: "Employees are individuals tracked via Employee Portal for offboarding tasks (includes contractors if they use portal)." },
+      { text: "Up to 5 Org Users", tooltip: "Org users are HR, IT, or Admins who manage the platform." },
+      "Core access revocation",
+      "Email support"
+    ],
     isTrial: true
   },
   {
-    name: "Professional",
-    description: "Advanced automation for growing companies.",
-    price: "$199",
+    name: "Growth",
+    description: "Scale your security and compliance workflows.",
+    price: "$29.99",
     period: "mo",
     cta: "Start Free Trial",
     popular: true,
-    features: ["Up to 100 employees", "Full asset tracking", "Priority support", "Audit logs"]
+    features: [
+      "Higher limits for growing teams",
+      "Full asset tracking",
+      "Priority support",
+      "Audit logs",
+      "Contact us if you need more capacity"
+    ]
   },
   {
     name: "Enterprise",
     description: "Complete control for large organizations.",
     price: "Custom",
-    cta: "Talk to Security",
-    features: ["Unlimited employees", "SSO integration", "Dedicated success manager", "Custom workflows"]
+    cta: "Contact Security Team",
+    features: [
+      "Custom employee limits",
+      "SSO integration",
+      "Dedicated success manager",
+      "Custom workflows"
+    ]
   }
 ];
