@@ -45,13 +45,13 @@ type PolicyDomain = {
 const DOMAIN_CONFIG: Record<string, { name: string; description: string; icon: string; order: number }> = {
   AUTHENTICATION: {
     name: "Identity & Access",
-    description: "Policies governing how users and systems authenticate to the platform.",
+    description: "Global controls for platform authentication and session security.",
     icon: "fingerprint",
     order: 1,
   },
   NETWORK: {
     name: "Network & Perimeter",
-    description: "Controls for IP filtering, regional blocking, and request-level guards.",
+    description: "Network-level security, IP filtering, and regional access controls.",
     icon: "public",
     order: 2,
   },
@@ -63,13 +63,13 @@ const DOMAIN_CONFIG: Record<string, { name: string; description: string; icon: s
   },
   WORKFLOW: {
     name: "Operational Governance",
-    description: "Mandatory workflows for offboarding and high-risk administrative actions.",
+    description: "Mandatory workflows for offboarding and administrative actions.",
     icon: "account_tree",
     order: 4,
   },
   COMPLIANCE: {
     name: "Audit & Compliance",
-    description: "Ensuring immutable record keeping and evidence collection.",
+    description: "Immutable record keeping and automated evidence collection.",
     icon: "verified",
     order: 5,
   },
@@ -87,14 +87,14 @@ const POLICY_TO_DOMAIN: Record<string, string> = {
 };
 
 const EXECUTION_SUMMARIES: Record<string, (config: any) => string> = {
-  IP_BLOCKING: (c) => `Automatically blocks IPs after ${c.maxFailedAttempts} failed attempts. Block duration set to ${c.blockDurationMinutes} minutes. Global blocks apply across all tenants.`,
-  SESSION_REVOCATION: (c) => `Forces absolute session expiration after ${c.maxSessionAge} hours. Idle timeout enforced at ${c.idleTimeoutMinutes} minutes. Sessions are globally revoked upon user disablement.`,
-  APPROVAL_CHAIN: (c) => `Requires ${c.minApprovals} independent approvals for sensitive offboarding actions. One approval MUST come from ${c.requireSecurityRole ? "Security Admin" : "any Admin"}.`,
-  DATA_EXPORT: (c) => `Restricts data exports to ${c.allowedRegions.join(", ")}. Exports larger than ${c.maxExportRows} rows require secondary approval.`,
-  AUDIT_LOGGING: (c) => `Guarantees ${c.retentionDays} days of immutable platform logs. Critical events are mirrored to secondary vault within ${c.syncIntervalSeconds}s.`,
-  ACCESS_LOCKDOWN: (c) => `Triggers immediate API token invalidation and SSO session killing upon offboarding initiation. Coverage: ${c.coverCloudResources ? "All Cloud Assets" : "Primary SaaS Only"}.`,
-  EVIDENCE_RETENTION: (c) => `Locks offboarding evidence packs for ${c.retentionYears} years. Compliance hash generated and signed at completion.`,
-  RISK_ESCALATION: (c) => `Triggers executive escalation for ${c.severityThreshold}+ risk scores. Requires resolution within ${c.slaHours} hours.`,
+  IP_BLOCKING: (c) => `Blocks IPs for ${c.blockDurationMinutes}m after ${c.maxFailedAttempts} failures. Enforcement is global across all organizations.`,
+  SESSION_REVOCATION: (c) => `Expires sessions after ${c.maxSessionAge}h or ${c.idleTimeoutMinutes}m of inactivity. Immediate revocation on user disablement.`,
+  APPROVAL_CHAIN: (c) => `Requires ${c.minApprovals} independent approvals for sensitive actions. Requires ${c.requireSecurityRole ? "Security Admin" : "any Admin"} signature.`,
+  DATA_EXPORT: (c) => `Restricts exports to ${c.allowedRegions.join(", ")}. Exports exceeding ${c.maxExportRows} rows require secondary authorization.`,
+  AUDIT_LOGGING: (c) => `Retains immutable platform logs for ${c.retentionDays} days. Log mirroring occurs within ${c.syncIntervalSeconds}s of event.`,
+  ACCESS_LOCKDOWN: (c) => `Triggers immediate token invalidation upon offboarding. Coverage: ${c.coverCloudResources ? "All Cloud Assets" : "Primary SaaS Only"}.`,
+  EVIDENCE_RETENTION: (c) => `Locks offboarding evidence for ${c.retentionYears} years. Compliance hash generated and signed on completion.`,
+  RISK_ESCALATION: (c) => `Escalates cases with ${c.severityThreshold}+ risk scores. Resolution required within ${c.slaHours} hours.`,
 };
 
 const CONFIG_GROUPS: Record<string, { label: string; fields: string[] }[]> = {
@@ -298,29 +298,30 @@ function PolicyCard({
   return (
     <Box
       sx={{
-        bgcolor: incidentMode ? alpha("#1c1917", 0.4) : isDark ? "#141416" : "#fff",
+        bgcolor: incidentMode ? alpha("#1c1917", 0.4) : isDark ? "#0f0f11" : "#ffffff",
         border: "1px solid",
-        borderColor: incidentMode ? alpha("#dc2626", 0.12) : isDark ? "#1f1f23" : "#e5e7eb",
-        borderRadius: 2,
+        borderColor: incidentMode ? alpha("#dc2626", 0.12) : isDark ? "#1c1c1f" : "#f1f1f4",
+        borderRadius: 2.5,
         overflow: "hidden",
-        transition: "all 200ms cubic-bezier(0.4, 0, 0.2, 1)",
+        transition: "all 240ms cubic-bezier(0.4, 0, 0.2, 1)",
         "&:hover": {
-          borderColor: incidentMode ? alpha("#dc2626", 0.3) : isDark ? "#2d2d33" : "#cbd5e1",
-          transform: "translateY(-2px)",
-          boxShadow: isDark ? "0 8px 30px rgba(0,0,0,0.4)" : "0 8px 30px rgba(0,0,0,0.06)",
+          borderColor: incidentMode ? alpha("#dc2626", 0.3) : isDark ? "#27272a" : "#e2e8f0",
+          bgcolor: incidentMode ? alpha("#1c1917", 0.5) : isDark ? "#141417" : "#f8fafc",
+          transform: "translateY(-1px)",
+          boxShadow: isDark ? "0 12px 40px -12px rgba(0,0,0,0.5)" : "0 12px 40px -12px rgba(0,0,0,0.08)",
         },
       }}
     >
-      <Box sx={{ p: 3 }}>
-        <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", mb: 2 }}>
-          <Box sx={{ flex: 1, minWidth: 0, pr: 3 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5, flexWrap: "wrap" }}>
+      <Box sx={{ p: 3.5 }}>
+        <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", mb: 2.5 }}>
+          <Box sx={{ flex: 1, minWidth: 0, pr: 4 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.75, flexWrap: "wrap" }}>
               <Typography
                 sx={{
-                  fontSize: "0.9375rem",
-                  fontWeight: 700,
+                  fontSize: "1rem",
+                  fontWeight: 600,
                   color: isDark ? "#fafafa" : "#0f172a",
-                  letterSpacing: "-0.01em",
+                  letterSpacing: "-0.015em",
                 }}
               >
                 {policy.name}
@@ -330,9 +331,10 @@ function PolicyCard({
             </Box>
             <Typography
               sx={{
-                fontSize: "0.8125rem",
-                color: isDark ? "#a1a1aa" : "#6b7280",
-                lineHeight: 1.7,
+                fontSize: "0.875rem",
+                color: isDark ? "#d4d4d8" : "#4b5563",
+                lineHeight: 1.6,
+                maxWidth: "70ch",
               }}
             >
               {policy.description}
@@ -348,9 +350,9 @@ function PolicyCard({
                 <span
                   className="material-symbols-outlined"
                   style={{
-                    fontSize: 18,
+                    fontSize: 16,
                     transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-                    transition: "transform 200ms",
+                    transition: "transform 250ms cubic-bezier(0.4, 0, 0.2, 1)",
                   }}
                 >
                   expand_more
@@ -361,34 +363,37 @@ function PolicyCard({
                 fontWeight: 600,
                 textTransform: "none",
                 px: 2,
-                borderColor: isDark ? "#27272a" : "#e5e7eb",
-                color: isDark ? "#a1a1aa" : "#52525b",
+                py: 0.75,
+                borderRadius: 1.5,
+                borderColor: isDark ? "#27272a" : "#e2e8f0",
+                color: isDark ? "#d4d4d8" : "#4b5563",
+                bgcolor: isDark ? alpha("#fafafa", 0.02) : alpha("#000", 0.01),
                 "&:hover": {
-                  borderColor: isDark ? "#3f3f46" : "#d1d5db",
-                  bgcolor: "transparent",
+                  borderColor: isDark ? "#3f3f46" : "#cbd5e1",
+                  bgcolor: isDark ? alpha("#fafafa", 0.05) : alpha("#000", 0.03),
                 },
               }}
             >
-              {isLocked ? "View" : "Configure"}
+              {isLocked ? "View Details" : "Configure Policy"}
             </Button>
           </Box>
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 4 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 16, color: isDark ? "#3f3f46" : "#d1d5db" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 16, color: isDark ? "#52525b" : "#9ca3af" }}>
               corporate_fare
             </span>
-            <Typography sx={{ fontSize: "0.75rem", color: isDark ? "#52525b" : "#9ca3af" }}>
-              All tenants
+            <Typography sx={{ fontSize: "0.75rem", fontWeight: 500, color: isDark ? "#71717a" : "#64748b" }}>
+              Global Enforcement
             </Typography>
           </Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 16, color: isDark ? "#3f3f46" : "#d1d5db" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 16, color: isDark ? "#52525b" : "#9ca3af" }}>
               gavel
             </span>
-            <Typography sx={{ fontSize: "0.75rem", color: isDark ? "#52525b" : "#9ca3af" }}>
-              {policy.enforcementCount30d} enforcements (30d)
+            <Typography sx={{ fontSize: "0.75rem", fontWeight: 500, color: isDark ? "#71717a" : "#64748b" }}>
+              {policy.enforcementCount30d} checks (30d)
             </Typography>
           </Box>
         </Box>
@@ -397,20 +402,20 @@ function PolicyCard({
       <Collapse in={expanded}>
         <Box
           sx={{
-            px: 3,
-            pb: 3,
-            pt: 2.5,
+            px: 3.5,
+            pb: 4,
+            pt: 3,
             borderTop: "1px solid",
-            borderColor: incidentMode ? alpha("#dc2626", 0.08) : isDark ? "#1f1f23" : "#f3f4f6",
-            bgcolor: incidentMode ? alpha("#1c1917", 0.3) : isDark ? "#0c0c0e" : "#fafafa",
+            borderColor: incidentMode ? alpha("#dc2626", 0.08) : isDark ? "#1c1c1f" : "#f1f1f4",
+            bgcolor: incidentMode ? alpha("#1c1917", 0.3) : isDark ? "#0c0c0e" : alpha("#f8fafc", 0.5),
           }}
         >
           {executionSummary && (
               <Box
                 sx={{
-                  p: 2.5,
-                  mb: 3,
-                  borderRadius: 1.5,
+                  p: 3,
+                  mb: 4,
+                  borderRadius: 2,
                   bgcolor: isDark ? alpha("#6366f1", 0.04) : alpha("#6366f1", 0.03),
                   border: `1px solid ${isDark ? alpha("#6366f1", 0.1) : alpha("#6366f1", 0.08)}`,
                 }}
@@ -422,15 +427,15 @@ function PolicyCard({
                     color: "#6366f1",
                     textTransform: "uppercase",
                     letterSpacing: "0.1em",
-                    mb: 1,
+                    mb: 1.5,
                   }}
                 >
-                  Execution Logic
+                  System Enforcement Logic
                 </Typography>
                 <Typography
                   sx={{
-                    fontSize: "0.8125rem",
-                    color: isDark ? "#a1a1aa" : "#52525b",
+                    fontSize: "0.875rem",
+                    color: isDark ? "#d4d4d8" : "#4b5563",
                     lineHeight: 1.7,
                   }}
                 >
