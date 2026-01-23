@@ -24,9 +24,10 @@ import {
   Button,
   TextField,
   Tabs,
-  Tab,
-  Link as MuiLink,
-} from "@mui/material";
+    Tab,
+    Link as MuiLink,
+    alpha,
+  } from "@mui/material";
 import { approveOrganization, rejectOrganization, suspendOrganization, reactivateOrganization } from "@/lib/actions/organization";
 
 type Organization = {
