@@ -223,7 +223,7 @@ export function OrgViewLayoutClient({
         </Box>
 
         {/* Content Area - Clean & Sharp */}
-        <Box sx={{ flex: 1, bgcolor: "#f8fafc", overflowY: "auto", position: "relative" }}>
+        <Box sx={{ flex: 1, bgcolor: "#020617", overflowY: "auto", position: "relative" }}>
           {children}
         </Box>
       </Box>
