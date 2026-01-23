@@ -6,9 +6,10 @@ import { Box, Grid, Typography, Card, CardContent } from "@mui/material";
 export default async function OrgViewDashboard({
   params,
 }: {
-  params: { orgId: string };
+  params: Promise<{ orgId: string }>;
 }) {
-  const session = await getOrgViewSession(params.orgId);
+  const { orgId } = await params;
+  const session = await getOrgViewSession(orgId);
 
   if (!session) {
     redirect("/admin/org-view/select");

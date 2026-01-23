@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { requirePlatformAdmin } from "@/lib/auth.server";
 import { getOrgViewContext } from "@/lib/actions/org-view";
 import { prisma } from "@/lib/prisma.server";
-import { Box, Typography, Button, alpha, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Divider } from "@mui/material";
+import { Box, Typography, Button, alpha, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Divider, Chip } from "@mui/material";
 import Link from "next/link";
 import { exitOrgView } from "@/lib/actions/org-view";
 import { headers } from "next/headers";
@@ -12,17 +12,18 @@ export default async function OrgViewLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { orgId: string };
+  params: Promise<{ orgId: string }>;
 }) {
   await requirePlatformAdmin();
+  const { orgId } = await params;
   const context = await getOrgViewContext();
 
-  if (!context || context.orgId !== params.orgId) {
+  if (!context || context.orgId !== orgId) {
     redirect("/admin/org-view/select");
   }
 
   const organization = await prisma.organization.findUnique({
-    where: { id: params.orgId },
+    where: { id: orgId },
     select: { name: true },
   });
 
@@ -34,9 +35,9 @@ export default async function OrgViewLayout({
   const pathname = headersList.get("x-pathname") || "";
 
   const navItems = [
-    { label: "Dashboard", icon: "dashboard", href: `/admin/org-view/${params.orgId}` },
-    { label: "Employees", icon: "badge", href: `/admin/org-view/${params.orgId}/employees` },
-    { label: "Offboardings", icon: "group_remove", href: `/admin/org-view/${params.orgId}/offboardings` },
+    { label: "Dashboard", icon: "dashboard", href: `/admin/org-view/${orgId}` },
+    { label: "Employees", icon: "badge", href: `/admin/org-view/${orgId}/employees` },
+    { label: "Offboardings", icon: "group_remove", href: `/admin/org-view/${orgId}/offboardings` },
   ];
 
   return (

@@ -8,9 +8,10 @@ import { Suspense } from "react";
 export default async function OrgViewOffboardingsPage({
   params,
 }: {
-  params: { orgId: string };
+  params: Promise<{ orgId: string }>;
 }) {
-  const session = await getOrgViewSession(params.orgId);
+  const { orgId } = await params;
+  const session = await getOrgViewSession(orgId);
 
   if (!session) {
     redirect("/admin/org-view/select");
