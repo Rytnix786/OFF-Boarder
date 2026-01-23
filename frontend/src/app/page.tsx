@@ -162,55 +162,54 @@ export default function LandingPage() {
                   </Typography>
                 </MotionBox>
 
-                <MotionTypography
-                  variant="h1"
-                  variants={fadeInUp}
-                  sx={{
-                    fontSize: { xs: "2.5rem", md: "3.5rem" },
-                    fontWeight: 800,
-                    letterSpacing: -2,
-                    lineHeight: 1.08,
-                    mb: 3,
-                  }}
-                >
-                  Every Access Revoked.
-                  <br />
-                  Every Asset Returned.
-                  <br />
-                  <Box
-                    component="span"
-                    sx={{
-                      background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
-                      backgroundClip: "text",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                    }}
-                  >
-                    Every Audit Passed.
-                  </Box>
-                </MotionTypography>
-
-                <MotionTypography
-                    variant="h6"
+                  <MotionTypography
+                    variant="h1"
                     variants={fadeInUp}
                     sx={{
-                      color: "text.secondary",
-                      fontWeight: 400,
-                      mb: 4,
-                      lineHeight: 1.7,
-                      fontSize: "1.05rem",
-                      maxWidth: 460,
+                      fontSize: { xs: "2.5rem", md: "3.5rem" },
+                      fontWeight: 800,
+                      letterSpacing: -2,
+                      lineHeight: 1.08,
+                      mb: 3,
                     }}
                   >
-                    Automated employee offboarding that eliminates security gaps, 
-                    generates audit-ready evidence, and executes with absolute certainty.
+                    Every employee exit verified.
+                    <br />
+                    Every access revoked.
+                    <br />
+                    <Box
+                      component="span"
+                      sx={{
+                        background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+                        backgroundClip: "text",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                      }}
+                    >
+                      Every audit defensible.
+                    </Box>
                   </MotionTypography>
 
-                  <MotionBox variants={fadeInUp} sx={{ mb: 4 }}>
-                        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 2 }}>
-                          <Link href="/register" passHref style={{ textDecoration: "none" }}>
+                  <MotionTypography
+                      variant="h6"
+                      variants={fadeInUp}
+                      sx={{
+                        color: "text.secondary",
+                        fontWeight: 400,
+                        mb: 4,
+                        lineHeight: 1.7,
+                        fontSize: "1.05rem",
+                        maxWidth: 460,
+                      }}
+                    >
+                      We enforce offboarding so no accounts linger, no assets disappear, and no audit becomes a fire drill.
+                    </MotionTypography>
+
+                    <MotionBox variants={fadeInUp} sx={{ mb: 4 }}>
+                          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 2 }}>
                             <Button
                               variant="contained"
+                              onClick={() => handleContactClick("I'd like to book a 15-min Offboarding Risk Check.")}
                               sx={{
                                 fontWeight: 600,
                                 px: 4,
@@ -226,55 +225,52 @@ export default function LandingPage() {
                                 },
                               }}
                             >
-                              Start Secure Trial
+                              Book a 15-min Offboarding Risk Check
                             </Button>
-                          </Link>
-                          <Button
-                            variant="outlined"
-                            onClick={() => document.getElementById("platform")?.scrollIntoView({ behavior: "smooth" })}
+                            <Button
+                              variant="outlined"
+                              onClick={() => document.getElementById("platform")?.scrollIntoView({ behavior: "smooth" })}
+                              sx={{
+                                fontWeight: 500,
+                                px: 3,
+                                py: 1.5,
+                                borderRadius: 2,
+                                fontSize: "0.95rem",
+                                height: 50,
+                                color: "text.primary",
+                                textTransform: "none",
+                                borderColor: isDark ? alpha("#fff", 0.15) : alpha("#000", 0.15),
+                                "&:hover": {
+                                  borderColor: isDark ? alpha("#fff", 0.3) : alpha("#000", 0.3),
+                                  bgcolor: isDark ? alpha("#fff", 0.04) : alpha("#000", 0.02),
+                                },
+                              }}
+                              endIcon={
+                                <span className="material-symbols-outlined" style={{ fontSize: 18, opacity: 0.7 }}>
+                                  play_circle
+                                </span>
+                              }
+                            >
+                              Explore How It Works
+                            </Button>
+                          </Box>
+                          <Typography
+                            variant="caption"
                             sx={{
+                              color: "text.secondary",
+                              fontSize: "0.8rem",
                               fontWeight: 500,
-                              px: 3,
-                              py: 1.5,
-                              borderRadius: 2,
-                              fontSize: "0.95rem",
-                              height: 50,
-                              color: "text.primary",
-                              textTransform: "none",
-                              borderColor: isDark ? alpha("#fff", 0.15) : alpha("#000", 0.15),
-                              "&:hover": {
-                                borderColor: isDark ? alpha("#fff", 0.3) : alpha("#000", 0.3),
-                                bgcolor: isDark ? alpha("#fff", 0.04) : alpha("#000", 0.02),
-                              },
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              ml: 0.5,
                             }}
-                            endIcon={
-                              <span className="material-symbols-outlined" style={{ fontSize: 18, opacity: 0.7 }}>
-                                play_circle
-                              </span>
-                            }
                           >
-                            Explore How It Works
-                          </Button>
-                        </Box>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: "text.secondary",
-                            fontSize: "0.8rem",
-                            fontWeight: 500,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                            ml: 0.5,
-                          }}
-                        >
-                          <span>No credit card</span>
-                          <span style={{ opacity: 0.4 }}>•</span>
-                          <span>Isolated workspace</span>
-                          <span style={{ opacity: 0.4 }}>•</span>
-                          <span>Enterprise-grade security</span>
-                        </Typography>
-                    </MotionBox>
+                            <span>No commitment</span>
+                            <span style={{ opacity: 0.4 }}>•</span>
+                            <span>No install required</span>
+                          </Typography>
+                      </MotionBox>
 
                 <MotionBox variants={fadeInUp}>
                       <Box
@@ -414,88 +410,78 @@ export default function LandingPage() {
         </Container>
       </Box>
 
-      <Box id="platform" sx={{ py: { xs: 14, md: 20 } }}>
-        <Container maxWidth="lg">
-          <Box sx={{ textAlign: "center", mb: 10 }}>
-            <Typography
-              variant="overline"
-              sx={{
-                color: "primary.main",
-                fontWeight: 700,
-                letterSpacing: 1.5,
-                mb: 2,
-                display: "block",
-                fontSize: "0.75rem",
-              }}
-            >
-              THE RISK
-            </Typography>
-            <Typography
-              variant="h2"
-              sx={{
-                fontWeight: 800,
-                letterSpacing: -1.5,
-                mb: 3,
-                fontSize: { xs: "2rem", md: "2.75rem" },
-              }}
-            >
-              Employee Exits Are the #1
-              <br />
-              Hidden Security Risk
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                color: "text.secondary",
-                maxWidth: 600,
-                mx: "auto",
-                lineHeight: 1.8,
-                fontSize: "1.05rem",
-              }}
-            >
-              Manual revocation failures. Missed assets. Audit stress.
-              Every offboarding is a window of vulnerability.
-            </Typography>
-          </Box>
-
-          <Grid container spacing={4} justifyContent="center">
-            {RISK_STATS.map((stat, index) => (
-              <Grid size={{ xs: 12, sm: 4 }} key={index}>
-                <MotionBox
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1, duration: 0.5 }}
-                  viewport={{ once: true }}
-                  sx={{ textAlign: "center" }}
-                >
-                  <Typography
-                    sx={{
-                      fontSize: { xs: "3rem", md: "3.5rem" },
-                      fontWeight: 800,
-                      color: "primary.main",
-                      lineHeight: 1,
-                      mb: 1.5,
-                    }}
-                  >
-                    {stat.value}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: "text.secondary",
-                      fontWeight: 500,
-                      maxWidth: 200,
-                      mx: "auto",
-                    }}
-                  >
-                    {stat.label}
-                  </Typography>
-                </MotionBox>
-              </Grid>
-            ))}
-          </Grid>
-        </Container>
-      </Box>
+        <Box id="platform" sx={{ py: { xs: 14, md: 20 } }}>
+          <Container maxWidth="lg">
+            <Box sx={{ textAlign: "center", mb: 10 }}>
+              <Typography
+                variant="overline"
+                sx={{
+                  color: "primary.main",
+                  fontWeight: 700,
+                  letterSpacing: 1.5,
+                  mb: 2,
+                  display: "block",
+                  fontSize: "0.75rem",
+                }}
+              >
+                THE RISK
+              </Typography>
+              <Typography
+                variant="h2"
+                sx={{
+                  fontWeight: 800,
+                  letterSpacing: -1.5,
+                  mb: 3,
+                  fontSize: { xs: "2rem", md: "2.75rem" },
+                }}
+              >
+                Employee exits are your biggest
+                <br />
+                hidden security risk
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "text.secondary",
+                  maxWidth: 600,
+                  mx: "auto",
+                  lineHeight: 1.8,
+                  fontSize: "1.05rem",
+                  mb: 4,
+                }}
+              >
+                Most companies assume offboarding is handled.
+              </Typography>
+              <Box 
+                sx={{ 
+                  textAlign: "left", 
+                  maxWidth: 400, 
+                  mx: "auto",
+                  bgcolor: isDark ? alpha("#fff", 0.03) : alpha("#000", 0.02),
+                  p: 4,
+                  borderRadius: 4,
+                  border: "1px solid",
+                  borderColor: isDark ? alpha("#fff", 0.06) : alpha("#000", 0.06),
+                }}
+              >
+                <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>In reality:</Typography>
+                {[
+                  "Access removal is manual and inconsistent",
+                  "Ownership is unclear between HR and IT",
+                  "There’s no proof when audits happen"
+                ].map((item, i) => (
+                  <Box key={i} sx={{ display: "flex", gap: 1.5, mb: 1.5 }}>
+                    <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: "primary.main", mt: 1.2, flexShrink: 0 }} />
+                    <Typography variant="body2" color="text.secondary" fontWeight={500}>{item}</Typography>
+                  </Box>
+                ))}
+                <Typography variant="body2" color="text.primary" fontWeight={700} sx={{ mt: 3, textAlign: "center" }}>
+                  All it takes is one missed account.
+                </Typography>
+              </Box>
+            </Box>
+          </Container>
+        </Box>
 
       <Box
         id="security"
@@ -505,47 +491,45 @@ export default function LandingPage() {
         }}
       >
         <Container maxWidth="lg">
-          <Box sx={{ textAlign: "center", mb: 10 }}>
-            <Typography
-              variant="overline"
-              sx={{
-                color: "primary.main",
-                fontWeight: 700,
-                letterSpacing: 1.5,
-                mb: 2,
-                display: "block",
-                fontSize: "0.75rem",
-              }}
-            >
-              THE CONTROL
-            </Typography>
-            <Typography
-              variant="h2"
-              sx={{
-                fontWeight: 800,
-                letterSpacing: -1.5,
-                mb: 3,
-                fontSize: { xs: "2rem", md: "2.75rem" },
-              }}
-            >
-              One System That Enforces
-              <br />
-              Every Offboarding Step
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                color: "text.secondary",
-                maxWidth: 600,
-                mx: "auto",
-                lineHeight: 1.8,
-                fontSize: "1.05rem",
-              }}
-            >
-              Not reminders. Enforcement. Every access point tracked,
-              every revocation verified, every asset accounted for.
-            </Typography>
-          </Box>
+            <Box sx={{ textAlign: "center", mb: 10 }}>
+              <Typography
+                variant="overline"
+                sx={{
+                  color: "primary.main",
+                  fontWeight: 700,
+                  letterSpacing: 1.5,
+                  mb: 2,
+                  display: "block",
+                  fontSize: "0.75rem",
+                }}
+              >
+                THE CONTROL
+              </Typography>
+              <Typography
+                variant="h2"
+                sx={{
+                  fontWeight: 800,
+                  letterSpacing: -1.5,
+                  mb: 3,
+                  fontSize: { xs: "2rem", md: "2.75rem" },
+                }}
+              >
+                We make offboarding boring — and safe
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "text.secondary",
+                  maxWidth: 600,
+                  mx: "auto",
+                  lineHeight: 1.8,
+                  fontSize: "1.05rem",
+                }}
+              >
+                Offboarding should be predictable, enforced, and provable.
+                We don’t rely on memory, spreadsheets, or good intentions.
+              </Typography>
+            </Box>
 
           <Grid container spacing={4}>
             {CONTROL_FEATURES.map((feature, index) => (
@@ -605,107 +589,77 @@ export default function LandingPage() {
         </Container>
       </Box>
 
-      <Box id="compliance" sx={{ py: { xs: 14, md: 20 } }}>
-        <Container maxWidth="lg">
-          <Box sx={{ textAlign: "center", mb: 10 }}>
-            <Typography
-              variant="overline"
-              sx={{
-                color: "primary.main",
-                fontWeight: 700,
-                letterSpacing: 1.5,
-                mb: 2,
-                display: "block",
-                fontSize: "0.75rem",
-              }}
-            >
-              THE OUTCOME
-            </Typography>
-            <Typography
-              variant="h2"
-              sx={{
-                fontWeight: 800,
-                letterSpacing: -1.5,
-                mb: 3,
-                fontSize: { xs: "2rem", md: "2.75rem" },
-              }}
-            >
-              Nothing Slips. Nothing Breaks.
-              <br />
-              Nothing Gets Missed.
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                color: "text.secondary",
-                maxWidth: 600,
-                mx: "auto",
-                lineHeight: 1.8,
-                fontSize: "1.05rem",
-              }}
-            >
-              Complete visibility. Immutable records. Audit confidence
-              that lets you sleep at night.
-            </Typography>
-          </Box>
-
-          <Grid container spacing={4} justifyContent="center">
-            {OUTCOME_FEATURES.map((feature, index) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
-                <MotionBox
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1, duration: 0.5 }}
-                  viewport={{ once: true }}
-                >
-                  <Card
-                    variant="outlined"
-                    sx={{
-                      height: "100%",
+        <Box id="compliance" sx={{ py: { xs: 14, md: 20 } }}>
+          <Container maxWidth="lg">
+            <Box sx={{ textAlign: "center", mb: 10 }}>
+              <Typography
+                variant="overline"
+                sx={{
+                  color: "primary.main",
+                  fontWeight: 700,
+                  letterSpacing: 1.5,
+                  mb: 2,
+                  display: "block",
+                  fontSize: "0.75rem",
+                }}
+              >
+                THE OUTCOME
+              </Typography>
+              <Typography
+                variant="h2"
+                sx={{
+                  fontWeight: 800,
+                  letterSpacing: -1.5,
+                  mb: 3,
+                  fontSize: { xs: "2rem", md: "2.75rem" },
+                }}
+              >
+                What breaks without enforcement
+              </Typography>
+              <Box 
+                sx={{ 
+                  display: "flex", 
+                  flexDirection: "column", 
+                  gap: 2, 
+                  maxWidth: 400, 
+                  mx: "auto",
+                  mt: 6,
+                  textAlign: "left"
+                }}
+              >
+                {[
+                  { icon: "block", text: "Accounts stay active", color: "error.main" },
+                  { icon: "inventory_2", text: "Assets go missing", color: "warning.main" },
+                  { icon: "description", text: "Audits turn into guesswork", color: "info.main" }
+                ].map((item, i) => (
+                  <Box 
+                    key={i} 
+                    sx={{ 
+                      display: "flex", 
+                      alignItems: "center", 
+                      gap: 3,
+                      p: 3,
                       borderRadius: 4,
+                      bgcolor: isDark ? alpha("#fff", 0.03) : alpha("#000", 0.02),
+                      border: "1px solid",
                       borderColor: isDark ? alpha("#fff", 0.06) : alpha("#000", 0.06),
-                      bgcolor: isDark ? alpha("#fff", 0.02) : "#fff",
-                      transition: "all 0.3s ease",
-                      "&:hover": {
-                        borderColor: alpha(theme.palette.primary.main, 0.3),
-                        transform: "translateY(-4px)",
-                      },
                     }}
                   >
-                    <CardContent sx={{ p: 4 }}>
-                      <Box
-                        sx={{
-                          width: 52,
-                          height: 52,
-                          borderRadius: 3,
-                          bgcolor: alpha(theme.palette.primary.main, 0.1),
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          mb: 3,
-                        }}
-                      >
-                        <span
-                          className="material-symbols-outlined"
-                          style={{ fontSize: 26, color: theme.palette.primary.main }}
-                        >
-                          {feature.icon}
-                        </span>
-                      </Box>
-                      <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5, fontSize: "1.1rem" }}>
-                        {feature.title}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: "text.secondary", lineHeight: 1.7 }}>
-                        {feature.description}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </MotionBox>
-              </Grid>
-            ))}
-          </Grid>
-        </Container>
-      </Box>
+                    <span 
+                      className="material-symbols-outlined" 
+                      style={{ color: theme.palette.error.main, fontSize: 24 }}
+                    >
+                      {item.icon}
+                    </span>
+                    <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "1.1rem" }}>
+                      {item.text}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          </Container>
+        </Box>
 
       <Box
         sx={{
@@ -746,29 +700,30 @@ export default function LandingPage() {
             >
               Designed for Calm, Not Chaos
             </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                color: "text.secondary",
-                maxWidth: 560,
-                mx: "auto",
-                lineHeight: 1.9,
-                fontSize: "1.1rem",
-                mb: 5,
-              }}
-            >
-              Employee exits are stressful enough. OffboardHQ works quietly in the background,
-              enforcing policies automatically, reducing cognitive load, and giving you
-              predictability when you need it most.
-            </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "text.secondary",
+                  maxWidth: 560,
+                  mx: "auto",
+                  lineHeight: 1.9,
+                  fontSize: "1.1rem",
+                  mb: 5,
+                }}
+              >
+                Offboarding is a high-risk moment.
+                The system handling it shouldn’t feel chaotic.
+                <br /><br />
+                OffboardHQ stays out of the way while enforcing what matters.
+              </Typography>
 
-            <Grid container spacing={4} sx={{ mt: 2 }}>
-              {[
-                { icon: "auto_mode", label: "Quiet Automation", desc: "Runs without constant attention" },
-                { icon: "lock", label: "Background Enforcement", desc: "Policies execute automatically" },
-                { icon: "psychology", label: "Reduced Cognitive Load", desc: "One dashboard, full visibility" },
-                { icon: "event_available", label: "Predictable Outcomes", desc: "Same process, every time" },
-              ].map((item, index) => (
+              <Grid container spacing={4} sx={{ mt: 2 }}>
+                {[
+                  { icon: "auto_mode", label: "Quiet Enforcement", desc: "Runs without constant attention" },
+                  { icon: "lock", label: "Verified Policy Execution", desc: "Policies execute automatically" },
+                  { icon: "psychology", label: "Proof by Default", desc: "One dashboard, full visibility" },
+                  { icon: "event_available", label: "Audit-Ready Exits", desc: "Same process, every time" },
+                ].map((item, index) => (
                 <Grid size={{ xs: 6, md: 3 }} key={index}>
                   <Box sx={{ textAlign: "center" }}>
                     <Box
@@ -832,29 +787,27 @@ export default function LandingPage() {
               </MotionBox>
               <Typography
                 variant="h2"
-
-              sx={{
-                fontWeight: 800,
-                letterSpacing: -1.5,
-                mb: 2,
-                fontSize: { xs: "2rem", md: "2.5rem" },
-              }}
-            >
-              Simple, Predictable Pricing
-            </Typography>
-              <Typography
-                variant="body1"
                 sx={{
-                  color: "text.secondary",
-                  maxWidth: 480,
-                  mx: "auto",
-                  fontSize: "1rem",
-                  lineHeight: 1.7,
+                  fontWeight: 800,
+                  letterSpacing: -1.5,
+                  mb: 2,
+                  fontSize: { xs: "2rem", md: "2.5rem" },
                 }}
               >
-                Pricing reflects organizational complexity, not headcount.
-                Flexible plans designed to scale with your security needs.
+                Pricing that doesn’t penalize headcount
               </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: "text.secondary",
+                    maxWidth: 480,
+                    mx: "auto",
+                    fontSize: "1rem",
+                    lineHeight: 1.7,
+                  }}
+                >
+                  Pricing reflects organizational complexity — not how many people you employ.
+                </Typography>
           </Box>
 
           <Grid container spacing={2.5} justifyContent="center">
@@ -1191,74 +1144,72 @@ export default function LandingPage() {
 
       <Box sx={{ py: { xs: 14, md: 18 } }}>
         <Container maxWidth="md">
-          <Box
-            sx={{
-              textAlign: "center",
-              bgcolor: isDark ? alpha("#fff", 0.02) : "#FAFBFC",
-              borderRadius: 6,
-              p: { xs: 6, md: 10 },
-              border: "1px solid",
-              borderColor: isDark ? alpha("#fff", 0.06) : alpha("#000", 0.06),
-            }}
-          >
-            <Typography
-              variant="h3"
+            <Box
               sx={{
-                fontWeight: 800,
-                letterSpacing: -1,
-                mb: 3,
-                fontSize: { xs: "1.75rem", md: "2.25rem" },
+                textAlign: "center",
+                bgcolor: isDark ? alpha("#fff", 0.02) : "#FAFBFC",
+                borderRadius: 6,
+                p: { xs: 6, md: 10 },
+                border: "1px solid",
+                borderColor: isDark ? alpha("#fff", 0.06) : alpha("#000", 0.06),
               }}
             >
-              Ready to Secure Your Offboarding?
-            </Typography>
-            <Typography
-              sx={{
-                color: "text.secondary",
-                mb: 5,
-                fontSize: "1.1rem",
-                maxWidth: 460,
-                mx: "auto",
-              }}
-            >
-              See how OffboardHQ can eliminate security gaps and
-              bring predictability to your employee exit process.
-            </Typography>
-              <Box sx={{ display: "flex", gap: 2, justifyContent: "center", flexWrap: "wrap" }}>
-                <Link href="/register" passHref style={{ textDecoration: "none" }}>
-                    <Button
-                      variant="contained"
-                      size="large"
-                      sx={{
-                        fontWeight: 600,
-                        px: 5,
-                        py: 1.5,
-                        borderRadius: 2,
-                        fontSize: "1rem",
-                        textTransform: "none",
-                      }}
-                    >
-                      Start Secure Trial
-                    </Button>
-                </Link>
-                <Button
-                  variant="outlined"
-                  size="large"
-                  onClick={() => document.getElementById("platform")?.scrollIntoView({ behavior: "smooth" })}
-                  sx={{
-                    fontWeight: 500,
-                    px: 4,
-                    py: 1.5,
-                    borderRadius: 2,
-                    borderColor: isDark ? alpha("#fff", 0.15) : alpha("#000", 0.15),
-                    color: "text.primary",
-                    textTransform: "none",
-                  }}
-                >
-                  Explore Platform
-                </Button>
-              </Box>
-          </Box>
+              <Typography
+                variant="h3"
+                sx={{
+                  fontWeight: 800,
+                  letterSpacing: -1,
+                  mb: 3,
+                  fontSize: { xs: "1.75rem", md: "2.25rem" },
+                }}
+              >
+                Start with one offboarding.
+              </Typography>
+              <Typography
+                sx={{
+                  color: "text.secondary",
+                  mb: 5,
+                  fontSize: "1.1rem",
+                  maxWidth: 460,
+                  mx: "auto",
+                }}
+              >
+                We’ll run your next employee exit end-to-end and prove the system works.
+              </Typography>
+                <Box sx={{ display: "flex", gap: 2, justifyContent: "center", flexWrap: "wrap" }}>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    onClick={() => handleContactClick("I'd like to book a 15-min risk check.")}
+                    sx={{
+                      fontWeight: 600,
+                      px: 5,
+                      py: 1.5,
+                      borderRadius: 2,
+                      fontSize: "1rem",
+                      textTransform: "none",
+                    }}
+                  >
+                    Book a 15-min risk check
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="large"
+                    onClick={() => document.getElementById("platform")?.scrollIntoView({ behavior: "smooth" })}
+                    sx={{
+                      fontWeight: 500,
+                      px: 4,
+                      py: 1.5,
+                      borderRadius: 2,
+                      borderColor: isDark ? alpha("#fff", 0.15) : alpha("#000", 0.15),
+                      color: "text.primary",
+                      textTransform: "none",
+                    }}
+                  >
+                    Explore Platform
+                  </Button>
+                </Box>
+            </Box>
         </Container>
       </Box>
 
@@ -1302,7 +1253,7 @@ export default function LandingPage() {
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
                 Platform
               </Typography>
-              {["Risk Radar", "Workflows", "Integrations", "API"].map((item) => (
+                {["Missed Access Detection", "Workflows", "Integrations", "API"].map((item) => (
                 <Typography
                   key={item}
                   variant="body2"
@@ -1421,10 +1372,10 @@ const RISK_STATS = [
 ];
 
 const CONTROL_FEATURES = [
-  { icon: "key", title: "Access Revocation", description: "Instantly revoke access across SaaS, VPN, and cloud providers." },
-  { icon: "inventory_2", title: "Asset Recovery", description: "Track physical hardware returns with automated shipping labels." },
-  { icon: "rule", title: "Policy Enforcement", description: "Ensure every exit follows HR and Security mandates." },
-  { icon: "history_edu", title: "Audit Records", description: "Generate immutable logs for SOC2 and ISO compliance." },
+  { icon: "key", title: "Missed Access Detection", description: "Instantly detect and revoke lingering access across all SaaS and cloud providers." },
+  { icon: "inventory_2", title: "Verified Asset Return", description: "Enforce physical hardware recovery with automated tracking and verification." },
+  { icon: "rule", title: "Clear Ownership Between HR & IT", description: "Eliminate ambiguity with defined approval chains and enforced handoffs." },
+  { icon: "history_edu", title: "No Steps Skipped, Ever", description: "Every action is logged and verified, creating a defensible audit trail by default." },
 ];
 
 const OUTCOME_FEATURES = [
