@@ -211,7 +211,7 @@ export default function UsersClient({ users }: UsersClientProps) {
       <Menu anchorEl={menuAnchor?.el} open={Boolean(menuAnchor)} onClose={() => setMenuAnchor(null)}>
         <MenuItem onClick={() => {
           if (menuAnchor?.user) {
-            router.push(`/admin/profile/${menuAnchor.user.id}`); // Corrected path
+            router.push(`/admin/users/${menuAnchor.user.id}`); // Corrected path to use user details route
           }
           setMenuAnchor(null);
         }}>
