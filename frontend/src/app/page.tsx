@@ -21,6 +21,7 @@ import { motion } from "framer-motion";
 import { RiskRadarAnimation } from "@/components/ui/RiskRadarAnimation";
 
 import { EnterpriseContactModal } from "@/components/EnterpriseContactModal";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 const MotionBox = motion.create(Box);
 const MotionTypography = motion.create(Typography);
@@ -106,13 +107,9 @@ export default function LandingPage() {
               ))}
             </Box>
 
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <IconButton onClick={colorMode.toggleColorMode} size="small">
-                  <span className="material-symbols-outlined">
-                    {isDark ? "light_mode" : "dark_mode"}
-                  </span>
-                </IconButton>
-                <Link href="/login" passHref style={{ textDecoration: "none" }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <ThemeToggle size="small" />
+                  <Link href="/login" passHref style={{ textDecoration: "none" }}>
                   <Button sx={{ fontWeight: 600, color: "text.primary" }}>Sign In</Button>
                 </Link>
                 <Link href="/register" passHref style={{ textDecoration: "none" }}>
