@@ -72,11 +72,8 @@ export async function getAuthSession(orgSlug?: string): Promise<AuthSession | nu
 
   if (!user) return null;
 
-  const validMemberships = user.memberships.filter(
-    (m) => m.organization.status === "ACTIVE"
-  );
-
-  const memberships: MembershipWithOrg[] = validMemberships.map((m) => ({
+  // No longer filter by organization status here, let requireActiveOrg handle it
+  const memberships: MembershipWithOrg[] = user.memberships.map((m) => ({
     id: m.id,
     organizationId: m.organizationId,
     systemRole: m.systemRole,
@@ -187,8 +184,16 @@ export async function requireActiveOrg(orgSlug?: string): Promise<AuthSession> {
     if (inServerAction) {
       throw new AuthError("Your access has been suspended or revoked.", "UNAUTHORIZED");
     }
-    // Redirect to a specific suspended page to avoid loops
     redirect("/app/access-suspended");
+  }
+
+  // Handle suspended organizations directly
+  if (session.currentMembership.organization.status === "SUSPENDED") {
+    const inServerAction = await isServerAction();
+    if (inServerAction) {
+      throw new AuthError("Organization is suspended.", "NO_ORG");
+    }
+    redirect("/org-blocked");
   }
 
   if (session.currentMembership.organization.status !== "ACTIVE") {
