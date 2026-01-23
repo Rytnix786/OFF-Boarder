@@ -264,10 +264,20 @@ export async function suspendMember(membershipId: string) {
     return { error: "Cannot suspend the organization owner" };
   }
 
-  await prisma.membership.update({
-    where: { id: membershipId },
-    data: { status: "SUSPENDED" },
-  });
+    await prisma.membership.update({
+      where: { id: membershipId },
+      data: { status: "SUSPENDED" },
+    });
+
+    await createNotification({
+      userId: membership.userId,
+      organizationId: session.currentOrgId!,
+      type: "general",
+      title: "Account Suspended",
+      message: "Your organization access has been suspended. Please contact your administrator.",
+      link: "/app/access-suspended",
+    });
+
 
   revalidatePath("/app/settings/members");
   return { success: true };

@@ -14,7 +14,10 @@ export type NotificationType =
   | "risk_level_changed"
   | "evidence_requested"
   | "evidence_rejected"
-  | "attestation_required";
+  | "attestation_required"
+  | "offboarding_completed"
+  | "org_suspended"
+  | "org_reactivated";
 
 interface CreateNotificationParams {
   userId: string;

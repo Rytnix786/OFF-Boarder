@@ -140,13 +140,46 @@ export async function submitApproval(
       approverName: session.user.name || session.user.email,
       offboardingId: approval.offboardingId,
       taskId: approval.taskId,
-      rejectionReason,
-    },
-  });
+    rejectionReason,
+      },
+    });
 
-  if (status === "APPROVED") {
-    await checkAndUpdateOffboardingStatus(approval.offboardingId, orgId);
-  }
+    if (status === "REJECTED" && approval.taskId) {
+      if (approval.task?.isEmployeeRequired) {
+        await createEmployeeNotification(
+          orgId,
+          approval.offboarding.employeeId,
+          "evidence_rejected",
+          "Evidence Rejected",
+          `Your evidence for "${approval.task.name}" was rejected: ${rejectionReason}`,
+          "/app/employee/tasks"
+        );
+      } else if (approval.task?.assignedToUserId) {
+        await createNotification({
+          userId: approval.task.assignedToUserId,
+          organizationId: orgId,
+          type: "evidence_rejected",
+          title: "Evidence Rejected",
+          message: `Evidence for task "${approval.task.name}" was rejected: ${rejectionReason}`,
+          link: `/app/offboardings/${approval.offboardingId}`,
+        });
+      }
+    }
+
+    if (status === "APPROVED") {
+      if (approval.taskId && approval.task?.isEmployeeRequired) {
+        await createEmployeeNotification(
+          orgId,
+          approval.offboarding.employeeId,
+          "general",
+          "Evidence Approved",
+          `Your evidence for "${approval.task.name}" has been approved.`,
+          "/app/employee/tasks"
+        );
+      }
+      await checkAndUpdateOffboardingStatus(approval.offboardingId, orgId);
+    }
+
 
   revalidatePath(`/app/offboardings/${approval.offboardingId}`);
   return { success: true, approval: updated };
