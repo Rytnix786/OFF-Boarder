@@ -21,7 +21,7 @@ import {
   TextField,
 } from "@mui/material";
 import { stitchTokens } from "@/theme/tokens";
-import { usePlatformContext } from "../AdminClientLayout";
+import { usePlatformContext } from "../AdminPlatformContext";
 
 const t = stitchTokens;
 

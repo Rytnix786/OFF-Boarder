@@ -14,7 +14,7 @@ import {
   MenuItem,
   FormControl,
 } from "@mui/material";
-import { usePlatformContext } from "../AdminClientLayout";
+import { usePlatformContext } from "../AdminPlatformContext";
 
 type PolicyConfig = Record<string, unknown>;
 

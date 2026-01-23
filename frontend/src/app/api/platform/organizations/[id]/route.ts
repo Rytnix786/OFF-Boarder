@@ -10,8 +10,13 @@ export async function GET(
     await requirePlatformAdmin();
     const { id } = await params;
 
-    const organization = await prisma.organization.findUnique({
-      where: { id },
+    const organization = await prisma.organization.findFirst({
+      where: {
+        OR: [
+          { id },
+          { slug: id }
+        ]
+      },
       include: {
         memberships: {
           include: {

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAuthSession } from "@/lib/auth.server";
-import AdminClientLayout from "./AdminClientLayout";
+import AdminPlatformClientLayout from "./AdminClientLayout";
 
 export default async function AdminLayout({
   children,
@@ -17,5 +17,5 @@ export default async function AdminLayout({
     redirect("/app");
   }
 
-  return <AdminClientLayout session={session}>{children}</AdminClientLayout>;
+  return <AdminPlatformClientLayout session={session}>{children}</AdminPlatformClientLayout>;
 }

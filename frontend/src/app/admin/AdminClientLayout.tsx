@@ -7,34 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { AuthSession } from "@/lib/auth-types";
 import AdminProfileMenu from "./AdminProfileMenu";
 import { createClient, clearRememberMe } from "@/lib/supabase/client";
-
-type PlatformContextType = {
-  incidentMode: boolean;
-  setIncidentMode: (mode: boolean) => void;
-  platformStatus: "OPERATIONAL" | "DEGRADED" | "INCIDENT" | "MAINTENANCE";
-  refreshData: () => void;
-};
-
-const PlatformContext = createContext<PlatformContextType>({
-  incidentMode: false,
-  setIncidentMode: () => {},
-  platformStatus: "OPERATIONAL",
-  refreshData: () => {},
-});
-
-export const usePlatformContext = () => useContext(PlatformContext);
-
-const NAV_ITEMS = [
-  { href: "/admin", label: "Overview", icon: "monitoring" },
-  { href: "/admin/organizations", label: "Organizations", icon: "corporate_fare" },
-  { href: "/admin/support-tickets", label: "Support Tickets", icon: "support_agent" },
-  { href: "/admin/enterprise", label: "Enterprise Messages", icon: "shield" },
-  { href: "/admin/policies", label: "Global Policies", icon: "gavel" },
-  { href: "/admin/signals", label: "Signals", icon: "notifications_active" },
-  { href: "/admin/audit", label: "Audit Log", icon: "history" },
-  { href: "/admin/users", label: "Users", icon: "people" },
-  { href: "/admin/ip-blocking", label: "IP Blocking", icon: "block" },
-];
+import { PlatformContext, usePlatformContext, NAV_ITEMS } from "./AdminPlatformContext";
 
 function PlatformSidebar({ incidentMode }: { incidentMode: boolean }) {
   const pathname = usePathname();
@@ -206,7 +179,7 @@ function PlatformSidebar({ incidentMode }: { incidentMode: boolean }) {
   );
 }
 
-export default function AdminLayout({ children, session }: { children: React.ReactNode; session: AuthSession }) {
+export default function AdminPlatformClientLayout({ children, session }: { children: React.ReactNode; session: AuthSession }) {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const router = useRouter();

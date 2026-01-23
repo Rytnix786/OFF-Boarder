@@ -1,4 +1,4 @@
-import { SystemRole, OrgStatus, MembershipStatus } from "@prisma/client";
+import type { SystemRole, OrgStatus, MembershipStatus } from "@prisma/client";
 
 export type AuthUser = {
   id: string;
