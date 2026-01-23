@@ -27,9 +27,9 @@ export const usePlatformContext = () => useContext(PlatformContext);
 
 const NAV_ITEMS = [
   { href: "/platform", label: "Overview", icon: "monitoring" },
-  { href: "/platform/organizations", label: "Organizations", icon: "corporate_fare" },
+    { href: "/platform/organizations", label: "Organizations", icon: "corporate_fare" },
     { href: "/platform/support-tickets", label: "Support Tickets", icon: "support_agent" },
-    { href: "/platform/enterprise", label: "Enterprise Support", icon: "forum" },
+    { href: "/platform/enterprise", label: "Enterprise Messages", icon: "shield" },
     { href: "/platform/policies", label: "Global Policies", icon: "policy" },
   { href: "/platform/signals", label: "Signals", icon: "notifications_active" },
   { href: "/platform/audit", label: "Audit Log", icon: "history" },
