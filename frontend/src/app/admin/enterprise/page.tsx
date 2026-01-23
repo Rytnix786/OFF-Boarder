@@ -22,7 +22,7 @@ import Link from "next/link";
 
 interface EnterpriseConversation {
   id: string;
-  organizationId: string;
+  organizationId: string | null;
   orgName: string;
   orgSlug: string;
   subject: string;
@@ -30,6 +30,10 @@ interface EnterpriseConversation {
   messageCount: number;
   lastMessageAt: string | null;
   createdAt: string;
+  isExternal: boolean;
+  contactName?: string;
+  contactEmail?: string;
+  source?: string;
 }
 
 export default function PlatformEnterprisePage() {
@@ -98,20 +102,39 @@ export default function PlatformEnterprisePage() {
         <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 3, overflow: "hidden" }}>
           <Table>
             <TableHead sx={{ bgcolor: alpha(theme.palette.background.default, 0.5) }}>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 0.5 }}>Organization</TableCell>
-                <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 0.5 }}>Subject</TableCell>
-                <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 0.5 }}>Status</TableCell>
-                <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 0.5 }}>Last Message</TableCell>
-                <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "right" }}>Actions</TableCell>
-              </TableRow>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 0.5 }}>Origin</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 0.5 }}>Subject</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 0.5 }}>Status</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 0.5 }}>Last Message</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "right" }}>Actions</TableCell>
+                </TableRow>
+
             </TableHead>
             <TableBody>
               {conversations.map((c) => (
                 <TableRow key={c.id} sx={{ "&:hover": { bgcolor: alpha(theme.palette.primary.main, 0.02) } }}>
                   <TableCell>
-                    <Typography variant="body2" fontWeight={700}>{c.orgName}</Typography>
-                    <Typography variant="caption" color="text.secondary">{c.orgSlug}</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="body2" fontWeight={700}>{c.orgName}</Typography>
+                      {c.isExternal && (
+                        <Chip 
+                          label="External" 
+                          size="small" 
+                          variant="outlined"
+                          sx={{ 
+                            height: 18, 
+                            fontSize: "0.6rem", 
+                            fontWeight: 700, 
+                            color: "primary.main", 
+                            borderColor: alpha(theme.palette.primary.main, 0.3) 
+                          }} 
+                        />
+                      )}
+                    </Box>
+                    <Typography variant="caption" color="text.secondary">
+                      {c.isExternal ? c.contactEmail : c.orgSlug}
+                    </Typography>
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2" fontWeight={500}>{c.subject}</Typography>

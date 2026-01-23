@@ -1407,13 +1407,17 @@ enum SupportPriority {
 
 model EnterpriseConversation {
   id             String                     @id @default(cuid())
-  organizationId String
+  organizationId String?
   subject        String
+  contactName    String?
+  contactEmail   String?
+  companyName    String?
+  source         String?                    @default("INTERNAL")
   status         EnterpriseConversationStatus @default(OPEN)
   lastMessageAt  DateTime?
   createdAt      DateTime                   @default(now())
   updatedAt      DateTime                   @updatedAt
-  organization   Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization?              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   messages       EnterpriseMessage[]
 
   @@index([organizationId])
@@ -1422,7 +1426,7 @@ model EnterpriseConversation {
 model EnterpriseMessage {
   id             String               @id @default(cuid())
   conversationId String
-  senderId       String
+  senderId       String?
   senderType     EnterpriseSenderType
   content        String
   createdAt      DateTime             @default(now())
@@ -1439,4 +1443,5 @@ enum EnterpriseConversationStatus {
 enum EnterpriseSenderType {
   ORG_USER
   PLATFORM_ADMIN
+  EXTERNAL_VISITOR
 }

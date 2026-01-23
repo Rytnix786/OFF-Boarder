@@ -17,8 +17,8 @@ import {
 
 interface Message {
   id: string;
-  senderId: string;
-  senderType: "ORG_USER" | "PLATFORM_ADMIN";
+  senderId: string | null;
+  senderType: "ORG_USER" | "PLATFORM_ADMIN" | "EXTERNAL_VISITOR";
   content: string;
   createdAt: string;
 }
@@ -166,8 +166,15 @@ export function SecurityThread({ isAdmin = false, conversationId }: SecurityThre
           </Box>
         ) : (
           conversation?.messages.map((msg) => {
-            const isMe = isAdmin ? msg.senderType === "PLATFORM_ADMIN" : msg.senderType === "ORG_USER";
-            return (
+              const isMe = isAdmin ? msg.senderType === "PLATFORM_ADMIN" : msg.senderType === "ORG_USER";
+              const senderLabel = msg.senderType === "PLATFORM_ADMIN" 
+                ? "Platform Admin" 
+                : msg.senderType === "EXTERNAL_VISITOR" 
+                  ? "External Visitor" 
+                  : "Organization";
+              
+              return (
+
               <Box
                 key={msg.id}
                 sx={{
@@ -193,9 +200,10 @@ export function SecurityThread({ isAdmin = false, conversationId }: SecurityThre
                     {msg.content}
                   </Typography>
                 </Box>
-                  <Typography variant="caption" sx={{ mt: 0.75, color: "text.secondary", fontSize: "0.7rem", fontWeight: 600 }}>
-                    {msg.senderType === "PLATFORM_ADMIN" ? "Platform Admin" : "Organization"} • {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </Typography>
+                    <Typography variant="caption" sx={{ mt: 0.75, color: "text.secondary", fontSize: "0.7rem", fontWeight: 600 }}>
+                      {senderLabel} • {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Typography>
+
               </Box>
             );
           })

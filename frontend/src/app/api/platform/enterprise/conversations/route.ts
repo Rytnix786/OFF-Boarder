@@ -30,16 +30,20 @@ export async function GET(req: NextRequest) {
     });
 
     // Explicitly select metadata only to avoid PII leak
-    const sanitizedConversations = conversations.map((c) => ({
+    const sanitizedConversations = conversations.map((c: any) => ({
       id: c.id,
       organizationId: c.organizationId,
-      orgName: c.organization.name,
-      orgSlug: c.organization.slug,
+      orgName: c.organization?.name || c.companyName || "External Inquiry",
+      orgSlug: c.organization?.slug || "external",
       subject: c.subject,
       status: c.status,
       messageCount: c._count.messages,
       lastMessageAt: c.lastMessageAt,
       createdAt: c.createdAt,
+      isExternal: !c.organizationId,
+      contactName: c.contactName,
+      contactEmail: c.contactEmail,
+      source: c.source,
     }));
 
     return NextResponse.json(sanitizedConversations);

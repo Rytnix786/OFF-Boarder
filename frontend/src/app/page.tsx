@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import {
   Box,
   Container,
@@ -20,160 +20,31 @@ import { ColorModeContext } from "@/theme/ThemeRegistry";
 import { motion } from "framer-motion";
 import { RiskRadarAnimation } from "@/components/ui/RiskRadarAnimation";
 
+import { EnterpriseContactModal } from "@/components/EnterpriseContactModal";
+
 const MotionBox = motion.create(Box);
 const MotionTypography = motion.create(Typography);
-
-const fadeInUp = {
-  initial: { opacity: 0, y: 24 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
-};
-
-const stagger = {
-  animate: {
-    transition: {
-      staggerChildren: 0.12,
-    },
-  },
-};
-
-const TRUST_BADGES = [
-  { icon: "verified_user", label: "SOC 2 Type II Ready" },
-  { icon: "description", label: "Audit-Grade Evidence" },
-  { icon: "security", label: "Zero Trust Aligned" },
-  { icon: "shield", label: "Enterprise Security" },
-];
-
-const RISK_STATS = [
-  { value: "60%", label: "of breaches involve insider threats" },
-  { value: "45 days", label: "average to revoke all access manually" },
-  { value: "89%", label: "of orgs fail their first access audit" },
-];
-
-const CONTROL_FEATURES = [
-  {
-    icon: "radar",
-    title: "Risk Radar",
-    description: "Real-time threat visualization across all employee access points. Know exactly where your risks are.",
-  },
-  {
-    icon: "devices",
-    title: "Asset Recovery",
-    description: "Automated tracking and recovery workflows. Never lose hardware again.",
-  },
-  {
-    icon: "approval",
-    title: "Approval Chains",
-    description: "Configurable approval workflows that ensure the right people sign off at every step.",
-  },
-  {
-    icon: "gavel",
-    title: "Enforcement Engine",
-    description: "Automatic access revocation, not reminders. Policies execute without human error.",
-  },
-];
-
-const OUTCOME_FEATURES = [
-  {
-    icon: "folder_zip",
-    title: "Evidence Packs",
-    description: "Auto-generated compliance packages for every offboarding, ready for any auditor.",
-  },
-  {
-    icon: "history",
-    title: "Immutable Audit Logs",
-    description: "Every action timestamped and cryptographically secured. Complete chain of custody.",
-  },
-  {
-    icon: "verified",
-    title: "Compliance Confidence",
-    description: "Pass SOC 2, ISO 27001, and HIPAA audits without the last-minute scramble.",
-  },
-];
-
-const PRICING = [
-  {
-    name: "Free Trial",
-    price: "$0",
-    period: "",
-    description: "14 days to evaluate with your team",
-    isTrial: true,
-    features: [
-      { text: "Up to 5 Employees", tooltip: "Individuals tracked for offboarding via the Employee Portal. Distinct from Org users (HR/IT/Admins) who manage the platform." },
-      "Full Growth features",
-      "Risk Radar access",
-      "Evidence pack samples",
-      "No credit card required",
-    ],
-    limitations: [],
-    cta: "Start 14-Day Trial",
-  },
-  {
-    name: "Starter",
-    price: "$9.99",
-    period: "month",
-    description: "For small teams getting compliant",
-    features: [
-      { text: "Up to 30 Employees", tooltip: "Employees are individuals managed via the Employee Portal. Org users are separate and manage the platform." },
-      { text: "Up to 5 Org users", tooltip: "Administrative accounts for HR, IT, and Security teams to manage the platform." },
-      "Core offboarding workflows",
-      "Asset recovery tracking",
-      "Standard audit logs",
-      "Evidence packs",
-      "Email support",
-    ],
-    limitations: [
-      "Limited integrations",
-      "No Risk Radar automation",
-    ],
-    cta: "Start Secure Offboarding",
-  },
-  {
-    name: "Growth",
-    price: "$29.99",
-    period: "month",
-    description: "For security-conscious teams",
-    popular: true,
-    features: [
-      "Everything in Starter",
-      { text: "Unlimited Employees", tooltip: "Unlimited employee records, lifecycle states, and Employee Portal access for all departing staff." },
-      "Unlimited Org users",
-      "Risk Radar dashboard",
-      "High-risk offboarding enforcement",
-      "Custom workflows",
-      "Asset enforcement policies",
-      "Priority support",
-    ],
-    limitations: [],
-    cta: "Start Free Evaluation",
-  },
-  {
-    name: "Enterprise",
-    price: "Custom",
-    period: "",
-    description: "For regulated organizations",
-    features: [
-      "Everything in Growth",
-      { text: "Unlimited Employees", tooltip: "Formal scope management for all Employees via the Employee Portal, including complete audit history." },
-      "Unlimited Org users",
-      "SSO & SCIM provisioning",
-      "Advanced security policies",
-      "Custom SLAs",
-      "Dedicated onboarding",
-      "Audit & compliance assistance",
-    ],
-    limitations: [],
-    cta: "Contact Security Team",
-  },
-];
 
 export default function LandingPage() {
   const theme = useTheme();
   const colorMode = useContext(ColorModeContext);
   const isDark = theme.palette.mode === "dark";
+  const [contactModalOpen, setContactModalOpen] = useState(false);
+  const [initialMessage, setInitialMessage] = useState("");
+
+  const handleContactClick = (message: string = "") => {
+    setInitialMessage(message);
+    setContactModalOpen(true);
+  };
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+      <EnterpriseContactModal 
+        open={contactModalOpen} 
+        onClose={() => setContactModalOpen(false)} 
+        initialMessage={initialMessage}
+      />
+
       <Box
         component="nav"
         sx={{
@@ -1075,12 +946,21 @@ export default function LandingPage() {
                             </Typography>
                           </Box>
   
-                          <Box sx={{ mb: 4 }}>
-                            <Button
-                              fullWidth
-                              variant={plan.isTrial || plan.popular ? "contained" : "outlined"}
-                              sx={{
-                                fontWeight: 700,
+                            <Box sx={{ mb: 4 }}>
+                              <Button
+                                fullWidth
+                                variant={plan.isTrial || plan.popular ? "contained" : "outlined"}
+                                onClick={() => {
+                                  if (plan.name === "Enterprise") {
+                                    handleContactClick("I'm interested in the Enterprise plan for my organization.");
+                                  } else {
+                                    // Other plans could also trigger contact if needed, but they are trial/direct currently
+                                    window.location.href = "/register";
+                                  }
+                                }}
+                                sx={{
+                                  fontWeight: 700,
+
                                 py: 1.5,
                                 borderRadius: 2.5,
                                 fontSize: "0.85rem",
@@ -1373,34 +1253,45 @@ export default function LandingPage() {
                 </Typography>
               ))}
             </Grid>
-            <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
-                Company
-              </Typography>
-              {["About", "Security", "Careers", "Contact"].map((item) => (
-                <Typography
-                  key={item}
-                  variant="body2"
-                  sx={{ color: "text.secondary", mb: 1.5, cursor: "pointer" }}
-                >
-                  {item}
+              <Grid size={{ xs: 6, sm: 3, md: 2 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
+                  Company
                 </Typography>
-              ))}
-            </Grid>
-            <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
-                Resources
-              </Typography>
-              {["Documentation", "Compliance", "Status", "Support"].map((item) => (
-                <Typography
-                  key={item}
-                  variant="body2"
-                  sx={{ color: "text.secondary", mb: 1.5, cursor: "pointer" }}
-                >
-                  {item}
+                {["About", "Security", "Careers", "Contact"].map((item) => (
+                  <Typography
+                    key={item}
+                    variant="body2"
+                    onClick={() => {
+                      if (item === "Contact") {
+                        handleContactClick("General inquiry from the landing page.");
+                      }
+                    }}
+                    sx={{ color: "text.secondary", mb: 1.5, cursor: "pointer", "&:hover": { color: "primary.main" } }}
+                  >
+                    {item}
+                  </Typography>
+                ))}
+              </Grid>
+              <Grid size={{ xs: 6, sm: 3, md: 2 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
+                  Resources
                 </Typography>
-              ))}
-            </Grid>
+                {["Documentation", "Compliance", "Status", "Support"].map((item) => (
+                  <Typography
+                    key={item}
+                    variant="body2"
+                    onClick={() => {
+                      if (item === "Support") {
+                        handleContactClick("I need support with the platform.");
+                      }
+                    }}
+                    sx={{ color: "text.secondary", mb: 1.5, cursor: "pointer", "&:hover": { color: "primary.main" } }}
+                  >
+                    {item}
+                  </Typography>
+                ))}
+              </Grid>
+
             <Grid size={{ xs: 6, sm: 3, md: 2 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
                 Legal
