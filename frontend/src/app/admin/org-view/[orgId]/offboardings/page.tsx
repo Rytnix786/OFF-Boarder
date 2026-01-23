@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getOrgViewSession } from "@/lib/auth.server";
 import { prisma } from "@/lib/prisma.server";
 import OffboardingsClient from "@/app/app/offboardings/OffboardingsClient";
-import { Box, CircularProgress } from "@mui/material";
+import { Box, CircularProgress, alpha } from "@mui/material";
 import { Suspense } from "react";
 import { OrgViewPageHeader } from "../OrgViewPageHeader";
 

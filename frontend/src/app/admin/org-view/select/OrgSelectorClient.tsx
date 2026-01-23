@@ -128,32 +128,33 @@ export default function OrgSelectorClient({ organizations }: OrgSelectorClientPr
         }}
       >
         <CardContent sx={{ p: 0 }}>
-          <Box sx={{ p: 4, bgcolor: alpha("#1e293b", 0.4), borderBottom: "1px solid", borderColor: alpha("#ffffff", 0.05) }}>
-            <TextField
-              fullWidth
-              placeholder="Search by name or slug..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              autoComplete="off"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <span className="material-symbols-outlined" style={{ color: "#818cf8" }}>search</span>
-                  </InputAdornment>
-                ),
-                sx: { 
-                  borderRadius: "16px",
-                  bgcolor: alpha("#020617", 0.5),
-                  color: "#f8fafc",
-                  "& fieldset": { borderColor: alpha("#ffffff", 0.1) },
-                  "&:hover fieldset": { borderColor: alpha("#6366f1", 0.5) + " !important" },
-                  "&.Mui-focused fieldset": { borderColor: "#6366f1 !important" },
-                },
-              }}
-            />
-          </Box>
+            <Box sx={{ p: 4, bgcolor: alpha("#0f172a", 0.6), borderBottom: "1px solid", borderColor: alpha("#ffffff", 0.05) }}>
+              <TextField
+                fullWidth
+                placeholder="Search by name or slug..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                autoComplete="off"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <span className="material-symbols-outlined" style={{ color: "#818cf8" }}>search</span>
+                    </InputAdornment>
+                  ),
+                  sx: { 
+                    borderRadius: "16px",
+                    bgcolor: "#020617",
+                    color: "#f8fafc",
+                    "& fieldset": { borderColor: alpha("#ffffff", 0.1) },
+                    "&:hover fieldset": { borderColor: alpha("#6366f1", 0.5) + " !important" },
+                    "&.Mui-focused fieldset": { borderColor: "#6366f1 !important" },
+                    "& input::placeholder": { color: "#64748b", opacity: 1 },
+                  },
+                }}
+              />
+            </Box>
 
-          <List sx={{ py: 0, maxHeight: 400, overflowY: "auto" }}>
+            <List sx={{ py: 0, maxHeight: 450, overflowY: "auto", bgcolor: "transparent" }}>
             {filteredOrgs.map((org, index) => (
               <React.Fragment key={org.id}>
                 <ListItem disablePadding>

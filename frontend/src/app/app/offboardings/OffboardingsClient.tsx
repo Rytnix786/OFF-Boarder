@@ -209,18 +209,32 @@ export default function OffboardingsClient({
         </Alert>
       )}
 
-      <Card variant="outlined" sx={{ borderRadius: 3, mb: 3 }}>
+      <Card 
+        variant="outlined" 
+        sx={{ 
+          borderRadius: 3, 
+          mb: 3,
+          bgcolor: isOrgView ? alpha("#0f172a", 0.4) : "background.paper",
+          borderColor: isOrgView ? alpha("#ffffff", 0.1) : "divider",
+        }}
+      >
         <Box sx={{ p: 2, display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center" }}>
           <TextField
             placeholder="Search by name or email..."
             size="small"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            sx={{ width: 280 }}
+            sx={{ 
+              width: 280,
+              "& .MuiOutlinedInput-root": {
+                bgcolor: isOrgView ? alpha("#020617", 0.5) : "transparent",
+                color: isOrgView ? "#f8fafc" : "inherit",
+              }
+            }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>search</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: 20, color: isOrgView ? "#818cf8" : "inherit" }}>search</span>
                 </InputAdornment>
               ),
             }}
@@ -230,6 +244,10 @@ export default function OffboardingsClient({
               value={departmentFilter}
               onChange={(e) => setDepartmentFilter(e.target.value)}
               displayEmpty
+              sx={{ 
+                bgcolor: isOrgView ? alpha("#020617", 0.5) : "transparent",
+                color: isOrgView ? "#f8fafc" : "inherit",
+              }}
             >
               <MenuItem value="all">All Departments</MenuItem>
               {departments.map((d) => (
@@ -242,6 +260,10 @@ export default function OffboardingsClient({
               value={riskFilter}
               onChange={(e) => setRiskFilter(e.target.value)}
               displayEmpty
+              sx={{ 
+                bgcolor: isOrgView ? alpha("#020617", 0.5) : "transparent",
+                color: isOrgView ? "#f8fafc" : "inherit",
+              }}
             >
               <MenuItem value="all">All Risk</MenuItem>
               <MenuItem value="NORMAL">Normal</MenuItem>
@@ -252,11 +274,24 @@ export default function OffboardingsClient({
         </Box>
       </Card>
 
-      <Card variant="outlined" sx={{ borderRadius: 3 }}>
+      <Card 
+        variant="outlined" 
+        sx={{ 
+          borderRadius: 3,
+          bgcolor: isOrgView ? alpha("#0f172a", 0.4) : "background.paper",
+          borderColor: isOrgView ? alpha("#ffffff", 0.1) : "divider",
+        }}
+      >
         <Tabs
           value={tab}
           onChange={(_, v) => setTab(v)}
-          sx={{ borderBottom: "1px solid", borderColor: "divider", px: 2 }}
+          sx={{ 
+            borderBottom: "1px solid", 
+            borderColor: isOrgView ? alpha("#ffffff", 0.05) : "divider", 
+            px: 2,
+            "& .MuiTab-root": { color: isOrgView ? "#94a3b8" : "inherit" },
+            "& .Mui-selected": { color: isOrgView ? "#818cf8 !important" : "primary.main" },
+          }}
         >
           <Tab
             label={

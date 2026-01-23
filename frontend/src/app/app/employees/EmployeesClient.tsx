@@ -353,18 +353,32 @@ export default function EmployeesClient({
         )}
       </Box>
 
-      <Card variant="outlined" sx={{ borderRadius: 3, mb: 3 }}>
+      <Card 
+        variant="outlined" 
+        sx={{ 
+          borderRadius: 3, 
+          mb: 3,
+          bgcolor: isOrgView ? alpha("#0f172a", 0.4) : "background.paper",
+          borderColor: isOrgView ? alpha("#ffffff", 0.1) : "divider",
+        }}
+      >
         <Box sx={{ p: 2, display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center" }}>
           <TextField
             placeholder="Search by name, email, or ID..."
             size="small"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-            sx={{ width: 280 }}
+            sx={{ 
+              width: 280,
+              "& .MuiOutlinedInput-root": {
+                bgcolor: isOrgView ? alpha("#020617", 0.5) : "transparent",
+                color: isOrgView ? "#f8fafc" : "inherit",
+              }
+            }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>search</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: 20, color: isOrgView ? "#818cf8" : "inherit" }}>search</span>
                 </InputAdornment>
               ),
             }}
@@ -374,6 +388,10 @@ export default function EmployeesClient({
               value={statusFilter}
               onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
               displayEmpty
+              sx={{ 
+                bgcolor: isOrgView ? alpha("#020617", 0.5) : "transparent",
+                color: isOrgView ? "#f8fafc" : "inherit",
+              }}
             >
               <MenuItem value="all">All Status</MenuItem>
               <MenuItem value="ACTIVE">Active</MenuItem>
@@ -388,6 +406,10 @@ export default function EmployeesClient({
               value={departmentFilter}
               onChange={(e) => { setDepartmentFilter(e.target.value); setPage(0); }}
               displayEmpty
+              sx={{ 
+                bgcolor: isOrgView ? alpha("#020617", 0.5) : "transparent",
+                color: isOrgView ? "#f8fafc" : "inherit",
+              }}
             >
               <MenuItem value="all">All Departments</MenuItem>
               {departments.map((d) => (
@@ -400,6 +422,10 @@ export default function EmployeesClient({
               value={locationFilter}
               onChange={(e) => { setLocationFilter(e.target.value); setPage(0); }}
               displayEmpty
+              sx={{ 
+                bgcolor: isOrgView ? alpha("#020617", 0.5) : "transparent",
+                color: isOrgView ? "#f8fafc" : "inherit",
+              }}
             >
               <MenuItem value="all">All Locations</MenuItem>
               {locations.map((l) => (
@@ -412,6 +438,10 @@ export default function EmployeesClient({
               value={jobTitleFilter}
               onChange={(e) => { setJobTitleFilter(e.target.value); setPage(0); }}
               displayEmpty
+              sx={{ 
+                bgcolor: isOrgView ? alpha("#020617", 0.5) : "transparent",
+                color: isOrgView ? "#f8fafc" : "inherit",
+              }}
             >
               <MenuItem value="all">All Job Titles</MenuItem>
               {jobTitles.map((j) => (
@@ -424,6 +454,10 @@ export default function EmployeesClient({
               value={hasOffboardingFilter}
               onChange={(e) => { setHasOffboardingFilter(e.target.value as "all" | "yes" | "no"); setPage(0); }}
               displayEmpty
+              sx={{ 
+                bgcolor: isOrgView ? alpha("#020617", 0.5) : "transparent",
+                color: isOrgView ? "#f8fafc" : "inherit",
+              }}
             >
               <MenuItem value="all">All Offboarding</MenuItem>
               <MenuItem value="yes">Has Offboarding</MenuItem>
@@ -435,6 +469,10 @@ export default function EmployeesClient({
               value={portalInvitedFilter}
               onChange={(e) => { setPortalInvitedFilter(e.target.value as "all" | "yes" | "no"); setPage(0); }}
               displayEmpty
+              sx={{ 
+                bgcolor: isOrgView ? alpha("#020617", 0.5) : "transparent",
+                color: isOrgView ? "#f8fafc" : "inherit",
+              }}
             >
               <MenuItem value="all">All Portal Status</MenuItem>
               <MenuItem value="yes">Portal Invited</MenuItem>
@@ -444,12 +482,17 @@ export default function EmployeesClient({
           {statusFilter === "all" && (
             <FormControlLabel
               control={<Checkbox checked={showArchived} onChange={(e) => { setShowArchived(e.target.checked); setPage(0); }} size="small" />}
-              label={<Typography variant="body2">Show archived</Typography>}
+              label={<Typography variant="body2" sx={{ color: isOrgView ? "#94a3b8" : "inherit" }}>Show archived</Typography>}
             />
           )}
           {activeFilterCount > 0 && (
             <Tooltip title="Clear all filters">
-              <Button size="small" onClick={clearFilters} startIcon={<span className="material-symbols-outlined" style={{ fontSize: 16 }}>filter_alt_off</span>}>
+              <Button 
+                size="small" 
+                onClick={clearFilters} 
+                startIcon={<span className="material-symbols-outlined" style={{ fontSize: 16 }}>filter_alt_off</span>}
+                sx={{ color: isOrgView ? "#818cf8" : "inherit" }}
+              >
                 Clear ({activeFilterCount})
               </Button>
             </Tooltip>
@@ -457,16 +500,36 @@ export default function EmployeesClient({
         </Box>
       </Card>
 
-      <Card variant="outlined" sx={{ borderRadius: 3 }}>
+      <Card 
+        variant="outlined" 
+        sx={{ 
+          borderRadius: 3,
+          bgcolor: isOrgView ? alpha("#0f172a", 0.4) : "background.paper",
+          borderColor: isOrgView ? alpha("#ffffff", 0.1) : "divider",
+        }}
+      >
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow sx={{ "& th": { fontWeight: 700, color: "text.secondary", fontSize: 12, textTransform: "uppercase" } }}>
+              <TableRow sx={{ 
+                "& th": { 
+                  fontWeight: 700, 
+                  color: isOrgView ? "#64748b" : "text.secondary", 
+                  fontSize: 12, 
+                  textTransform: "uppercase",
+                  borderColor: isOrgView ? alpha("#ffffff", 0.05) : "divider",
+                  bgcolor: isOrgView ? alpha("#ffffff", 0.02) : "transparent",
+                } 
+              }}>
                 <TableCell>
                   <TableSortLabel
                     active={sortField === "name"}
                     direction={sortField === "name" ? sortDirection : "asc"}
                     onClick={() => handleSort("name")}
+                    sx={{
+                      "&.Mui-active": { color: isOrgView ? "#f8fafc" : "inherit" },
+                      "& .MuiTableSortLabel-icon": { color: isOrgView ? "#64748b !important" : "inherit" },
+                    }}
                   >
                     Employee
                   </TableSortLabel>
@@ -476,6 +539,10 @@ export default function EmployeesClient({
                     active={sortField === "department"}
                     direction={sortField === "department" ? sortDirection : "asc"}
                     onClick={() => handleSort("department")}
+                    sx={{
+                      "&.Mui-active": { color: isOrgView ? "#f8fafc" : "inherit" },
+                      "& .MuiTableSortLabel-icon": { color: isOrgView ? "#64748b !important" : "inherit" },
+                    }}
                   >
                     Department
                   </TableSortLabel>
@@ -485,31 +552,39 @@ export default function EmployeesClient({
                     active={sortField === "jobTitle"}
                     direction={sortField === "jobTitle" ? sortDirection : "asc"}
                     onClick={() => handleSort("jobTitle")}
+                    sx={{
+                      "&.Mui-active": { color: isOrgView ? "#f8fafc" : "inherit" },
+                      "& .MuiTableSortLabel-icon": { color: isOrgView ? "#64748b !important" : "inherit" },
+                    }}
                   >
                     Job Title
                   </TableSortLabel>
                 </TableCell>
-                <TableCell>Manager</TableCell>
+                <TableCell sx={{ color: isOrgView ? "#64748b" : "inherit" }}>Manager</TableCell>
                 <TableCell>
                   <TableSortLabel
                     active={sortField === "status"}
                     direction={sortField === "status" ? sortDirection : "asc"}
                     onClick={() => handleSort("status")}
+                    sx={{
+                      "&.Mui-active": { color: isOrgView ? "#f8fafc" : "inherit" },
+                      "& .MuiTableSortLabel-icon": { color: isOrgView ? "#64748b !important" : "inherit" },
+                    }}
                   >
                     Status
                   </TableSortLabel>
                 </TableCell>
-                <TableCell align="right">Actions</TableCell>
+                <TableCell align="right" sx={{ color: isOrgView ? "#64748b" : "inherit" }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {paginatedEmployees.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} sx={{ py: 8, textAlign: "center" }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 48, opacity: 0.3 }}>
+                  <TableCell colSpan={6} sx={{ py: 8, textAlign: "center", borderColor: isOrgView ? alpha("#ffffff", 0.05) : "divider" }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 48, opacity: 0.3, color: isOrgView ? "#f8fafc" : "inherit" }}>
                       people
                     </span>
-                    <Typography color="text.secondary" sx={{ mt: 1 }}>
+                    <Typography sx={{ mt: 1, color: isOrgView ? "#94a3b8" : "text.secondary" }}>
                       {employees.length === 0 ? "No employees yet" : "No matching employees"}
                     </Typography>
                   </TableCell>
@@ -521,41 +596,70 @@ export default function EmployeesClient({
                       hover 
                       sx={{ 
                         opacity: emp.status === "ARCHIVED" ? 0.6 : 1, 
-                        cursor: isOrgView ? "default" : "pointer" 
+                        cursor: isOrgView ? "default" : "pointer",
+                        "&:hover": { bgcolor: isOrgView ? alpha("#ffffff", 0.02) + " !important" : "inherit" },
                       }} 
                       onClick={() => !isOrgView && router.push(`/app/employees/${emp.id}`)}
                     >
 
-                    <TableCell>
+                    <TableCell sx={{ borderColor: isOrgView ? alpha("#ffffff", 0.05) : "divider" }}>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                        <Avatar sx={{ bgcolor: emp.status === "ARCHIVED" ? "grey.400" : "primary.main" }}>
+                        <Avatar sx={{ 
+                          bgcolor: emp.status === "ARCHIVED" ? "grey.400" : (isOrgView ? alpha("#818cf8", 0.1) : "primary.main"),
+                          color: isOrgView ? "#818cf8" : "#ffffff",
+                          border: isOrgView ? "1px solid" : "none",
+                          borderColor: isOrgView ? alpha("#818cf8", 0.3) : "none",
+                        }}>
                           {emp.firstName.charAt(0)}{emp.lastName.charAt(0)}
                         </Avatar>
                         <Box>
-                          <Typography fontWeight={600}>
+                          <Typography fontWeight={600} sx={{ color: isOrgView ? "#f8fafc" : "inherit" }}>
                             {emp.firstName} {emp.lastName}
                           </Typography>
-                          <Typography variant="caption" color="text.secondary">
+                          <Typography variant="caption" sx={{ color: isOrgView ? "#64748b" : "text.secondary" }}>
                             {emp.email} • {emp.employeeId}
                           </Typography>
                         </Box>
                       </Box>
                     </TableCell>
-                    <TableCell>{emp.department?.name || "—"}</TableCell>
-                    <TableCell>{emp.jobTitle?.title || "—"}</TableCell>
-                    <TableCell>{getManagerDisplayName(emp.managerMembership)}</TableCell>
-                    <TableCell>
+                    <TableCell sx={{ borderColor: isOrgView ? alpha("#ffffff", 0.05) : "divider", color: isOrgView ? "#f8fafc" : "inherit" }}>
+                      {emp.department?.name || "—"}
+                    </TableCell>
+                    <TableCell sx={{ borderColor: isOrgView ? alpha("#ffffff", 0.05) : "divider", color: isOrgView ? "#f8fafc" : "inherit" }}>
+                      {emp.jobTitle?.title || "—"}
+                    </TableCell>
+                    <TableCell sx={{ borderColor: isOrgView ? alpha("#ffffff", 0.05) : "divider", color: isOrgView ? "#f8fafc" : "inherit" }}>
+                      {getManagerDisplayName(emp.managerMembership)}
+                    </TableCell>
+                    <TableCell sx={{ borderColor: isOrgView ? alpha("#ffffff", 0.05) : "divider" }}>
                       <Chip
                         label={emp.status.replace("_", " ")}
                         size="small"
                         color={getStatusColor(emp.status) as "success" | "info" | "warning" | "error" | "default"}
-                        sx={{ fontWeight: 600 }}
+                        sx={{ 
+                          fontWeight: 700,
+                          fontSize: "0.65rem",
+                          height: 20,
+                          ...(isOrgView && {
+                            bgcolor: alpha(getStatusColor(emp.status) === "success" ? "#10b981" : 
+                                     getStatusColor(emp.status) === "warning" ? "#f59e0b" :
+                                     getStatusColor(emp.status) === "error" ? "#ef4444" :
+                                     getStatusColor(emp.status) === "info" ? "#3b82f6" : "#64748b", 0.1),
+                            color: getStatusColor(emp.status) === "success" ? "#34d399" : 
+                                   getStatusColor(emp.status) === "warning" ? "#fbbf24" :
+                                   getStatusColor(emp.status) === "error" ? "#f87171" :
+                                   getStatusColor(emp.status) === "info" ? "#60a5fa" : "#94a3b8",
+                            border: "1px solid",
+                            borderColor: alpha(getStatusColor(emp.status) === "success" ? "#10b981" : "#64748b", 0.2),
+                          })
+                        }}
                       />
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ borderColor: isOrgView ? alpha("#ffffff", 0.05) : "divider" }}>
                       <IconButton
                         size="small"
                         onClick={(e) => { e.stopPropagation(); setMenuAnchor({ el: e.currentTarget, employee: emp }); }}
+                        sx={{ color: isOrgView ? "#64748b" : "inherit" }}
                       >
                         <span className="material-symbols-outlined">more_vert</span>
                       </IconButton>
@@ -574,6 +678,14 @@ export default function EmployeesClient({
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
+          sx={{
+            color: isOrgView ? "#94a3b8" : "inherit",
+            borderTop: isOrgView ? "1px solid" : "none",
+            borderColor: isOrgView ? alpha("#ffffff", 0.05) : "divider",
+            "& .MuiTablePagination-selectIcon": { color: isOrgView ? "#94a3b8" : "inherit" },
+            "& .MuiIconButton-root.Mui-disabled": { color: isOrgView ? alpha("#94a3b8", 0.3) : "inherit" },
+            "& .MuiIconButton-root": { color: isOrgView ? "#94a3b8" : "inherit" },
+          }}
         />
       </Card>
 
