@@ -1,107 +1,65 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma.server";
-import { requirePlatformAdmin, logPlatformAction } from "@/lib/platform-auth";
-import { EnterpriseSenderType } from "@prisma/client";
+import { requirePlatformAdmin, getCurrentPlatformAdmin } from "@/lib/platform-auth";
 
 export async function GET(
-  req: NextRequest,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     await requirePlatformAdmin();
-    const { id } = await (params as any); // Next.js 15+ params handling
+    const { id: conversationId } = params;
 
-    const enterpriseMessage = (prisma as any).enterpriseMessage;
-
-    if (!enterpriseMessage) {
-      console.warn("Prisma model 'enterpriseMessage' is not available in the current client.");
-      return NextResponse.json([]);
-    }
-
-    const messages = await enterpriseMessage.findMany({
-      where: { conversationId: id },
+    const messages = await prisma.enterpriseMessage.findMany({
+      where: { conversationId },
       orderBy: { createdAt: "asc" },
     });
 
     return NextResponse.json(messages);
   } catch (error) {
-    console.error("Platform enterprise messages error:", error);
-    if (error instanceof Error && error.message === "FORBIDDEN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    console.error("Fetch enterprise messages error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
 export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: { id: conversationId } }: { params: { id: string } }
 ) {
   try {
-    const session = await requirePlatformAdmin();
-    const { id } = await (params as any);
-    const { content } = await req.json();
+    const admin = await getCurrentPlatformAdmin();
+    const { id: conversationId } = params;
+    const body = await request.json();
+    const { content } = body;
 
-    if (!content?.trim()) {
+    if (!content) {
       return NextResponse.json({ error: "Message content required" }, { status: 400 });
     }
 
-    const enterpriseConversation = (prisma as any).enterpriseConversation;
-    const enterpriseMessage = (prisma as any).enterpriseMessage;
-
-    if (!enterpriseConversation || !enterpriseMessage) {
-      return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
-    }
-
-    const conversation = await enterpriseConversation.findUnique({
-      where: { id },
-      include: { organization: true },
-    });
-
-    if (!conversation) {
-      return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
-    }
-
-    // Create message (senderType: PLATFORM_ADMIN)
     const message = await prisma.$transaction(async (tx) => {
       const msg = await tx.enterpriseMessage.create({
         data: {
-          conversationId: id,
-          senderId: session.user.id,
-          senderType: EnterpriseSenderType.PLATFORM_ADMIN,
+          conversationId,
           content,
+          senderType: "PLATFORM_ADMIN",
+          senderId: admin.id,
         },
       });
 
       await tx.enterpriseConversation.update({
-        where: { id },
+        where: { id: conversationId },
         data: { 
           lastMessageAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
       });
 
       return msg;
     });
 
-    // Log the platform action
-    await logPlatformAction({
-      action: "ENTERPRISE_MESSAGE_SENT",
-      entityType: "EnterpriseConversation",
-      entityId: id,
-      organizationId: conversation.organizationId || null,
-      targetOrgName: conversation.organization?.name || conversation.companyName || "External Inquiry",
-      newData: { messageId: message.id },
-      userId: session.user.id,
-      userName: session.user.name || session.user.email,
-    });
-
     return NextResponse.json(message);
   } catch (error) {
-    console.error("Platform enterprise reply error:", error);
-    if (error instanceof Error && error.message === "FORBIDDEN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    console.error("Send enterprise message error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
