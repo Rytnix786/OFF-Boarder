@@ -76,40 +76,40 @@ const DOMAIN_CONFIG: Record<string, { name: string; description: string; icon: s
 };
 
 const POLICY_TO_DOMAIN: Record<string, string> = {
-  SESSION_REVOCATION: "AUTHENTICATION",
-  IP_BLOCKING: "NETWORK",
-  DATA_EXPORT: "DATA",
-  EVIDENCE_RETENTION: "COMPLIANCE",
-  AUDIT_LOGGING: "COMPLIANCE",
-  APPROVAL_CHAIN: "WORKFLOW",
-  ACCESS_LOCKDOWN: "AUTHENTICATION",
-  RISK_ESCALATION: "WORKFLOW",
+  SESSION_REVOCATION_RULES: "AUTHENTICATION",
+  IP_BLOCKING_THRESHOLDS: "NETWORK",
+  DATA_EXPORT_CONTROLS: "DATA",
+  EVIDENCE_PACK_RETENTION: "COMPLIANCE",
+  AUDIT_LOG_REQUIREMENTS: "COMPLIANCE",
+  MANDATORY_APPROVAL_CHAIN: "WORKFLOW",
+  ACCESS_LOCKDOWN_ON_OFFBOARDING: "AUTHENTICATION",
+  HIGH_RISK_ESCALATION: "WORKFLOW",
 };
 
 const EXECUTION_SUMMARIES: Record<string, (config: any) => string> = {
-  IP_BLOCKING: (c) => `Blocks IPs for ${c.blockDurationMinutes}m after ${c.maxFailedAttempts} failures. Enforcement is global across all organizations.`,
-  SESSION_REVOCATION: (c) => `Expires sessions after ${c.maxSessionAge}h or ${c.idleTimeoutMinutes}m of inactivity. Immediate revocation on user disablement.`,
-  APPROVAL_CHAIN: (c) => `Requires ${c.minApprovals} independent approvals for sensitive actions. Requires ${c.requireSecurityRole ? "Security Admin" : "any Admin"} signature.`,
-  DATA_EXPORT: (c) => `Restricts exports to ${c.allowedRegions.join(", ")}. Exports exceeding ${c.maxExportRows} rows require secondary authorization.`,
-  AUDIT_LOGGING: (c) => `Retains immutable platform logs for ${c.retentionDays} days. Log mirroring occurs within ${c.syncIntervalSeconds}s of event.`,
-  ACCESS_LOCKDOWN: (c) => `Triggers immediate token invalidation upon offboarding. Coverage: ${c.coverCloudResources ? "All Cloud Assets" : "Primary SaaS Only"}.`,
-  EVIDENCE_RETENTION: (c) => `Locks offboarding evidence for ${c.retentionYears} years. Compliance hash generated and signed on completion.`,
-  RISK_ESCALATION: (c) => `Escalates cases with ${c.severityThreshold}+ risk scores. Resolution required within ${c.slaHours} hours.`,
+  IP_BLOCKING_THRESHOLDS: (c) => `Blocks IPs for ${c.blockDurationMinutes}m after ${c.maxFailedAttempts} failures. Enforcement is global across all organizations.`,
+  SESSION_REVOCATION_RULES: (c) => `Expires sessions after ${c.maxSessionAge}h or ${c.idleTimeoutMinutes}m of inactivity. Immediate revocation on user disablement.`,
+  MANDATORY_APPROVAL_CHAIN: (c) => `Requires ${c.minApprovals} independent approvals for sensitive actions. Requires ${c.requireSecurityRole ? "Security Admin" : "any Admin"} signature.`,
+  DATA_EXPORT_CONTROLS: (c) => `Restricts exports. Exports exceeding ${c.maxExportSizeMB}MB require secondary authorization.`,
+  AUDIT_LOG_REQUIREMENTS: (c) => `Retains immutable platform logs for ${c.retentionDays} days. Log mirroring occurs within the platform.`,
+  ACCESS_LOCKDOWN_ON_OFFBOARDING: (c) => `Triggers immediate token invalidation upon offboarding. Delay: ${c.lockdownDelay}ms.`,
+  EVIDENCE_PACK_RETENTION: (c) => `Locks offboarding evidence for ${c.minRetentionDays} days. Compliance hash generated and signed on completion.`,
+  HIGH_RISK_ESCALATION: (c) => `Escalates cases with critical severity. Resolution required within ${c.maxResponseTimeMinutes} minutes.`,
 };
 
 const CONFIG_GROUPS: Record<string, { label: string; fields: string[] }[]> = {
-  IP_BLOCKING: [
+  IP_BLOCKING_THRESHOLDS: [
     { label: "Thresholds", fields: ["maxFailedAttempts", "blockDurationMinutes"] },
     { label: "Scope", fields: ["enableGlobalBlocking"] },
   ],
-  SESSION_REVOCATION: [
+  SESSION_REVOCATION_RULES: [
     { label: "Lifetimes", fields: ["maxSessionAge", "idleTimeoutMinutes"] },
     { label: "Security", fields: ["forceMfaOnNewDevice"] },
   ],
-  APPROVAL_CHAIN: [
+  MANDATORY_APPROVAL_CHAIN: [
     { label: "Requirements", fields: ["minApprovals", "requireSecurityRole"] },
   ],
-  AUDIT_LOGGING: [
+  AUDIT_LOG_REQUIREMENTS: [
     { label: "Storage", fields: ["retentionDays", "syncIntervalSeconds"] },
   ],
 };

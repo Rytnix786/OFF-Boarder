@@ -117,19 +117,8 @@ async function createUserSession(
   const sessionTokenHash = hashToken(sessionToken);
   const refreshTokenHash = refreshToken ? hashToken(refreshToken) : null;
 
-  const sessionExpiry = rememberDevice ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
   const refreshExpiry = 90 * 24 * 60 * 60 * 1000;
-
-  let actualSessionExpiry = sessionExpiry;
-  
-  if (policy?.isActive) {
-    const config = policy.config as any;
-    if (config.maxSessionAge) {
-      actualSessionExpiry = Math.min(sessionExpiry, config.maxSessionAge * 60 * 60 * 1000);
-    }
-  }
-
-  const expiresAt = new Date(Date.now() + actualSessionExpiry);
+  const expiresAt = new Date(Date.now() + sessionExpiry);
   const refreshExpiresAt = refreshToken ? new Date(Date.now() + refreshExpiry) : null;
 
   await prisma.userSession.updateMany({
