@@ -68,6 +68,7 @@ interface EmployeesClientProps {
   locations: { id: string; name: string }[];
   orgMembers: OrgMember[];
   canCreate: boolean;
+  isOrgView?: boolean;
 }
 
 type SortField = "name" | "department" | "jobTitle" | "status" | "hireDate";
@@ -80,6 +81,7 @@ export default function EmployeesClient({
   locations,
   orgMembers,
   canCreate,
+  isOrgView,
 }: EmployeesClientProps) {
   const router = useRouter();
   const [search, setSearch] = useState("");
@@ -513,8 +515,17 @@ export default function EmployeesClient({
                   </TableCell>
                 </TableRow>
               ) : (
-                paginatedEmployees.map((emp) => (
-                  <TableRow key={emp.id} hover sx={{ opacity: emp.status === "ARCHIVED" ? 0.6 : 1, cursor: "pointer" }} onClick={() => router.push(`/app/employees/${emp.id}`)}>
+                  paginatedEmployees.map((emp) => (
+                    <TableRow 
+                      key={emp.id} 
+                      hover 
+                      sx={{ 
+                        opacity: emp.status === "ARCHIVED" ? 0.6 : 1, 
+                        cursor: isOrgView ? "default" : "pointer" 
+                      }} 
+                      onClick={() => !isOrgView && router.push(`/app/employees/${emp.id}`)}
+                    >
+
                     <TableCell>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                         <Avatar sx={{ bgcolor: emp.status === "ARCHIVED" ? "grey.400" : "primary.main" }}>
@@ -571,11 +582,14 @@ export default function EmployeesClient({
         open={Boolean(menuAnchor)}
         onClose={() => setMenuAnchor(null)}
       >
-        <MenuItem onClick={() => router.push(`/app/employees/${menuAnchor?.employee.id}`)}>
+        <MenuItem 
+          onClick={() => !isOrgView && router.push(`/app/employees/${menuAnchor?.employee.id}`)}
+          disabled={isOrgView}
+        >
           <span className="material-symbols-outlined" style={{ marginRight: 8 }}>visibility</span>
           View Details
         </MenuItem>
-          {menuAnchor?.employee.status === "ACTIVE" && (
+          {menuAnchor?.employee.status === "ACTIVE" && !isOrgView && (
             <MenuItem onClick={() => { setMenuAnchor(null); router.push(`/app/offboardings?startOffboarding=${menuAnchor?.employee.id}`); }}>
               <span className="material-symbols-outlined" style={{ marginRight: 8 }}>person_remove</span>
               Start Offboarding

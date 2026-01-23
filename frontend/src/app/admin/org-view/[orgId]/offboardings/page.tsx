@@ -83,6 +83,7 @@ export default async function OrgViewOffboardingsPage({
           workflowTemplates={workflowTemplates}
           departments={departments}
           canCreate={false} // Force read-only
+          isOrgView={true}
         />
       </Suspense>
     </Box>

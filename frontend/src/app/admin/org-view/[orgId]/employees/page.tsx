@@ -72,14 +72,15 @@ export default async function OrgViewEmployeesPage({
         </Typography>
       </Box>
 
-      <EmployeesClient
-        employees={employees}
-        departments={departments}
-        jobTitles={jobTitles}
-        locations={locations}
-        orgMembers={orgMembers}
-        canCreate={false} // Force read-only
-      />
+        <EmployeesClient
+          employees={employees}
+          departments={departments}
+          jobTitles={jobTitles}
+          locations={locations}
+          orgMembers={orgMembers}
+          canCreate={false} // Force read-only
+          isOrgView={true}
+        />
     </Box>
   );
 }
