@@ -156,8 +156,15 @@ function SeverityBadge({ severity }: { severity: string }) {
 }
 
 function StatusPill({ isEnforced, enforcementStatus }: { isEnforced: boolean; enforcementStatus?: string }) {
-  const statusLabel = enforcementStatus === "ENFORCED" ? "Enforced" : enforcementStatus === "PARTIAL" ? "Partial" : "UI Only";
   const isReal = enforcementStatus === "ENFORCED" || enforcementStatus === "PARTIAL";
+  const isPlanned = enforcementStatus === "UI_ONLY";
+  const statusLabel = enforcementStatus === "ENFORCED" ? "Enforced" : enforcementStatus === "PARTIAL" ? "Partial" : "Planned";
+
+  const colors = isReal
+    ? { bg: "rgba(22, 163, 74, 0.06)", border: "rgba(22, 163, 74, 0.15)", dot: "#16a34a", text: "#16a34a" }
+    : isPlanned
+      ? { bg: "rgba(234, 179, 8, 0.06)", border: "rgba(234, 179, 8, 0.15)", dot: "#eab308", text: "#ca8a04" }
+      : { bg: "rgba(113, 113, 122, 0.06)", border: "rgba(113, 113, 122, 0.15)", dot: "#71717a", text: "#71717a" };
 
   return (
     <Box
@@ -168,8 +175,8 @@ function StatusPill({ isEnforced, enforcementStatus }: { isEnforced: boolean; en
         px: 1.5,
         py: 0.5,
         borderRadius: 1,
-        bgcolor: isEnforced && isReal ? "rgba(22, 163, 74, 0.06)" : "rgba(113, 113, 122, 0.06)",
-        border: `1px solid ${isEnforced && isReal ? "rgba(22, 163, 74, 0.15)" : "rgba(113, 113, 122, 0.15)"}`,
+        bgcolor: colors.bg,
+        border: `1px solid ${colors.border}`,
       }}
     >
       <Box
@@ -177,10 +184,10 @@ function StatusPill({ isEnforced, enforcementStatus }: { isEnforced: boolean; en
           width: 6,
           height: 6,
           borderRadius: "50%",
-          bgcolor: isEnforced && isReal ? "#16a34a" : "#71717a",
+          bgcolor: colors.dot,
         }}
       />
-      <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: isEnforced && isReal ? "#16a34a" : "#71717a" }}>
+      <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: colors.text }}>
         {statusLabel}
       </Typography>
     </Box>
@@ -189,9 +196,9 @@ function StatusPill({ isEnforced, enforcementStatus }: { isEnforced: boolean; en
 
 function AuthorityBadge({ isMandatory, canBeWeakened }: { isMandatory: boolean; canBeWeakened: boolean }) {
   if (!isMandatory && canBeWeakened) return null;
-  
+
   const label = isMandatory ? "MANDATORY" : "CANNOT WEAKEN";
-  
+
   return (
     <Box
       sx={{
@@ -244,7 +251,7 @@ function PolicyCard({
 
   const renderConfigField = (key: string, value: unknown) => {
     const label = CONFIG_LABELS[key] || key.replace(/([A-Z])/g, " $1").trim();
-    
+
     if (typeof value === "boolean") {
       return (
         <Box key={key} sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", py: 1.5, borderBottom: "1px solid", borderColor: isDark ? "#1f1f23" : "#f3f4f6" }}>
@@ -267,7 +274,7 @@ function PolicyCard({
         </Box>
       );
     }
-    
+
     return (
       <Box key={key} sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", py: 1.5, borderBottom: "1px solid", borderColor: isDark ? "#1f1f23" : "#f3f4f6" }}>
         <Typography sx={{ fontSize: "0.8125rem", color: isDark ? "#a1a1aa" : "#52525b" }}>{label}</Typography>
@@ -411,38 +418,38 @@ function PolicyCard({
           }}
         >
           {executionSummary && (
-              <Box
+            <Box
+              sx={{
+                p: 3,
+                mb: 4,
+                borderRadius: 2,
+                bgcolor: isDark ? alpha("#6366f1", 0.04) : alpha("#6366f1", 0.03),
+                border: `1px solid ${isDark ? alpha("#6366f1", 0.1) : alpha("#6366f1", 0.08)}`,
+              }}
+            >
+              <Typography
                 sx={{
-                  p: 3,
-                  mb: 4,
-                  borderRadius: 2,
-                  bgcolor: isDark ? alpha("#6366f1", 0.04) : alpha("#6366f1", 0.03),
-                  border: `1px solid ${isDark ? alpha("#6366f1", 0.1) : alpha("#6366f1", 0.08)}`,
+                  fontSize: "0.6875rem",
+                  fontWeight: 700,
+                  color: "#6366f1",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  mb: 1.5,
                 }}
               >
-                <Typography
-                  sx={{
-                    fontSize: "0.6875rem",
-                    fontWeight: 700,
-                    color: "#6366f1",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.1em",
-                    mb: 1.5,
-                  }}
-                >
-                  System Enforcement Logic
-                </Typography>
-                <Typography
-                  sx={{
-                    fontSize: "0.875rem",
-                    color: isDark ? "#d4d4d8" : "#4b5563",
-                    lineHeight: 1.7,
-                  }}
-                >
-                  {executionSummary(localConfig)}
-                </Typography>
-              </Box>
-            )}
+                System Enforcement Logic
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: "0.875rem",
+                  color: isDark ? "#d4d4d8" : "#4b5563",
+                  lineHeight: 1.7,
+                }}
+              >
+                {executionSummary(localConfig)}
+              </Typography>
+            </Box>
+          )}
 
           {isLocked && (
             <Box
@@ -680,49 +687,78 @@ export default function AdminPoliciesPage() {
     fetchPolicies();
   }, []);
 
-    const handleUpdate = async (id: string, config: PolicyConfig) => {
-      try {
-        const res = await fetch("/api/platform/policies", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id, config }),
-        });
-        if (res.ok) {
-          await fetchPolicies();
-        } else {
-          const error = await res.json();
-          console.error("Failed to update policy:", error);
-          alert(`Failed to update policy: ${error.error || "Unknown error"}`);
-        }
-      } catch (e) {
-        console.error("Failed to update policy", e);
-        alert("A network error occurred while updating the policy.");
+  const handleUpdate = async (id: string, config: PolicyConfig) => {
+    try {
+      const res = await fetch("/api/platform/policies", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, config }),
+      });
+      if (res.ok) {
+        await fetchPolicies();
+      } else {
+        const error = await res.json();
+        console.error("Failed to update policy:", error);
+        alert(`Failed to update policy: ${error.error || "Unknown error"}`);
       }
-    };
+    } catch (e) {
+      console.error("Failed to update policy", e);
+      alert("A network error occurred while updating the policy.");
+    }
+  };
 
+  // Separate enforced/partial policies from UI-only (planned) policies
+  const enforcedPolicies = policies.filter(
+    (p) => p.enforcementStatus === "ENFORCED" || p.enforcementStatus === "PARTIAL"
+  );
+  const plannedPolicies = policies.filter((p) => p.enforcementStatus === "UI_ONLY");
+
+  // Build domains only from enforced/partial policies
   const domains: PolicyDomain[] = Object.entries(DOMAIN_CONFIG)
     .sort(([, a], [, b]) => a.order - b.order)
     .map(([key, config]) => ({
       id: key,
       ...config,
-      policies: policies.filter((p) => POLICY_TO_DOMAIN[p.policyType] === key),
+      policies: enforcedPolicies.filter((p) => POLICY_TO_DOMAIN[p.policyType] === key),
     }))
     .filter((d) => d.policies.length > 0);
 
-  const unassignedPolicies = policies.filter((p) => !POLICY_TO_DOMAIN[p.policyType]);
-  if (unassignedPolicies.length > 0) {
+  const unassignedEnforcedPolicies = enforcedPolicies.filter((p) => !POLICY_TO_DOMAIN[p.policyType]);
+  if (unassignedEnforcedPolicies.length > 0) {
     domains.push({
       id: "OTHER",
       name: "Additional Policies",
       description: "Platform-level security and operational policies.",
       icon: "settings",
-      policies: unassignedPolicies,
+      policies: unassignedEnforcedPolicies,
     });
   }
 
-  const enforcedCount = policies.filter((p) => p.isActive).length;
-  const mandatoryCount = policies.filter((p) => p.isMandatory).length;
-  const cannotWeakenCount = policies.filter((p) => !p.canBeWeakened).length;
+  // Build domains for planned (UI-only) policies
+  const plannedDomains: PolicyDomain[] = Object.entries(DOMAIN_CONFIG)
+    .sort(([, a], [, b]) => a.order - b.order)
+    .map(([key, config]) => ({
+      id: key,
+      ...config,
+      policies: plannedPolicies.filter((p) => POLICY_TO_DOMAIN[p.policyType] === key),
+    }))
+    .filter((d) => d.policies.length > 0);
+
+  const unassignedPlannedPolicies = plannedPolicies.filter((p) => !POLICY_TO_DOMAIN[p.policyType]);
+  if (unassignedPlannedPolicies.length > 0) {
+    plannedDomains.push({
+      id: "OTHER_PLANNED",
+      name: "Additional Planned Controls",
+      description: "Planned platform-level security controls.",
+      icon: "settings",
+      policies: unassignedPlannedPolicies,
+    });
+  }
+
+  // Stats only from enforced/partial policies
+  const enforcedCount = enforcedPolicies.filter((p) => p.isActive).length;
+  const mandatoryCount = enforcedPolicies.filter((p) => p.isMandatory).length;
+  const cannotWeakenCount = enforcedPolicies.filter((p) => !p.canBeWeakened).length;
 
   if (loading) {
     return (
@@ -827,7 +863,7 @@ export default function AdminPoliciesPage() {
                 Policies Enforced
               </Typography>
               <Typography sx={{ fontSize: "0.875rem", fontWeight: 600, color: "#16a34a" }}>
-                {enforcedCount} / {policies.length}
+                {enforcedCount} / {enforcedPolicies.length}
               </Typography>
             </Box>
             <Box sx={{ px: 4, borderRight: "1px solid", borderColor: incidentMode ? alpha("#dc2626", 0.1) : isDark ? "#1f1f23" : "#f3f4f6" }}>
@@ -854,89 +890,143 @@ export default function AdminPoliciesPage() {
         <DomainSection key={domain.id} domain={domain} incidentMode={incidentMode} onUpdate={handleUpdate} />
       ))}
 
-        <Box
-          sx={{
-            mt: 5,
-            p: 3.5,
-            borderRadius: 2.5,
-            bgcolor: incidentMode 
-              ? alpha("#dc2626", 0.03) 
-              : isDark 
-                ? alpha("#6366f1", 0.03) 
-                : alpha("#6366f1", 0.02),
-            border: "1px solid",
-            borderColor: incidentMode 
-              ? alpha("#dc2626", 0.1) 
-              : isDark 
-                ? alpha("#6366f1", 0.1) 
-                : alpha("#6366f1", 0.08),
-            borderLeft: `4px solid ${incidentMode ? "#dc2626" : "#6366f1"}`,
-            position: "relative",
-            overflow: "hidden",
-            "&::before": {
-              content: '""',
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: `linear-gradient(90deg, ${incidentMode ? alpha("#dc2626", 0.05) : alpha("#6366f1", 0.05)} 0%, transparent 100%)`,
-              pointerEvents: "none",
-            }
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 3, position: "relative", zIndex: 1 }}>
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: "50%",
-                bgcolor: incidentMode ? alpha("#dc2626", 0.1) : alpha("#6366f1", 0.1),
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-            >
-              <span 
-                className="material-symbols-outlined" 
-                style={{ 
-                  fontSize: 22, 
-                  color: incidentMode ? "#dc2626" : "#6366f1",
-                  fontWeight: "bold"
-                }}
+      {/* Planned Controls Section - UI-only policies that are not yet enforced */}
+      {plannedPolicies.length > 0 && (
+        <Box sx={{ mt: 6 }}>
+          <Box
+            sx={{
+              mb: 4,
+              p: 3,
+              borderRadius: 2,
+              bgcolor: isDark ? alpha("#eab308", 0.04) : alpha("#eab308", 0.03),
+              border: `1px solid ${isDark ? alpha("#eab308", 0.12) : alpha("#eab308", 0.1)}`,
+              borderLeft: `4px solid #eab308`,
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 22, color: "#eab308", marginTop: 2 }}
               >
-                verified_user
+                construction
               </span>
-            </Box>
-            <Box>
-              <Typography 
-                sx={{ 
-                  fontSize: "0.9375rem", 
-                  fontWeight: 700, 
-                  color: isDark ? "#fafafa" : "#0f172a", 
-                  mb: 1,
-                  letterSpacing: "-0.01em"
-                }}
-              >
-                Policy Governance Model
-              </Typography>
-              <Typography 
-                sx={{ 
-                  fontSize: "0.875rem", 
-                  color: isDark ? "#a1a1aa" : "#475569", 
-                  lineHeight: 1.8,
-                  maxWidth: "90ch"
-                }}
-              >
-                Global policies define the <Box component="span" sx={{ color: isDark ? "#e2e8f0" : "#1e293b", fontWeight: 600 }}>minimum security baseline</Box> for all organizations. 
-                Tenants may extend these policies with <Box component="span" sx={{ color: isDark ? "#e2e8f0" : "#1e293b", fontWeight: 600 }}>stricter rules</Box> but are strictly prohibited from 
-                weakening policies marked as <Box component="span" sx={{ color: incidentMode ? "#f87171" : "#818cf8", fontWeight: 600 }}>mandatory</Box> or <Box component="span" sx={{ color: incidentMode ? "#f87171" : "#818cf8", fontWeight: 600 }}>locked</Box>. 
-                Every configuration change is cryptographically logged in the platform audit trail for permanent compliance attribution.
-              </Typography>
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: "1.125rem",
+                    fontWeight: 700,
+                    color: isDark ? "#fafafa" : "#0f172a",
+                    mb: 0.75,
+                  }}
+                >
+                  Planned Controls
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: "0.875rem",
+                    color: isDark ? "#a1a1aa" : "#52525b",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  The following controls are planned for future implementation. They are not currently
+                  enforced and should not be considered active security measures. These items are shown
+                  for visibility into the platform roadmap only.
+                </Typography>
+              </Box>
             </Box>
           </Box>
+
+          <Box sx={{ opacity: 0.75 }}>
+            {plannedDomains.map((domain) => (
+              <DomainSection key={`planned-${domain.id}`} domain={domain} incidentMode={incidentMode} onUpdate={handleUpdate} />
+            ))}
+          </Box>
         </Box>
+      )}
+
+      <Box
+        sx={{
+          mt: 5,
+          p: 3.5,
+          borderRadius: 2.5,
+          bgcolor: incidentMode
+            ? alpha("#dc2626", 0.03)
+            : isDark
+              ? alpha("#6366f1", 0.03)
+              : alpha("#6366f1", 0.02),
+          border: "1px solid",
+          borderColor: incidentMode
+            ? alpha("#dc2626", 0.1)
+            : isDark
+              ? alpha("#6366f1", 0.1)
+              : alpha("#6366f1", 0.08),
+          borderLeft: `4px solid ${incidentMode ? "#dc2626" : "#6366f1"}`,
+          position: "relative",
+          overflow: "hidden",
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: `linear-gradient(90deg, ${incidentMode ? alpha("#dc2626", 0.05) : alpha("#6366f1", 0.05)} 0%, transparent 100%)`,
+            pointerEvents: "none",
+          }
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 3, position: "relative", zIndex: 1 }}>
+          <Box
+            sx={{
+              width: 40,
+              height: 40,
+              borderRadius: "50%",
+              bgcolor: incidentMode ? alpha("#dc2626", 0.1) : alpha("#6366f1", 0.1),
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <span
+              className="material-symbols-outlined"
+              style={{
+                fontSize: 22,
+                color: incidentMode ? "#dc2626" : "#6366f1",
+                fontWeight: "bold"
+              }}
+            >
+              verified_user
+            </span>
+          </Box>
+          <Box>
+            <Typography
+              sx={{
+                fontSize: "0.9375rem",
+                fontWeight: 700,
+                color: isDark ? "#fafafa" : "#0f172a",
+                mb: 1,
+                letterSpacing: "-0.01em"
+              }}
+            >
+              Policy Governance Model
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: "0.875rem",
+                color: isDark ? "#a1a1aa" : "#475569",
+                lineHeight: 1.8,
+                maxWidth: "90ch"
+              }}
+            >
+              Global policies define the <Box component="span" sx={{ color: isDark ? "#e2e8f0" : "#1e293b", fontWeight: 600 }}>minimum security baseline</Box> for all organizations.
+              Tenants may extend these policies with <Box component="span" sx={{ color: isDark ? "#e2e8f0" : "#1e293b", fontWeight: 600 }}>stricter rules</Box> but are strictly prohibited from
+              weakening policies marked as <Box component="span" sx={{ color: incidentMode ? "#f87171" : "#818cf8", fontWeight: 600 }}>mandatory</Box> or <Box component="span" sx={{ color: incidentMode ? "#f87171" : "#818cf8", fontWeight: 600 }}>locked</Box>.
+              Every configuration change is cryptographically logged in the platform audit trail for permanent compliance attribution.
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
     </Box>
   );
 }
