@@ -71,29 +71,28 @@ export default async function OrgViewEmployeesPage({
         icon="badge"
       />
 
-      <Box sx={{ px: { xs: 3, md: 6 }, pb: 6 }}>
-        <Box
-          sx={{
-            bgcolor: "#ffffff",
-            borderRadius: "24px",
-            border: "1px solid",
-            borderColor: "#e2e8f0",
-            p: { xs: 2, md: 4 },
-            boxShadow: "0 4px 30px rgba(0,0,0,0.03)",
-            position: "relative",
-            "&::before": {
-              content: '""',
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: "4px",
-              bgcolor: "#6366f1",
-              borderTopLeftRadius: "24px",
-              borderTopRightRadius: "24px",
-            }
-          }}
-        >
+        <Box sx={{ px: { xs: 3, md: 6 }, pb: 6 }}>
+          <Box
+            sx={{
+              bgcolor: alpha("#0f172a", 0.3),
+              borderRadius: "32px",
+              border: "1px solid",
+              borderColor: alpha("#ffffff", 0.05),
+              p: { xs: 2, md: 4 },
+              boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
+              position: "relative",
+              overflow: "hidden",
+              "&::before": {
+                content: '""',
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: "2px",
+                background: `linear-gradient(90deg, transparent, ${alpha("#6366f1", 0.5)}, transparent)`,
+              }
+            }}
+          >
           <EmployeesClient
             employees={employees}
             departments={departments}
