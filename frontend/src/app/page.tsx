@@ -114,8 +114,8 @@ const PRICING = [
     period: "month",
     description: "For small teams getting compliant",
     features: [
-      { text: "Unlimited Employees", tooltip: "Unlimited individuals managed via the Employee Portal." },
-      "Unlimited Org users",
+      { text: "Up to 30 Employees", tooltip: "Employees are individuals managed via the Employee Portal. Org users are separate and manage the platform." },
+      { text: "Up to 5 Org users", tooltip: "Administrative accounts for HR, IT, and Security teams to manage the platform." },
       "Core offboarding workflows",
       "Asset recovery tracking",
       "Standard audit logs",
@@ -951,19 +951,19 @@ export default function LandingPage() {
             >
               Simple, Predictable Pricing
             </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                color: "text.secondary",
-                maxWidth: 480,
-                mx: "auto",
-                fontSize: "1rem",
-                lineHeight: 1.7,
-              }}
-            >
-              Pricing reflects organizational complexity, not headcount.
-              All plans include unlimited employees.
-            </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "text.secondary",
+                  maxWidth: 480,
+                  mx: "auto",
+                  fontSize: "1rem",
+                  lineHeight: 1.7,
+                }}
+              >
+                Pricing reflects organizational complexity, not headcount.
+                Flexible plans designed to scale with your security needs.
+              </Typography>
           </Box>
 
           <Grid container spacing={2.5} justifyContent="center">
@@ -1204,9 +1204,9 @@ export default function LandingPage() {
                 gap: { xs: 2, md: 4 },
               }}
             >
-              {[
-                { icon: "group", label: "Unlimited Employees", tooltip: "Employees refers to individuals who access the Employee Portal to complete assigned tasks. They are distinct from administrative Org users." },
-                { icon: "block", label: "No per-seat pricing" },
+                {[
+                  { icon: "group", label: "Clear Employee Limits", tooltip: "Employees refers to individuals who access the Employee Portal to complete assigned tasks. They are distinct from administrative Org users." },
+                  { icon: "block", label: "No per-seat pricing" },
                 { icon: "trending_flat", label: "No surprise overages" },
                 { icon: "event_available", label: "Cancel anytime" },
               ].map((item) => (
