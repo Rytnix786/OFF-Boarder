@@ -110,11 +110,12 @@ const PRICING = [
   },
   {
     name: "Starter",
-    price: "$99",
+    price: "$9.99",
     period: "month",
     description: "For small teams getting compliant",
     features: [
       { text: "Unlimited Employees", tooltip: "Unlimited individuals managed via the Employee Portal." },
+      "Unlimited Org users",
       "Core offboarding workflows",
       "Asset recovery tracking",
       "Standard audit logs",
@@ -129,13 +130,14 @@ const PRICING = [
   },
   {
     name: "Growth",
-    price: "$199",
+    price: "$29.99",
     period: "month",
     description: "For security-conscious teams",
     popular: true,
     features: [
       "Everything in Starter",
       { text: "Unlimited Employees", tooltip: "Unlimited employee records, lifecycle states, and Employee Portal access for all departing staff." },
+      "Unlimited Org users",
       "Risk Radar dashboard",
       "High-risk offboarding enforcement",
       "Custom workflows",
@@ -153,6 +155,7 @@ const PRICING = [
     features: [
       "Everything in Growth",
       { text: "Unlimited Employees", tooltip: "Formal scope management for all Employees via the Employee Portal, including complete audit history." },
+      "Unlimited Org users",
       "SSO & SCIM provisioning",
       "Advanced security policies",
       "Custom SLAs",
@@ -973,110 +976,197 @@ export default function LandingPage() {
                     viewport={{ once: true }}
                     sx={{ height: "100%" }}
                   >
-                    <Card
-                      variant="outlined"
-                      sx={{
-                        height: "100%",
-                        borderRadius: 3,
-                        borderColor: plan.isTrial 
-                          ? alpha(theme.palette.primary.main, 0.3)
-                          : isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
-                        bgcolor: plan.isTrial
-                          ? alpha(theme.palette.primary.main, 0.04)
-                          : isDark ? alpha("#fff", 0.02) : "#fff",
-                        display: "flex",
-                        flexDirection: "column",
-                      }}
-                    >
-                      <CardContent sx={{ p: 3, flex: 1, display: "flex", flexDirection: "column" }}>
-                        <Box sx={{ mb: 2.5 }}>
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.75 }}>
-                            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: "1rem" }}>
-                              {plan.name}
-                            </Typography>
-                            {plan.isTrial && (
-                              <Typography
-                                variant="caption"
-                                sx={{
-                                  px: 1,
-                                  py: 0.25,
-                                  borderRadius: 0.75,
-                                  bgcolor: alpha(theme.palette.primary.main, 0.15),
-                                  color: "primary.main",
-                                  fontWeight: 600,
-                                  fontSize: "0.6rem",
-                                  letterSpacing: 0.3,
-                                  textTransform: "uppercase",
+                      <Card
+                        variant="outlined"
+                        sx={{
+                          height: "100%",
+                          borderRadius: 4,
+                          borderColor: plan.isTrial 
+                            ? alpha(theme.palette.primary.main, 0.3)
+                            : isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
+                          bgcolor: plan.isTrial
+                            ? alpha(theme.palette.primary.main, 0.04)
+                            : isDark ? alpha("#fff", 0.02) : "#fff",
+                          display: "flex",
+                          flexDirection: "column",
+                          transition: "all 0.25s cubic-bezier(0.22, 1, 0.36, 1)",
+                          userSelect: "none",
+                          "&:hover": {
+                            borderColor: alpha(theme.palette.primary.main, plan.isTrial ? 0.5 : 0.3),
+                            transform: "translateY(-4px)",
+                            boxShadow: isDark 
+                              ? `0 12px 24px -8px ${alpha("#000", 0.5)}`
+                              : `0 12px 24px -8px ${alpha(theme.palette.primary.main, 0.1)}`,
+                          },
+                          "&:active": {
+                            transform: "translateY(-2px)",
+                          }
+                        }}
+                      >
+                        <CardContent sx={{ p: 3.5, flex: 1, display: "flex", flexDirection: "column" }}>
+                          <Box sx={{ mb: 3 }}>
+                            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
+                              <Typography 
+                                variant="overline" 
+                                sx={{ 
+                                  fontWeight: 800, 
+                                  fontSize: "0.7rem",
+                                  letterSpacing: 1,
+                                  color: plan.isTrial || plan.popular ? "primary.main" : "text.secondary"
                                 }}
                               >
-                                No Card
+                                {plan.name}
                               </Typography>
-                            )}
-                            {plan.popular && (
-                              <Typography
-                                variant="caption"
-                                sx={{
-                                  px: 1,
-                                  py: 0.25,
-                                  borderRadius: 0.75,
-                                  bgcolor: isDark ? alpha("#fff", 0.06) : alpha("#000", 0.04),
-                                  color: "text.secondary",
-                                  fontWeight: 600,
-                                  fontSize: "0.6rem",
-                                  letterSpacing: 0.3,
-                                  textTransform: "uppercase",
-                                }}
-                              >
-                                Popular
-                              </Typography>
-                            )}
-                          </Box>
-                          <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.8rem" }}>
-                            {plan.description}
-                          </Typography>
-                        </Box>
-
-                        <Box sx={{ mb: 3 }}>
-                          <Box sx={{ display: "flex", alignItems: "baseline" }}>
-                            <Typography sx={{ fontSize: "2rem", fontWeight: 700, lineHeight: 1 }}>
-                              {plan.price}
+                              {plan.isTrial && (
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    px: 1,
+                                    py: 0.25,
+                                    borderRadius: 1,
+                                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                    color: "primary.main",
+                                    fontWeight: 700,
+                                    fontSize: "0.6rem",
+                                    letterSpacing: 0.5,
+                                    textTransform: "uppercase",
+                                  }}
+                                >
+                                  No Card
+                                </Typography>
+                              )}
+                              {plan.popular && (
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    px: 1,
+                                    py: 0.25,
+                                    borderRadius: 1,
+                                    bgcolor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.05),
+                                    color: "text.primary",
+                                    fontWeight: 700,
+                                    fontSize: "0.6rem",
+                                    letterSpacing: 0.5,
+                                    textTransform: "uppercase",
+                                  }}
+                                >
+                                  Popular
+                                </Typography>
+                              )}
+                            </Box>
+                            <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.85rem", lineHeight: 1.5, minHeight: "2.25rem" }}>
+                              {plan.description}
                             </Typography>
-                            {plan.period && (
-                              <Typography sx={{ color: "text.secondary", ml: 0.5, fontSize: "0.85rem" }}>
-                                /{plan.period}
-                              </Typography>
-                            )}
                           </Box>
-                          {plan.isTrial && (
-                            <Typography variant="caption" sx={{ color: "text.secondary", mt: 0.5, display: "block" }}>
-                              for 14 days
+  
+                          <Box sx={{ mb: 4, minHeight: "4rem", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                            <Box sx={{ display: "flex", alignItems: "baseline" }}>
+                              <Typography sx={{ fontSize: "2.5rem", fontWeight: 800, lineHeight: 1, letterSpacing: -1 }}>
+                                {plan.price}
+                              </Typography>
+                              {plan.period && (
+                                <Typography sx={{ color: "text.secondary", ml: 1, fontSize: "0.9rem", fontWeight: 500 }}>
+                                  /{plan.period}
+                                </Typography>
+                              )}
+                            </Box>
+                            <Typography variant="caption" sx={{ color: "text.secondary", mt: 1, display: "block", fontWeight: 500 }}>
+                              {plan.isTrial ? "Trial period (14 days)" : "Billed monthly"}
                             </Typography>
-                          )}
-                        </Box>
-
-                          <Box sx={{ flex: 1, mb: 3 }}>
+                          </Box>
+  
+                          <Box sx={{ mb: 4 }}>
+                            <Button
+                              fullWidth
+                              variant={plan.isTrial || plan.popular ? "contained" : "outlined"}
+                              sx={{
+                                fontWeight: 700,
+                                py: 1.5,
+                                borderRadius: 2.5,
+                                fontSize: "0.85rem",
+                                textTransform: "none",
+                                transition: "all 0.2s ease",
+                                ...(plan.isTrial && {
+                                  bgcolor: theme.palette.primary.main,
+                                  "&:hover": {
+                                    bgcolor: theme.palette.primary.dark,
+                                    boxShadow: `0 8px 16px ${alpha(theme.palette.primary.main, 0.25)}`,
+                                  }
+                                }),
+                                ...(!plan.isTrial && !plan.popular && {
+                                  borderColor: isDark ? alpha("#fff", 0.15) : alpha("#000", 0.15),
+                                  color: "text.primary",
+                                  "&:hover": {
+                                    borderColor: theme.palette.primary.main,
+                                    bgcolor: alpha(theme.palette.primary.main, 0.04),
+                                  },
+                                }),
+                                "&:active": {
+                                  transform: "scale(0.98)",
+                                }
+                              }}
+                            >
+                              {plan.cta}
+                            </Button>
+                          </Box>
+  
+                          <Box sx={{ flex: 1 }}>
+                            <Typography 
+                              variant="caption" 
+                              sx={{ 
+                                display: "block", 
+                                mb: 2, 
+                                fontWeight: 700, 
+                                color: "text.secondary",
+                                textTransform: "uppercase",
+                                letterSpacing: 0.5,
+                                fontSize: "0.65rem"
+                              }}
+                            >
+                              Key Features
+                            </Typography>
                             {plan.features.map((feature, idx) => {
                               const isObject = typeof feature === "object";
                               const text = isObject ? feature.text : feature;
                               const tooltip = isObject ? feature.tooltip : null;
                               
                               return (
-                                <Box key={idx} sx={{ display: "flex", alignItems: "flex-start", gap: 1, mb: 1.25 }}>
+                                <Box key={idx} sx={{ display: "flex", alignItems: "flex-start", gap: 1.25, mb: 1.5 }}>
                                   <span
                                     className="material-symbols-outlined"
-                                    style={{ fontSize: 14, color: theme.palette.primary.main, marginTop: 2 }}
+                                    style={{ fontSize: 16, color: theme.palette.primary.main, marginTop: 1 }}
                                   >
-                                    check
+                                    check_circle
                                   </span>
-                                  <Typography variant="body2" sx={{ fontSize: "0.8rem", lineHeight: 1.4, display: "flex", alignItems: "center", gap: 0.5 }}>
+                                  <Typography variant="body2" sx={{ fontSize: "0.85rem", lineHeight: 1.5, display: "flex", alignItems: "center", gap: 0.5, fontWeight: 500 }}>
                                     {text}
                                     {tooltip && (
-                                      <Tooltip title={tooltip} arrow placement="top">
+                                      <Tooltip 
+                                        title={tooltip} 
+                                        arrow 
+                                        placement="top"
+                                        slotProps={{
+                                          tooltip: {
+                                            sx: {
+                                              bgcolor: theme.palette.text.primary,
+                                              color: theme.palette.background.default,
+                                              fontSize: "0.75rem",
+                                              fontWeight: 500,
+                                              lineHeight: 1.4,
+                                              px: 1.5,
+                                              py: 1,
+                                              borderRadius: 2,
+                                              maxWidth: 240,
+                                              boxShadow: theme.shadows[4]
+                                            }
+                                          }
+                                        }}
+                                      >
                                         <span 
                                           className="material-symbols-outlined" 
-                                          style={{ fontSize: 14, opacity: 0.5, cursor: "help" }}
+                                          style={{ fontSize: 16, opacity: 0.4, cursor: "help" }}
                                         >
-                                          info
+                                          help
                                         </span>
                                       </Tooltip>
                                     )}
@@ -1085,45 +1175,21 @@ export default function LandingPage() {
                               );
                             })}
                             {plan.limitations?.map((limitation, idx) => (
-                            <Box key={idx} sx={{ display: "flex", alignItems: "flex-start", gap: 1, mb: 1.25 }}>
-                              <span
-                                className="material-symbols-outlined"
-                                style={{ fontSize: 14, color: theme.palette.text.disabled, marginTop: 2 }}
-                              >
-                                remove
-                              </span>
-                              <Typography variant="body2" sx={{ fontSize: "0.8rem", lineHeight: 1.4, color: "text.secondary" }}>
-                                {limitation}
-                              </Typography>
-                            </Box>
-                          ))}
-                        </Box>
-
-                        <Button
-                          fullWidth
-                          variant={plan.isTrial || plan.popular ? "contained" : "outlined"}
-                          sx={{
-                            fontWeight: 600,
-                            py: 1.25,
-                            borderRadius: 2,
-                            fontSize: "0.8rem",
-                            ...(plan.isTrial && {
-                              bgcolor: theme.palette.primary.main,
-                            }),
-                            ...(!plan.isTrial && !plan.popular && {
-                              borderColor: isDark ? alpha("#fff", 0.12) : alpha("#000", 0.12),
-                              color: "text.primary",
-                              "&:hover": {
-                                borderColor: isDark ? alpha("#fff", 0.2) : alpha("#000", 0.2),
-                                bgcolor: "transparent",
-                              },
-                            }),
-                          }}
-                        >
-                          {plan.cta}
-                        </Button>
-                      </CardContent>
-                    </Card>
+                              <Box key={idx} sx={{ display: "flex", alignItems: "flex-start", gap: 1.25, mb: 1.5, opacity: 0.6 }}>
+                                <span
+                                  className="material-symbols-outlined"
+                                  style={{ fontSize: 16, color: theme.palette.text.disabled, marginTop: 1 }}
+                                >
+                                  cancel
+                                </span>
+                                <Typography variant="body2" sx={{ fontSize: "0.85rem", lineHeight: 1.5, color: "text.secondary", fontWeight: 400 }}>
+                                  {limitation}
+                                </Typography>
+                              </Box>
+                            ))}
+                          </Box>
+                        </CardContent>
+                      </Card>
                   </MotionBox>
                 </Grid>
               ))}
@@ -1179,7 +1245,7 @@ export default function LandingPage() {
                 fontSize: "0.875rem",
               }}
             >
-              Start with a 14-day free trial. Paid plans billed annually. Monthly billing available.
+              Start with a 14-day free trial. Paid plans billed monthly.
             </Typography>
         </Container>
       </Box>

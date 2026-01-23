@@ -144,6 +144,7 @@ model Organization {
   securityPolicies         SecurityPolicy[]
   UserSession              UserSession[]
   workflowTemplates        WorkflowTemplate[]
+  enterpriseConversations  EnterpriseConversation[]
 }
 
 model Department {
@@ -1396,9 +1397,46 @@ enum SupportCategory {
   OTHER
 }
 
+
 enum SupportPriority {
   LOW
   MEDIUM
   HIGH
   URGENT
+}
+
+model EnterpriseConversation {
+  id             String                     @id @default(cuid())
+  organizationId String
+  subject        String
+  status         EnterpriseConversationStatus @default(OPEN)
+  lastMessageAt  DateTime?
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+  organization   Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  messages       EnterpriseMessage[]
+
+  @@index([organizationId])
+}
+
+model EnterpriseMessage {
+  id             String               @id @default(cuid())
+  conversationId String
+  senderId       String
+  senderType     EnterpriseSenderType
+  content        String
+  createdAt      DateTime             @default(now())
+  conversation   EnterpriseConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+}
+
+enum EnterpriseConversationStatus {
+  OPEN
+  CLOSED
+}
+
+enum EnterpriseSenderType {
+  ORG_USER
+  PLATFORM_ADMIN
 }

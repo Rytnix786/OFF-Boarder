@@ -23,6 +23,7 @@ const NAV_ITEMS = [
     { label: "Workflows", href: "/dashboard", icon: "account_tree" }, // Placeholder for now
     { label: "Integrations", href: "/integrations", icon: "extension" },
     { label: "Audit Logs", href: "/audit-logs", icon: "receipt_long" },
+    { label: "Security Support", href: "/app/settings/security-support", icon: "shield_lock" },
     { label: "Settings", href: "/integrations", icon: "settings" }, // Placeholder
 ];
 
