@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 import { getOrgViewSession } from "@/lib/auth.server";
 import { prisma } from "@/lib/prisma.server";
 import EmployeesClient from "@/app/app/employees/EmployeesClient";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
+import { OrgViewPageHeader } from "../OrgViewPageHeader";
 
 export default async function OrgViewEmployeesPage({
   params,
@@ -63,25 +64,48 @@ export default async function OrgViewEmployeesPage({
   ]);
 
   return (
-    <Box sx={{ p: 4 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight={800} gutterBottom>
-          Employees
-        </Typography>
-        <Typography color="text.secondary">
-          Managing employee directory for {session.currentMembership?.organization.name} (Read-only).
-        </Typography>
-      </Box>
+    <Box>
+      <OrgViewPageHeader 
+        title="Employee Directory"
+        description={`Viewing employees for ${session.currentMembership?.organization.name} in read-only mode.`}
+        icon="badge"
+      />
 
-        <EmployeesClient
-          employees={employees}
-          departments={departments}
-          jobTitles={jobTitles}
-          locations={locations}
-          orgMembers={orgMembers}
-          canCreate={false} // Force read-only
-          isOrgView={true}
-        />
+      <Box sx={{ px: { xs: 3, md: 6 }, pb: 6 }}>
+        <Box
+          sx={{
+            bgcolor: "#ffffff",
+            borderRadius: "24px",
+            border: "1px solid",
+            borderColor: "#e2e8f0",
+            p: { xs: 2, md: 4 },
+            boxShadow: "0 4px 30px rgba(0,0,0,0.03)",
+            position: "relative",
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: "4px",
+              bgcolor: "#6366f1",
+              borderTopLeftRadius: "24px",
+              borderTopRightRadius: "24px",
+            }
+          }}
+        >
+          <EmployeesClient
+            employees={employees}
+            departments={departments}
+            jobTitles={jobTitles}
+            locations={locations}
+            orgMembers={orgMembers}
+            canCreate={false}
+            isOrgView={true}
+          />
+        </Box>
+      </Box>
     </Box>
   );
 }
+
