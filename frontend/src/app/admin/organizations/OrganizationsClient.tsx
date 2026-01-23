@@ -163,13 +163,21 @@ export default function OrganizationsClient({ organizations, initialStatus, init
                 filteredOrgs.map((org) => {
                   const owner = org.memberships[0]?.user;
                   return (
-                    <TableRow key={org.id} hover>
-                      <TableCell>
-                        <Typography fontWeight={600}>{org.name}</Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {org.slug}
-                        </Typography>
-                      </TableCell>
+                      <TableRow key={org.id} hover>
+                        <TableCell>
+                          <MuiLink
+                            component={Link}
+                            href={`/admin/organizations/${org.id}`}
+                            underline="hover"
+                            color="inherit"
+                          >
+                            <Typography fontWeight={600}>{org.name}</Typography>
+                          </MuiLink>
+                          <Typography variant="caption" color="text.secondary">
+                            {org.slug}
+                          </Typography>
+                        </TableCell>
+
                       <TableCell>
                         {owner ? (
                           <>
@@ -221,6 +229,17 @@ export default function OrganizationsClient({ organizations, initialStatus, init
         open={Boolean(menuAnchor)}
         onClose={() => setMenuAnchor(null)}
       >
+        <MenuItem
+          onClick={() => {
+            if (menuAnchor) router.push(`/admin/organizations/${menuAnchor.org.id}`);
+            setMenuAnchor(null);
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ marginRight: 8, color: "text.secondary" }}>
+            visibility
+          </span>
+          View Details
+        </MenuItem>
         {menuAnchor?.org.status === "PENDING" && [
           <MenuItem key="approve" onClick={() => handleApprove(menuAnchor.org.id)} disabled={loading}>
             <span className="material-symbols-outlined" style={{ marginRight: 8, color: "#22c55e" }}>
