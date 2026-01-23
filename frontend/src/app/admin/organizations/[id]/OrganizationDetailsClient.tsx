@@ -44,11 +44,12 @@ type OrgUser = {
 
 type Employee = {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   status: string;
-  jobTitle: string | null;
-  department: string | null;
+  jobTitle: { title: string } | null;
+  department: { name: string } | null;
   createdAt: string;
 };
 
@@ -260,26 +261,26 @@ export default function OrganizationDetailsClient({ id }: { id: string }) {
                   </TableHead>
                   <TableBody>
                     {org.employees.length > 0 ? org.employees.map((employee) => (
-                      <TableRow key={employee.id} hover>
-                        <TableCell>
-                          <Box>
-                            <Typography sx={{ fontWeight: 600, fontSize: t.typography.fontSize.sm }}>
-                              {employee.name}
+                        <TableRow key={employee.id} hover>
+                          <TableCell>
+                            <Box>
+                              <Typography sx={{ fontWeight: 600, fontSize: t.typography.fontSize.sm }}>
+                                {employee.firstName} {employee.lastName}
+                              </Typography>
+                              <Typography sx={{ color: "text.secondary", fontSize: "0.75rem" }}>
+                                {employee.email}
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Typography sx={{ fontSize: t.typography.fontSize.sm, fontWeight: 500 }}>
+                              {employee.jobTitle?.title || "—"}
                             </Typography>
-                            <Typography sx={{ color: "text.secondary", fontSize: "0.75rem" }}>
-                              {employee.email}
+                            <Typography sx={{ color: "text.secondary", fontSize: "0.7rem" }}>
+                              {employee.department?.name || "—"}
                             </Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Typography sx={{ fontSize: t.typography.fontSize.sm, fontWeight: 500 }}>
-                            {employee.jobTitle || "—"}
-                          </Typography>
-                          <Typography sx={{ color: "text.secondary", fontSize: "0.7rem" }}>
-                            {employee.department || "—"}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
+                          </TableCell>
+                          <TableCell>
                           <Chip 
                             label={employee.status} 
                             size="small" 
