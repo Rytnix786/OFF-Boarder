@@ -895,30 +895,89 @@ export default function AdminPoliciesPage() {
         <DomainSection key={domain.id} domain={domain} incidentMode={incidentMode} onUpdate={handleUpdate} />
       ))}
 
-      <Box
-        sx={{
-          mt: 5,
-          p: 3,
-          borderRadius: 2,
-          bgcolor: incidentMode ? alpha("#1c1917", 0.3) : isDark ? "#0c0c0e" : "#fafafa",
-          border: "1px solid",
-          borderColor: incidentMode ? alpha("#dc2626", 0.1) : isDark ? "#1f1f23" : "#e5e7eb",
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 20, color: isDark ? "#52525b" : "#9ca3af" }}>
-            info
-          </span>
-          <Box>
-            <Typography sx={{ fontSize: "0.875rem", fontWeight: 600, color: isDark ? "#a1a1aa" : "#374151", mb: 0.75 }}>
-              Policy Governance Model
-            </Typography>
-            <Typography sx={{ fontSize: "0.8125rem", color: isDark ? "#71717a" : "#6b7280", lineHeight: 1.7 }}>
-              Global policies define the minimum security baseline for all organizations. Organizations may extend these policies with stricter rules but cannot weaken policies marked as mandatory or locked. All policy configuration changes are logged in the platform audit trail with full attribution and are retained for compliance purposes.
-            </Typography>
+        <Box
+          sx={{
+            mt: 5,
+            p: 3.5,
+            borderRadius: 2.5,
+            bgcolor: incidentMode 
+              ? alpha("#dc2626", 0.03) 
+              : isDark 
+                ? alpha("#6366f1", 0.03) 
+                : alpha("#6366f1", 0.02),
+            border: "1px solid",
+            borderColor: incidentMode 
+              ? alpha("#dc2626", 0.1) 
+              : isDark 
+                ? alpha("#6366f1", 0.1) 
+                : alpha("#6366f1", 0.08),
+            borderLeft: `4px solid ${incidentMode ? "#dc2626" : "#6366f1"}`,
+            position: "relative",
+            overflow: "hidden",
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: `linear-gradient(90deg, ${incidentMode ? alpha("#dc2626", 0.05) : alpha("#6366f1", 0.05)} 0%, transparent 100%)`,
+              pointerEvents: "none",
+            }
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 3, position: "relative", zIndex: 1 }}>
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: "50%",
+                bgcolor: incidentMode ? alpha("#dc2626", 0.1) : alpha("#6366f1", 0.1),
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <span 
+                className="material-symbols-outlined" 
+                style={{ 
+                  fontSize: 22, 
+                  color: incidentMode ? "#dc2626" : "#6366f1",
+                  fontWeight: "bold"
+                }}
+              >
+                verified_user
+              </span>
+            </Box>
+            <Box>
+              <Typography 
+                sx={{ 
+                  fontSize: "0.9375rem", 
+                  fontWeight: 700, 
+                  color: isDark ? "#fafafa" : "#0f172a", 
+                  mb: 1,
+                  letterSpacing: "-0.01em"
+                }}
+              >
+                Policy Governance Model
+              </Typography>
+              <Typography 
+                sx={{ 
+                  fontSize: "0.875rem", 
+                  color: isDark ? "#a1a1aa" : "#475569", 
+                  lineHeight: 1.8,
+                  maxWidth: "90ch"
+                }}
+              >
+                Global policies define the <Box component="span" sx={{ color: isDark ? "#e2e8f0" : "#1e293b", fontWeight: 600 }}>minimum security baseline</Box> for all organizations. 
+                Tenants may extend these policies with <Box component="span" sx={{ color: isDark ? "#e2e8f0" : "#1e293b", fontWeight: 600 }}>stricter rules</Box> but are strictly prohibited from 
+                weakening policies marked as <Box component="span" sx={{ color: incidentMode ? "#f87171" : "#818cf8", fontWeight: 600 }}>mandatory</Box> or <Box component="span" sx={{ color: incidentMode ? "#f87171" : "#818cf8", fontWeight: 600 }}>locked</Box>. 
+                Every configuration change is cryptographically logged in the platform audit trail for permanent compliance attribution.
+              </Typography>
+            </Box>
           </Box>
         </Box>
-      </Box>
     </Box>
   );
 }
