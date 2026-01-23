@@ -60,8 +60,8 @@ export function KPICard({ label, value, icon, color, href, trend, trendDirection
         height: "100%",
         borderRadius: 3,
         transition: "all 0.2s",
-        bgcolor: isDark ? t.colors.background.surfaceLight : t.colors.background.lightPaper,
-        borderColor: isDark ? t.colors.border.subtle : t.colors.border.light,
+        bgcolor: isDark ? t.colors.background.surfaceLight : "#1a1d1f",
+        borderColor: isDark ? t.colors.border.subtle : "rgba(255, 255, 255, 0.08)",
         ...(href && {
           "&:hover": {
             borderColor: color,
@@ -92,14 +92,13 @@ export function KPICard({ label, value, icon, color, href, trend, trendDirection
         <Box sx={{ textAlign: "center" }}>
           <Typography
             variant={cfg.valueSize as any}
-            sx={{ fontWeight: 900, color: isDark ? "#FFFFFF" : t.colors.text.primary.light }}
+            sx={{ fontWeight: 900, color: isDark ? "#FFFFFF" : "#FFFFFF" }}
           >
             {value}
           </Typography>
           <Typography
             variant="caption"
-            color="text.secondary"
-            sx={{ fontWeight: 600, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: 0.3 }}
+            sx={{ fontWeight: 600, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: 0.3, color: isDark ? "text.secondary" : "rgba(255, 255, 255, 0.6)" }}
           >
             {label}
           </Typography>
@@ -599,8 +598,8 @@ export function SectionCard({
       variant="outlined"
       sx={{
         borderRadius: 3,
-        bgcolor: isDark ? t.colors.background.surfaceLight : t.colors.background.lightPaper,
-        borderColor: isDark ? t.colors.border.subtle : t.colors.border.light,
+        bgcolor: isDark ? t.colors.background.surfaceLight : "#1a1d1f",
+        borderColor: isDark ? t.colors.border.subtle : "rgba(255, 255, 255, 0.08)",
       }}
     >
       <CardContent sx={{ p: 0 }}>
@@ -609,7 +608,7 @@ export function SectionCard({
             px: 3,
             py: 2,
             borderBottom: "1px solid",
-            borderColor: isDark ? t.colors.border.subtle : "divider",
+            borderColor: isDark ? t.colors.border.subtle : "rgba(255, 255, 255, 0.08)",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -621,7 +620,7 @@ export function SectionCard({
                 {icon}
               </span>
             )}
-            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#f8fafc" }}>
               {title}
             </Typography>
             {badge !== undefined && (
@@ -646,7 +645,7 @@ export function SectionCard({
               px: 3,
               py: 2,
               borderTop: "1px solid",
-              borderColor: isDark ? t.colors.border.subtle : "divider",
+              borderColor: isDark ? t.colors.border.subtle : "rgba(255, 255, 255, 0.08)",
             }}
           >
             {footer}
