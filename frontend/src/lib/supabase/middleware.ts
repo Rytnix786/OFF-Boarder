@@ -1,5 +1,4 @@
 import { createServerClient } from "@supabase/ssr";
-import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 function getClientIPFromRequest(request: NextRequest): string {
@@ -15,44 +14,52 @@ function getClientIPFromRequest(request: NextRequest): string {
   return "127.0.0.1";
 }
 
-async function checkIPBlocked(ipAddress: string): Promise<boolean> {
-  const adminClient = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-        detectSessionInUrl: false
-      }
-    }
-  );
-
+async function checkIPBlocked(
+  request: NextRequest, 
+  ipAddress: string, 
+  pathname: string
+): Promise<{ blocked: boolean; error: boolean }> {
+  // Use absolute URL for fetch in middleware
+  const url = new URL("/api/blocked-ips/check", request.url);
+  
   try {
-    const { data, error } = await adminClient
-      .from("BlockedIP")
-      .select("id")
-      .eq("ipAddress", ipAddress)
-      .eq("isActive", true)
-      .or("expiresAt.is.null,expiresAt.gt.now()")
-      .limit(1)
-      .maybeSingle();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
 
-    if (error) {
-      console.error("IP block query error:", error);
-      return false;
+    const response = await fetch(url.toString(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal-skip-middleware": "true",
+      },
+      body: JSON.stringify({
+        ipAddress,
+        path: pathname,
+        method: request.method,
+        userAgent: request.headers.get("user-agent"),
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      console.error(`[Middleware] IP check failed with status: ${response.status}`);
+      return { blocked: false, error: true };
     }
 
-    return !!data;
+    const result = await response.json();
+    return { blocked: !!result.blocked, error: false };
   } catch (error) {
-    console.error("IP block check failed:", error);
-    return false;
+    console.error("[Middleware] IP check fetch failed:", error);
+    return { blocked: false, error: true };
   }
 }
 
 export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
+  // Skip middleware for internal checks or the IP check API itself
   if (pathname.startsWith("/api/blocked-ips/check") || request.headers.get("x-internal-skip-middleware") === "true") {
     return NextResponse.next({ request });
   }
@@ -68,50 +75,59 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              request.cookies.set(name, value);
-            });
-            supabaseResponse = NextResponse.next({
-              request: {
-                headers: requestHeaders,
-              },
-            });
-            cookiesToSet.forEach(({ name, value, options }) => {
-              supabaseResponse.cookies.set(name, value, {
-                ...options,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "lax" as const,
-                path: "/",
-              });
-            });
-          },
+  // Use Anon Key instead of Service Role Key in Edge Runtime
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
         },
-      }
-    );
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            request.cookies.set(name, value);
+          });
+          supabaseResponse = NextResponse.next({
+            request: {
+              headers: requestHeaders,
+            },
+          });
+          cookiesToSet.forEach(({ name, value, options }) => {
+            supabaseResponse.cookies.set(name, value, {
+              ...options,
+              secure: process.env.NODE_ENV === "production",
+              sameSite: "lax" as const,
+              path: "/",
+            });
+          });
+        },
+      },
+    }
+  );
 
   const isBlockCheckRequired =
     pathname === "/login" ||
     pathname === "/register" ||
+    pathname.startsWith("/admin") ||
     pathname.startsWith("/invite") ||
     pathname.startsWith("/app") ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/invitations");
 
-    if (isBlockCheckRequired) {
-      const isBlocked = await checkIPBlocked(ipAddress);
-      if (isBlocked) {
-
+  if (isBlockCheckRequired) {
+    const { blocked, error } = await checkIPBlocked(request, ipAddress, pathname);
+    
+    // Fail-closed for /admin and /app routes if check fails or errors
+    const isPrivilegedRoute = pathname.startsWith("/admin") || pathname.startsWith("/app");
+    
+    if (blocked || (error && isPrivilegedRoute)) {
+      console.warn(`[Middleware] Blocking request for IP ${ipAddress} on ${pathname}. Reason: ${blocked ? 'IP Blocked' : 'Security Check Error (Fail-Closed)'}`);
       return new NextResponse(
-        JSON.stringify({ error: "Access denied" }),
+        JSON.stringify({ 
+          error: "Access denied", 
+          message: blocked ? "Your IP has been blocked." : "Security check failed. Please try again later." 
+        }),
         {
           status: 403,
           headers: { "Content-Type": "application/json" },
@@ -120,7 +136,7 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  const isProtectedRoute = pathname.startsWith("/app");
+  const isProtectedRoute = pathname.startsWith("/app") || pathname.startsWith("/admin");
   const isStatusPageRoute = 
     pathname === "/org-blocked" || 
     pathname === "/app/pending" || 
@@ -160,7 +176,7 @@ export async function updateSession(request: NextRequest) {
           return redirectResponse;
         }
       } else {
-        // Fix 2: Redirect suspended users directly in middleware to avoid hops
+        // Fetch user metadata/status using the authenticated supabase client
         const { data: userData } = await supabase
           .from("User")
           .select(`
@@ -177,7 +193,6 @@ export async function updateSession(request: NextRequest) {
           .single();
 
         if (userData?.memberships?.length > 0) {
-          // Find active membership or first one
           const membership = userData.memberships.find((m: any) => m.status === "ACTIVE") || userData.memberships[0];
           const orgStatus = membership.organization.status;
           const memStatus = membership.status;
@@ -194,7 +209,7 @@ export async function updateSession(request: NextRequest) {
               url.pathname = "/org-blocked";
               return NextResponse.redirect(url);
             }
-          } else if (orgStatus !== "ACTIVE") {
+          } else if (orgStatus !== "ACTIVE" && !pathname.startsWith("/admin")) {
             if (pathname !== "/app/pending" && pathname !== "/app/setup") {
               const url = request.nextUrl.clone();
               url.pathname = "/app/pending";
@@ -210,4 +225,3 @@ export async function updateSession(request: NextRequest) {
 
   return supabaseResponse;
 }
-
