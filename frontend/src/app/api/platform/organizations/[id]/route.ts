@@ -35,11 +35,20 @@ export async function GET(
         employees: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             email: true,
             status: true,
-            jobTitle: true,
-            department: true,
+            jobTitle: {
+              select: {
+                title: true
+              }
+            },
+            department: {
+              select: {
+                name: true
+              }
+            },
             createdAt: true,
           },
           orderBy: { createdAt: "desc" },
