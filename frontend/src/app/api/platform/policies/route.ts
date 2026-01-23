@@ -138,7 +138,11 @@ export async function GET() {
 
     if (policies.length === 0) {
       await prisma.globalSecurityPolicy.createMany({
-        data: DEFAULT_POLICIES,
+        data: DEFAULT_POLICIES.map((p) => ({
+          ...p,
+          id: p.policyType.toLowerCase().replace(/_/g, "-"),
+          updatedAt: new Date(),
+        })),
         skipDuplicates: true,
       });
       policies = await prisma.globalSecurityPolicy.findMany({

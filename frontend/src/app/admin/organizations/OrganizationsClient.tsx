@@ -166,7 +166,18 @@ export default function OrganizationsClient({ organizations, initialStatus, init
                 filteredOrgs.map((org) => {
                   const owner = org.memberships[0]?.user;
                   return (
-                      <TableRow key={org.id} hover>
+                      <TableRow
+                        key={org.id}
+                        hover
+                        sx={{
+                          cursor: "pointer",
+                          transition: "background-color 150ms ease",
+                          "&.MuiTableRow-hover:hover": {
+                            bgcolor: (theme) => alpha(theme.palette.primary.main, 0.02),
+                          },
+                        }}
+                        onClick={() => router.push(`/admin/organizations/${org.id}`)}
+                      >
                         <TableCell>
                           <MuiLink
                             component={Link}
