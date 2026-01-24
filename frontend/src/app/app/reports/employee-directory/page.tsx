@@ -177,7 +177,7 @@ export default async function EmployeeDirectoryReport({ searchParams }: PageProp
                     <TableCell>
                       <Typography variant="caption">
                         {employee.hireDate
-                          ? new Date(employee.hireDate).toLocaleDateString()
+                          ? new Date(employee.hireDate).toLocaleDateString("en-US")
                           : "-"}
                       </Typography>
                     </TableCell>

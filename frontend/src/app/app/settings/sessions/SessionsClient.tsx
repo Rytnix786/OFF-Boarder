@@ -61,7 +61,7 @@ function formatRelativeTime(dateStr: string | null): string {
   if (minutes < 60) return `${minutes}m ago`;
   if (hours < 24) return `${hours}h ago`;
   if (days < 7) return `${days}d ago`;
-  return date.toLocaleDateString();
+  return date.toLocaleDateString("en-US");
 }
 
 function SessionCard({
@@ -254,7 +254,7 @@ function SessionCard({
           }}
         >
           Last active: {formatRelativeTime(session.lastActive)} • Signed in:{" "}
-          {new Date(session.createdAt).toLocaleDateString()}
+          {new Date(session.createdAt).toLocaleDateString("en-US")}
         </Typography>
       </Box>
 

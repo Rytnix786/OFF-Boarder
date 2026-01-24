@@ -74,7 +74,7 @@ export function EmployeeDashboard({ session, offboarding }: EmployeeDashboardPro
       label: "Offboarding Initiated",
       description: "Your offboarding process has started",
       status: "completed",
-      date: offboarding.scheduledDate ? new Date(offboarding.scheduledDate).toLocaleDateString() : undefined,
+      date: offboarding.scheduledDate ? new Date(offboarding.scheduledDate).toLocaleDateString("en-US") : undefined,
     });
 
     if (taskStats.completed > 0) {
@@ -224,7 +224,7 @@ export function EmployeeDashboard({ session, offboarding }: EmployeeDashboardPro
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         {offboarding?.scheduledDate
-                          ? `Scheduled for ${new Date(offboarding.scheduledDate).toLocaleDateString()}`
+                          ? `Scheduled for ${new Date(offboarding.scheduledDate).toLocaleDateString("en-US")}`
                           : "In progress"}
                       </Typography>
                     </Box>
@@ -329,7 +329,7 @@ export function EmployeeDashboard({ session, offboarding }: EmployeeDashboardPro
                                     variant="caption"
                                     sx={{ color: isOverdue ? "#ef4444" : "text.secondary" }}
                                   >
-                                    Due: {new Date(task.dueDate).toLocaleDateString()}
+                                    Due: {new Date(task.dueDate).toLocaleDateString("en-US")}
                                     {isOverdue && " (Overdue)"}
                                   </Typography>
                                 )}

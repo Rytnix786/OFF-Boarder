@@ -290,7 +290,7 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
     if (hours < 24) return `${hours}h ago`;
     const days = Math.floor(hours / 24);
     if (days < 7) return `${days}d ago`;
-    return past.toLocaleDateString();
+    return past.toLocaleDateString("en-US");
   };
 
   const getDaysOverdue = (dueDate: Date | string) => {

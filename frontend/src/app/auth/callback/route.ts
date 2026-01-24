@@ -303,7 +303,7 @@ export async function GET(request: NextRequest) {
           }
           
           if (pendingOrg) {
-            const response = NextResponse.redirect(`${origin}/pending`);
+            const response = NextResponse.redirect(`${origin}/app/pending`);
             return setSessionCookies(response, sessionToken, refreshToken);
           }
           
@@ -532,16 +532,16 @@ export async function GET(request: NextRequest) {
           return { user, organization };
         });
 
-        const { sessionToken, refreshToken } = await createUserSession(
-          request,
-          result.user.id,
-          result.organization.id,
-          result.user.passwordVersion,
-          result.user.roleVersion
-        );
-        const response = NextResponse.redirect(`${origin}/pending`);
-        return setSessionCookies(response, sessionToken, refreshToken);
-      }
+          const { sessionToken, refreshToken } = await createUserSession(
+            request,
+            result.user.id,
+            result.organization.id,
+            result.user.passwordVersion,
+            result.user.roleVersion
+          );
+          const response = NextResponse.redirect(`${origin}/app/pending`);
+          return setSessionCookies(response, sessionToken, refreshToken);
+        }
 
       const userName = data.user.user_metadata?.name || 
                       data.user.user_metadata?.full_name || 

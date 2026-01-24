@@ -177,22 +177,31 @@ export async function updateSession(request: NextRequest) {
         }
       } else {
         // Fetch user metadata/status using the authenticated supabase client
-        const { data: userData } = await supabase
-          .from("User")
-          .select(`
-            id,
-            memberships:Membership (
-              status,
-              organization:Organization (
+          const { data: userData } = await supabase
+            .from("User")
+            .select(`
+              id,
+              isPlatformAdmin,
+              memberships:Membership (
                 status,
-                slug
+                organization:Organization (
+                  status,
+                  slug
+                )
               )
-            )
-          `)
-          .eq("supabaseId", user.id)
-          .single();
+            `)
+            .eq("supabaseId", user.id)
+            .single();
 
-          if (userData && userData.memberships && userData.memberships.length > 0) {
+            if (userData) {
+              // Enforce platform admin for /admin routes
+              if (pathname.startsWith("/admin") && !userData.isPlatformAdmin) {
+                const url = request.nextUrl.clone();
+                url.pathname = "/app/access-denied";
+                return NextResponse.redirect(url);
+              }
+
+              if (userData.memberships && userData.memberships.length > 0) {
             const memberships = userData.memberships as any[];
             const hasSuspendedMembership = memberships.some((m) => m.status === "SUSPENDED" || m.status === "REVOKED");
             const hasSuspendedOrg = memberships.some((m) => m.organization?.status === "SUSPENDED");
@@ -217,7 +226,8 @@ export async function updateSession(request: NextRequest) {
                 return NextResponse.redirect(url);
               }
             }
-          }
+            }
+        }
       }
     }
   } else if (hasSupabaseCookie) {
