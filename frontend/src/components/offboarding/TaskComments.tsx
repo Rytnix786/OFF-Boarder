@@ -49,21 +49,26 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
   const isDark = theme.palette.mode === "dark";
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [newComment, setNewComment] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    async function loadComments() {
-      try {
-        const data = await getTaskComments(taskId);
-        setComments(data as any);
-      } catch (error) {
-        console.error("Failed to load comments:", error);
-      } finally {
-        setLoading(false);
-      }
+  async function loadComments() {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getTaskComments(taskId);
+      setComments(data as any);
+    } catch (err: any) {
+      console.error("Failed to load comments:", err);
+      setError(err.message || "Failed to load comments. Please try again.");
+    } finally {
+      setLoading(false);
     }
+  }
+
+  useEffect(() => {
     loadComments();
   }, [taskId]);
 
@@ -150,11 +155,33 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
             "&::-webkit-scrollbar-thumb": { bgcolor: isDark ? alpha("#fff", 0.1) : alpha("#000", 0.1), borderRadius: 3 },
           }}
         >
-          {loading ? (
-            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", py: 8 }}>
-              <CircularProgress size={24} thickness={5} />
-            </Box>
-          ) : comments.length === 0 ? (
+            {loading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", py: 8 }}>
+                <CircularProgress size={24} thickness={5} />
+              </Box>
+            ) : error ? (
+              <Box sx={{ py: 8, textAlign: "center", color: t.colors.status.error }}>
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  {error}
+                </Typography>
+                <Button 
+                  size="small" 
+                  variant="outlined" 
+                  onClick={() => loadComments()}
+                  sx={{ 
+                    color: t.colors.status.error, 
+                    borderColor: alpha(t.colors.status.error, 0.5),
+                    "&:hover": {
+                      borderColor: t.colors.status.error,
+                      bgcolor: alpha(t.colors.status.error, 0.05),
+                    }
+                  }}
+                >
+                  Retry
+                </Button>
+              </Box>
+            ) : comments.length === 0 ? (
+
             <Box sx={{ py: 8, textAlign: "center", opacity: 0.5 }}>
               <Typography variant="body2" sx={{ fontStyle: "italic" }}>
                 No comments yet. Start the conversation.

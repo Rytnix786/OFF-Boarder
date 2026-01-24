@@ -8,68 +8,82 @@ import { createNotificationForOrgMembers, createEmployeeNotification } from "@/l
 import { createAuditLog } from "@/lib/audit.server";
 
 export async function getTaskComments(taskId: string) {
-  const { orgSession, employeeSession } = await getAnySession();
+  try {
+    // Add a safety timeout for the entire operation
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("Request timed out")), 10000)
+    );
 
-  if (!orgSession && !employeeSession) {
-    throw new Error("Unauthorized");
-  }
+    const actionPromise = (async () => {
+      const { orgSession, employeeSession } = await getAnySession();
 
-  const task = await prisma.offboardingTask.findUnique({
-    where: { id: taskId },
-    include: {
-      offboarding: true,
-    },
-  });
+      if (!orgSession && !employeeSession) {
+        throw new Error("Unauthorized");
+      }
 
-  if (!task) {
-    throw new Error("Task not found");
-  }
-
-  let hasAccess = false;
-
-  // 1. Check Org Access
-  if (orgSession) {
-    const isPlatformAdmin = !!orgSession.user.isPlatformAdmin;
-    const hasMembership = orgSession.memberships.some(m => m.organizationId === task.offboarding.organizationId);
-    if (isPlatformAdmin || hasMembership) {
-      hasAccess = true;
-    }
-  }
-
-  // 2. Check Employee Access
-  if (!hasAccess && employeeSession) {
-    const isOwnOffboarding = task.offboarding.employeeId === employeeSession.employee.id;
-    const isAssignedToEmployee = task.isEmployeeRequired && task.assignedToEmployeeId === employeeSession.employee.id;
-    
-    if (isOwnOffboarding && isAssignedToEmployee) {
-      hasAccess = true;
-    }
-  }
-
-  if (!hasAccess) {
-    throw new Error("Unauthorized: You do not have permission to view these comments");
-  }
-
-  return prisma.taskComment.findMany({
-    where: { taskId },
-    include: {
-      user: {
-        select: {
-          name: true,
-          email: true,
-          avatarUrl: true,
+      const task = await prisma.offboardingTask.findUnique({
+        where: { id: taskId },
+        include: {
+          offboarding: true,
         },
-      },
-      employee: {
-        select: {
-          firstName: true,
-          lastName: true,
-          email: true,
+      });
+
+      if (!task) {
+        throw new Error("Task not found");
+      }
+
+      let hasAccess = false;
+
+      // 1. Check Org Access
+      if (orgSession) {
+        const isPlatformAdmin = !!orgSession.user.isPlatformAdmin;
+        const hasMembership = orgSession.memberships.some(m => m.organizationId === task.offboarding.organizationId);
+        if (isPlatformAdmin || hasMembership) {
+          hasAccess = true;
+        }
+      }
+
+      // 2. Check Employee Access
+      if (!hasAccess && employeeSession) {
+        const isOwnOffboarding = task.offboarding.employeeId === employeeSession.employee.id;
+        const isAssignedToEmployee = task.isEmployeeRequired && task.assignedToEmployeeId === employeeSession.employee.id;
+        
+        if (isOwnOffboarding && isAssignedToEmployee) {
+          hasAccess = true;
+        }
+      }
+
+      if (!hasAccess) {
+        throw new Error("Unauthorized: You do not have permission to view these comments");
+      }
+
+      return prisma.taskComment.findMany({
+        where: { taskId },
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+              avatarUrl: true,
+            },
+          },
+          employee: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
         },
-      },
-    },
-    orderBy: { createdAt: "asc" },
-  });
+        orderBy: { createdAt: "asc" },
+      });
+    })();
+
+    return await Promise.race([actionPromise, timeoutPromise]) as any;
+  } catch (error: any) {
+    console.error("Error in getTaskComments:", error);
+    throw error;
+  }
 }
 
 export async function createTaskComment(taskId: string, content: string) {

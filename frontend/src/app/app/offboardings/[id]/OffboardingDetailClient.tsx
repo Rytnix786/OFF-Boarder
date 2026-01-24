@@ -34,8 +34,8 @@ import {
   Tabs,
   Tab,
   Snackbar,
-  Collapse,
 } from "@mui/material";
+import { Collapse } from "@mui/material";
 import { 
   updateOffboardingTask, 
   cancelOffboarding, 
