@@ -29,21 +29,34 @@ export async function getTaskComments(taskId: string) {
   }
 
   // Permission check
+  let hasAccess = false;
+
+  // 1. Check Org Access (Admin or Member)
   if (orgSession) {
     const isPlatformAdmin = !!orgSession.user.isPlatformAdmin;
     const hasMembership = orgSession.memberships.some(m => m.organizationId === task.offboarding.organizationId);
+    if (isPlatformAdmin || hasMembership) {
+      hasAccess = true;
+    }
+  }
+
+  // 2. Check Employee Access (if not already granted via Org Access)
+  if (!hasAccess && employeeSession) {
+    const isOwnOffboarding = task.offboarding.employeeId === employeeSession.employee.id;
+    const isAssignedToEmployee = task.isEmployeeRequired && task.assignedToEmployeeId === employeeSession.employee.id;
     
-    // Platform Admins can audit any task comments
-    if (!isPlatformAdmin && !hasMembership) {
+    if (isOwnOffboarding && isAssignedToEmployee) {
+      hasAccess = true;
+    }
+  }
+
+  if (!hasAccess) {
+    if (orgSession && !employeeSession) {
       throw new Error("Unauthorized: Organization mismatch");
-    }
-  } else if (employeeSession) {
-    if (task.offboarding.employeeId !== employeeSession.employee.id) {
-      throw new Error("Unauthorized: Employee mismatch");
-    }
-    // Employees can only see comments on their own required tasks
-    if (!task.isEmployeeRequired || task.assignedToEmployeeId !== employeeSession.employee.id) {
-      throw new Error("Unauthorized: Task not assigned to employee");
+    } else if (!orgSession && employeeSession) {
+      throw new Error("Unauthorized: Employee mismatch or task not assigned");
+    } else {
+      throw new Error("Unauthorized: You do not have permission to view these comments");
     }
   }
 
@@ -98,28 +111,36 @@ export async function createTaskComment(taskId: string, content: string) {
   let authorName: string = "";
 
   // Permission check and author identification
-  if (orgSession) {
+  let hasAccess = false;
+
+  // 1. Try to identify as Employee first (if they are using the employee portal)
+  if (employeeSession) {
+    const isOwnOffboarding = task.offboarding.employeeId === employeeSession.employee.id;
+    const isAssignedToEmployee = task.isEmployeeRequired && task.assignedToEmployeeId === employeeSession.employee.id;
+
+    if (isOwnOffboarding && isAssignedToEmployee) {
+      employeeId = employeeSession.employee.id;
+      authorType = "EMPLOYEE";
+      authorName = `${employeeSession.employee.firstName} ${employeeSession.employee.lastName}`;
+      hasAccess = true;
+    }
+  }
+
+  // 2. If not employee or employee check failed, try Org Session
+  if (!hasAccess && orgSession) {
     const isPlatformAdmin = !!orgSession.user.isPlatformAdmin;
     const hasMembership = orgSession.memberships.some(m => m.organizationId === task.offboarding.organizationId);
 
-    if (!isPlatformAdmin && !hasMembership) {
-      throw new Error("Unauthorized: Organization mismatch");
+    if (isPlatformAdmin || hasMembership) {
+      userId = orgSession.user.id;
+      authorType = isPlatformAdmin ? "ADMIN" : "ORG_USER";
+      authorName = orgSession.user.name || orgSession.user.email;
+      hasAccess = true;
     }
-    userId = orgSession.user.id;
-    authorType = isPlatformAdmin ? "ADMIN" : "ORG_USER";
-    authorName = orgSession.user.name || orgSession.user.email;
-  } else if (employeeSession) {
-    if (task.offboarding.employeeId !== employeeSession.employee.id) {
-      throw new Error("Unauthorized: Employee mismatch");
-    }
-    if (!task.isEmployeeRequired || task.assignedToEmployeeId !== employeeSession.employee.id) {
-      throw new Error("Unauthorized: Cannot comment on this task");
-    }
-    employeeId = employeeSession.employee.id;
-    authorType = "EMPLOYEE";
-    authorName = `${employeeSession.employee.firstName} ${employeeSession.employee.lastName}`;
-  } else {
-    throw new Error("Unauthorized");
+  }
+
+  if (!hasAccess) {
+    throw new Error("Unauthorized: You do not have permission to comment on this task");
   }
 
   const comment = await prisma.taskComment.create({
