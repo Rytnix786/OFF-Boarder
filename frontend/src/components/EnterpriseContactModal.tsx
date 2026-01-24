@@ -37,6 +37,7 @@ export function EnterpriseContactModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [publicToken, setPublicToken] = useState<string | null>(null);
 
   const handleSubmit = async () => {
     if (!name || !email || !company || !message) {
@@ -60,6 +61,7 @@ export function EnterpriseContactModal({
         throw new Error(data.error || "Failed to send message. Please try again later.");
       }
 
+      setPublicToken(data.publicToken);
       setSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send message. Please try again later.");
@@ -76,6 +78,7 @@ export function EnterpriseContactModal({
       setMessage(initialMessage);
       setError(null);
       setSuccess(false);
+      setPublicToken(null);
       onClose();
     }
   };
@@ -139,38 +142,56 @@ export function EnterpriseContactModal({
     >
       <AnimatePresence mode="wait">
         {success ? (
-          <MotionBox
-            key="success"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            sx={{ p: { xs: 4, md: 8 }, textAlign: "center" }}
-          >
-            <Box
-              sx={{
-                width: 80,
-                height: 80,
-                borderRadius: "50%",
-                bgcolor: alpha("#10B981", 0.1),
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                mx: "auto",
-                mb: 4,
-                border: "1px solid",
-                borderColor: alpha("#10B981", 0.2),
-              }}
+            <MotionBox
+              key="success"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              sx={{ p: { xs: 4, md: 6 }, textAlign: "center" }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 40, color: "#10B981" }}>
-                verified_user
-              </span>
-            </Box>
+              <Box
+                sx={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: "50%",
+                  bgcolor: alpha("#10B981", 0.1),
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  mx: "auto",
+                  mb: 4,
+                  border: "1px solid",
+                  borderColor: alpha("#10B981", 0.2),
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 40, color: "#10B981" }}>
+                  verified_user
+                </span>
+              </Box>
 
-            <Typography variant="h4" fontWeight={800} sx={{ mb: 2, letterSpacing: -1, color: isDark ? "#fff" : "text.primary" }}>
-              Securely Received
-            </Typography>
-            <Typography variant="body1" sx={{ color: "text.secondary", mb: 6, lineHeight: 1.6, maxWidth: 360, mx: "auto" }}>
-              Our security team has been notified. We’ll respond as soon as possible.
-            </Typography>
+              <Typography variant="h4" fontWeight={800} sx={{ mb: 2, letterSpacing: -1, color: isDark ? "#fff" : "text.primary" }}>
+                Securely Received
+              </Typography>
+              <Typography variant="body1" sx={{ color: "text.secondary", mb: 4, lineHeight: 1.6, maxWidth: 360, mx: "auto" }}>
+                Our security team has been notified. Use this "Magic Link" to track our reply and message us back:
+              </Typography>
+
+              {publicToken && (
+                <Box sx={{ mb: 4, p: 2, bgcolor: isDark ? alpha("#fff", 0.05) : alpha("#000", 0.03), borderRadius: 1.5, border: "1px dashed", borderColor: "primary.main" }}>
+                  <Typography variant="body2" sx={{ color: "primary.main", fontWeight: 700, wordBreak: "break-all", mb: 1 }}>
+                    {`${window.location.origin}/public/messages/${publicToken}`}
+                  </Typography>
+                  <Button 
+                    size="small" 
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/public/messages/${publicToken}`);
+                    }}
+                    startIcon={<span className="material-symbols-outlined" style={{ fontSize: 16 }}>content_copy</span>}
+                    sx={{ textTransform: "none" }}
+                  >
+                    Copy Magic Link
+                  </Button>
+                </Box>
+              )}
 
               <Button
                 onClick={handleClose}
@@ -186,9 +207,9 @@ export function EnterpriseContactModal({
                   "&:hover": { bgcolor: "#059669" }
                 }}
               >
-              Done
-            </Button>
-          </MotionBox>
+                Done
+              </Button>
+            </MotionBox>
         ) : (
           <MotionBox
             key="form"
