@@ -636,6 +636,7 @@ model WorkflowTemplateTask {
   defaultDueDays      Int?
   requiresApproval    Boolean             @default(false)
   isHighRiskTask      Boolean             @default(false)
+  isEmployeeRequired  Boolean             @default(false)
   order               Int                 @default(0)
   assigneeRole        String?
   assigneeDepartment  String?

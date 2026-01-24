@@ -76,7 +76,7 @@ export async function createOffboarding(formData: FormData) {
     template = await ensureDefaultWorkflowTemplate(orgId);
   }
 
-  const templateWithTasks = template as typeof template & { tasks?: { name: string; description: string | null; category: string | null; defaultDueDays: number | null; requiresApproval: boolean; isHighRiskTask: boolean; isEmployeeRequired?: boolean; evidenceRequirement?: "REQUIRED" | "OPTIONAL" | "NONE" }[] };
+  const templateWithTasks = template as typeof template & { tasks?: { name: string; description: string | null; category: string | null; defaultDueDays: number | null; requiresApproval: boolean; isHighRiskTask: boolean; isEmployeeRequired: boolean; evidenceRequirement?: "REQUIRED" | "OPTIONAL" | "NONE" }[] };
   const templateTasks = templateWithTasks.tasks || [];
   const allTasks = [...templateTasks];
 
@@ -113,7 +113,11 @@ export async function createOffboarding(formData: FormData) {
         templateId: template.id,
         templateName: template.name,
         version: template.version,
-        tasks: templateTasks.map((t: { name: string; category: string | null }) => ({ name: t.name, category: t.category })),
+        tasks: templateTasks.map((t: { name: string; category: string | null; isEmployeeRequired: boolean }) => ({ 
+          name: t.name, 
+          category: t.category,
+          isEmployeeRequired: t.isEmployeeRequired 
+        })),
       },
       tasks: {
         create: allTasks.map((task, index) => ({
