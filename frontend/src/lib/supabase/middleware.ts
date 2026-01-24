@@ -192,31 +192,32 @@ export async function updateSession(request: NextRequest) {
           .eq("supabaseId", user.id)
           .single();
 
-        if (userData?.memberships?.length > 0) {
-          const membership = userData.memberships.find((m: any) => m.status === "ACTIVE") || userData.memberships[0];
-          const orgStatus = membership.organization.status;
-          const memStatus = membership.status;
+          if (userData && userData.memberships && userData.memberships.length > 0) {
+            const memberships = userData.memberships as any[];
+            const hasSuspendedMembership = memberships.some((m) => m.status === "SUSPENDED" || m.status === "REVOKED");
+            const hasSuspendedOrg = memberships.some((m) => m.organization?.status === "SUSPENDED");
+            const hasActiveOrg = memberships.some((m) => m.organization?.status === "ACTIVE");
 
-          if (memStatus === "SUSPENDED" || memStatus === "REVOKED") {
-            if (pathname !== "/app/access-suspended") {
-              const url = request.nextUrl.clone();
-              url.pathname = "/app/access-suspended";
-              return NextResponse.redirect(url);
-            }
-          } else if (orgStatus === "SUSPENDED") {
-            if (pathname !== "/org-blocked") {
-              const url = request.nextUrl.clone();
-              url.pathname = "/org-blocked";
-              return NextResponse.redirect(url);
-            }
-          } else if (orgStatus !== "ACTIVE" && !pathname.startsWith("/admin")) {
-            if (pathname !== "/app/pending" && pathname !== "/app/setup") {
-              const url = request.nextUrl.clone();
-              url.pathname = "/app/pending";
-              return NextResponse.redirect(url);
+            if (hasSuspendedMembership) {
+              if (pathname !== "/app/access-suspended") {
+                const url = request.nextUrl.clone();
+                url.pathname = "/app/access-suspended";
+                return NextResponse.redirect(url);
+              }
+            } else if (hasSuspendedOrg) {
+              if (pathname !== "/org-blocked") {
+                const url = request.nextUrl.clone();
+                url.pathname = "/org-blocked";
+                return NextResponse.redirect(url);
+              }
+            } else if (!hasActiveOrg && !pathname.startsWith("/admin")) {
+              if (pathname !== "/app/pending" && pathname !== "/app/setup") {
+                const url = request.nextUrl.clone();
+                url.pathname = "/app/pending";
+                return NextResponse.redirect(url);
+              }
             }
           }
-        }
       }
     }
   } else if (hasSupabaseCookie) {
