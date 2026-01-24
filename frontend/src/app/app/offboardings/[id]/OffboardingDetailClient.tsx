@@ -34,6 +34,7 @@ import {
   Tabs,
   Tab,
   Snackbar,
+  Collapse,
 } from "@mui/material";
 import { 
   updateOffboardingTask, 
@@ -169,6 +170,11 @@ export default function OffboardingDetailClient({
   const [assetDialog, setAssetDialog] = useState<AssetReturn | null>(null);
   const [selectedTaskForComments, setSelectedTaskForComments] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" } | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const completedTasks = offboarding.tasks.filter((t) => t.status === "COMPLETED" || t.status === "SKIPPED").length;
   const progress = offboarding.tasks.length > 0 ? Math.round((completedTasks / offboarding.tasks.length) * 100) : 0;
@@ -449,11 +455,11 @@ export default function OffboardingDetailClient({
                   <Typography variant="caption" color="text.secondary">Reason</Typography>
                   <Typography variant="body2">{offboarding.reason || "—"}</Typography>
                 </Box>
-                <Box>
+                  <Box>
                     <Typography variant="caption" color="text.secondary">Scheduled Date</Typography>
                     <Typography variant="body2">
                       {offboarding.scheduledDate
-                        ? new Date(offboarding.scheduledDate).toLocaleDateString("en-US")
+                        ? (isMounted ? new Date(offboarding.scheduledDate).toLocaleDateString("en-US") : "...")
                         : "—"}
                     </Typography>
                   </Box>
@@ -652,11 +658,11 @@ export default function OffboardingDetailClient({
                                       </Typography>
                                     )}
                                   </Box>
-                                    {task.completedAt && (
-                                      <Typography variant="caption" color="success.main">
-                                        Completed {new Date(task.completedAt).toLocaleDateString("en-US")}
-                                      </Typography>
-                                    )}
+                                     {task.completedAt && (
+                                       <Typography variant="caption" color="success.main">
+                                         Completed {isMounted ? new Date(task.completedAt).toLocaleDateString("en-US") : "..."}
+                                       </Typography>
+                                     )}
                                     <IconButton 
                                       size="small" 
                                       onClick={(e) => {
@@ -822,12 +828,12 @@ export default function OffboardingDetailClient({
                                 Acknowledge
                               </Button>
                             )}
+                            </Box>
+                            <Typography sx={{ mt: 1 }}>{event.description}</Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {isMounted ? new Date(event.createdAt).toLocaleString("en-US") : "..."} {event.source && `• ${event.source}`}
+                              </Typography>
                           </Box>
-                          <Typography sx={{ mt: 1 }}>{event.description}</Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {new Date(event.createdAt).toLocaleString("en-US")} {event.source && `• ${event.source}`}
-                            </Typography>
-                        </Box>
                       ))}
                     </Box>
                   )}

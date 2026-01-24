@@ -680,9 +680,9 @@ export default function RiskCaseDetailClient({ offboarding, securityEvents, audi
                             )}
                           </Box>
                           <Typography variant="caption" color="text.secondary">
-                            {rev.systemType || "Manual verification required"}
-                            {rev.confirmedAt && ` • Confirmed ${new Date(rev.confirmedAt).toLocaleDateString()}`}
-                          </Typography>
+                              {rev.systemType || "Manual verification required"}
+                              {isMounted && rev.confirmedAt && ` • Confirmed ${new Date(rev.confirmedAt).toLocaleDateString()}`}
+                            </Typography>
                         </Box>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                           <Chip
@@ -766,12 +766,12 @@ export default function RiskCaseDetailClient({ offboarding, securityEvents, audi
                                 {event.eventType.replace(/_/g, " ")}
                               </Typography>
                             </Box>
-                            <Typography variant="body2">{event.description}</Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {event.ipAddress && `IP: ${event.ipAddress} • `}
-                              {new Date(event.createdAt).toLocaleString()}
-                            </Typography>
-                          </Box>
+                              <Typography variant="body2">{event.description}</Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {event.ipAddress && `IP: ${event.ipAddress} • `}
+                                {isMounted && new Date(event.createdAt).toLocaleString()}
+                              </Typography>
+                            </Box>
                           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                             <Chip
                               size="small"
@@ -847,13 +847,13 @@ export default function RiskCaseDetailClient({ offboarding, securityEvents, audi
                           borderColor: "#6b7280",
                         }}
                       />
-                      <Typography variant="body2" fontWeight={500}>
-                        {log.action.replace(/\./g, " → ").replace(/_/g, " ")}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {log.user?.name || log.user?.email || "System"} • {new Date(log.createdAt).toLocaleString()}
-                      </Typography>
-                    </Box>
+                        <Typography variant="body2" fontWeight={500}>
+                          {log.action.replace(/\./g, " → ").replace(/_/g, " ")}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {log.user?.name || log.user?.email || "System"} • {isMounted && new Date(log.createdAt).toLocaleString()}
+                        </Typography>
+                      </Box>
                   ))}
                 </Box>
               )}
@@ -1049,11 +1049,11 @@ export default function RiskCaseDetailClient({ offboarding, securityEvents, audi
                         </Box>
                       )}
                     >
-                      <Typography fontWeight={600}>{event.label}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {new Date(event.date).toLocaleDateString()}
-                      </Typography>
-                    </StepLabel>
+                        <Typography fontWeight={600}>{event.label}</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {isMounted && new Date(event.date).toLocaleDateString()}
+                        </Typography>
+                      </StepLabel>
                   </Step>
                 ))}
               </Stepper>
