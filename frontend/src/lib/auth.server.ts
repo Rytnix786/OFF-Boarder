@@ -175,7 +175,7 @@ export async function requireActiveOrg(orgSlug?: string): Promise<AuthSession> {
     if (inServerAction) {
       throw new AuthError("No active organization membership.", "NO_ORG");
     }
-    redirect("/pending");
+    redirect("/app/pending");
   }
 
   // Handle suspended or revoked memberships
@@ -201,7 +201,7 @@ export async function requireActiveOrg(orgSlug?: string): Promise<AuthSession> {
     if (inServerAction) {
       throw new AuthError("Organization is not active.", "NO_ORG");
     }
-    redirect("/pending");
+    redirect("/app/pending");
   }
   return session;
 }

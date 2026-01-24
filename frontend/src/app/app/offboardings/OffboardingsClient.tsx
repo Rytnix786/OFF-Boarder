@@ -408,11 +408,11 @@ export default function OffboardingsClient({
                           />
                         </Box>
                       </TableCell>
-                      <TableCell>
-                        {o.scheduledDate
-                          ? new Date(o.scheduledDate).toLocaleDateString()
-                          : "—"}
-                      </TableCell>
+                        <TableCell>
+                          {o.scheduledDate
+                            ? new Date(o.scheduledDate).toLocaleDateString("en-US")
+                            : "—"}
+                        </TableCell>
                     </TableRow>
                   );
                 })
