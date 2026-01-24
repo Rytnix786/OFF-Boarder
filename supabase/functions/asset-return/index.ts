@@ -1,3 +1,5 @@
+/// <reference lib="deno.ns" />
+
 import { corsHeaders, createSupabaseClient } from "../shared/supabase.ts";
 
 interface ReturnRequest {
@@ -6,7 +8,7 @@ interface ReturnRequest {
     condition: string;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
     // 1. Handle CORS Preflight
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders });
@@ -77,7 +79,7 @@ Deno.serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
 
-    } catch (error) {
+    } catch (error: any) {
         return new Response(JSON.stringify({ error: error.message }), {
             status: 500,
             headers: { ...corsHeaders, "Content-Type": "application/json" }
