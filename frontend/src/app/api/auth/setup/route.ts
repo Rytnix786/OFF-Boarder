@@ -400,7 +400,6 @@ export async function POST(request: NextRequest) {
           },
         },
         employeeUserLinks: {
-          where: { status: "VERIFIED" },
           include: {
             organization: { select: { id: true, name: true, status: true } },
           },
@@ -430,15 +429,23 @@ export async function POST(request: NextRequest) {
       (m) => m.status === "ACTIVE" && m.organization.status === "ACTIVE"
     );
 
+    const revokedMembership = dbUser.memberships.find(
+      (m) => m.status === "REVOKED" || m.status === "SUSPENDED"
+    );
+
     const activeEmployeeLink = dbUser.employeeUserLinks.find(
       (link) => link.status === "VERIFIED" && link.organization.status === "ACTIVE"
+    );
+
+    const revokedEmployeeLink = dbUser.employeeUserLinks.find(
+      (link) => link.status === "REVOKED"
     );
 
     const pendingOrg = dbUser.memberships.find(
       (m) => m.organization.status === "PENDING"
     );
 
-    const targetOrgId = activeOrg?.organizationId || activeEmployeeLink?.organizationId || pendingOrg?.organizationId || null;
+    const targetOrgId = activeOrg?.organizationId || activeEmployeeLink?.organizationId || pendingOrg?.organizationId || revokedMembership?.organizationId || revokedEmployeeLink?.organizationId || null;
 
     const { sessionToken, refreshToken } = await createUserSession(
       request,
@@ -451,7 +458,18 @@ export async function POST(request: NextRequest) {
 
     let targetUrl = "/register";
 
-    if (redirectUrl) {
+    if (revokedMembership || revokedEmployeeLink) {
+      // Platform admins are exempt from suspension blocks
+      if (!dbUser.isPlatformAdmin) {
+        // Only block if they have NO active orgs or employee links
+        if (!activeOrg && !activeEmployeeLink) {
+          targetUrl = "/app/access-suspended";
+        }
+      }
+    }
+
+    if (targetUrl === "/register") {
+      if (redirectUrl) {
       const isEmployeeRedirect = redirectUrl.startsWith("/app/employee");
       const isAppRedirect = redirectUrl.startsWith("/app") && !isEmployeeRedirect;
       
