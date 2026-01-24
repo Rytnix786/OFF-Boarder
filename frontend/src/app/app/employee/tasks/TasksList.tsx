@@ -266,17 +266,17 @@ export default function TasksList({ tasks }: TasksListProps) {
                     {task.description}
                   </Typography>
                 )}
-                <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
-                  {task.dueDate && (
-                    <Typography variant="caption" color="text.secondary">
-                      Due: {new Date(task.dueDate).toLocaleDateString()}
-                    </Typography>
-                  )}
-                    {task.completedAt && (
-                      <Typography variant="caption" color="success.main">
-                        Completed: {new Date(task.completedAt).toLocaleDateString()}
+                  <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
+                    {task.dueDate && (
+                      <Typography variant="caption" color="text.secondary">
+                        Due: {new Date(task.dueDate).toLocaleDateString("en-US")}
                       </Typography>
                     )}
+                      {task.completedAt && (
+                        <Typography variant="caption" color="success.main">
+                          Completed: {new Date(task.completedAt).toLocaleDateString("en-US")}
+                        </Typography>
+                      )}
                     <IconButton 
                       size="small" 
                       onClick={(e) => {
