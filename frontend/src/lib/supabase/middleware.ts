@@ -192,9 +192,14 @@ export async function updateSession(request: NextRequest) {
               memberships:Membership (
                 status,
                 organization:Organization (
+                  id,
                   status,
                   slug
                 )
+              ),
+              employeeUserLinks:EmployeeUserLink (
+                status,
+                organizationId
               )
             `)
             .eq("supabaseId", user.id)
@@ -202,39 +207,63 @@ export async function updateSession(request: NextRequest) {
 
             if (userData) {
               // Enforce platform admin for /admin routes
-              if (pathname.startsWith("/admin") && !userData.isPlatformAdmin) {
-                const url = request.nextUrl.clone();
-                url.pathname = "/app/access-denied";
-                return NextResponse.redirect(url);
+              if (pathname.startsWith("/admin")) {
+                if (!userData.isPlatformAdmin) {
+                  const url = request.nextUrl.clone();
+                  url.pathname = "/app/access-denied";
+                  return NextResponse.redirect(url);
+                }
+                // Platform admins can always access /admin routes
+                return supabaseResponse;
               }
 
-              if (userData.memberships && userData.memberships.length > 0) {
-            const memberships = userData.memberships as any[];
-            const hasSuspendedMembership = memberships.some((m) => m.status === "SUSPENDED" || m.status === "REVOKED");
-            const hasSuspendedOrg = memberships.some((m) => m.organization?.status === "SUSPENDED");
-            const hasActiveOrg = memberships.some((m) => m.organization?.status === "ACTIVE");
+              const memberships = (userData.memberships || []) as any[];
+              const employeeLinks = (userData.employeeUserLinks || []) as any[];
 
-            if (hasSuspendedMembership) {
-              if (pathname !== "/app/access-suspended") {
-                const url = request.nextUrl.clone();
-                url.pathname = "/app/access-suspended";
-                return NextResponse.redirect(url);
-              }
-            } else if (hasSuspendedOrg) {
-              if (pathname !== "/org-blocked") {
-                const url = request.nextUrl.clone();
-                url.pathname = "/org-blocked";
-                return NextResponse.redirect(url);
-              }
-            } else if (!hasActiveOrg && !pathname.startsWith("/admin")) {
-              if (pathname !== "/app/pending" && pathname !== "/app/setup") {
-                const url = request.nextUrl.clone();
-                url.pathname = "/app/pending";
-                return NextResponse.redirect(url);
+              const isEmployeePortal = pathname.startsWith("/app/employee");
+
+              if (isEmployeePortal) {
+                // For employee portal, check if their employee link is revoked
+                const hasRevokedEmployeeLink = employeeLinks.some((l: any) => l.status === "REVOKED");
+                if (hasRevokedEmployeeLink && pathname !== "/app/access-suspended") {
+                  const url = request.nextUrl.clone();
+                  url.pathname = "/app/access-suspended";
+                  return NextResponse.redirect(url);
+                }
+              } else {
+                // For admin dashboard, check if their membership is revoked
+                // Only block if ALL memberships are revoked or if we can identify the current one
+                // For now, if they have at least one ACTIVE membership, let them through to the app
+                const hasActiveMembership = memberships.some((m) => m.status === "ACTIVE" && m.organization?.status === "ACTIVE");
+                const hasSuspendedMembership = memberships.some((m) => m.status === "SUSPENDED" || m.status === "REVOKED");
+                
+                // If they have NO active memberships but have suspended ones, block them
+                if (!hasActiveMembership && hasSuspendedMembership) {
+                  if (pathname !== "/app/access-suspended") {
+                    const url = request.nextUrl.clone();
+                    url.pathname = "/app/access-suspended";
+                    return NextResponse.redirect(url);
+                  }
+                }
+
+                const hasSuspendedOrg = memberships.some((m) => m.organization?.status === "SUSPENDED");
+                if (hasSuspendedOrg && !hasActiveMembership) {
+                  if (pathname !== "/org-blocked") {
+                    const url = request.nextUrl.clone();
+                    url.pathname = "/org-blocked";
+                    return NextResponse.redirect(url);
+                  }
+                }
+
+                if (!hasActiveMembership) {
+                  if (pathname !== "/app/pending" && pathname !== "/app/setup" && pathname !== "/app/access-suspended") {
+                    const url = request.nextUrl.clone();
+                    url.pathname = "/app/pending";
+                    return NextResponse.redirect(url);
+                  }
+                }
               }
             }
-            }
-        }
       }
     }
   } else if (hasSupabaseCookie) {
