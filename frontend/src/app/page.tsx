@@ -50,15 +50,18 @@ export default function LandingPage() {
         component="nav"
         sx={{
           position: "sticky",
-          top: 0,
-          zIndex: 100,
-          bgcolor: alpha(theme.palette.background.default, 0.92),
-          backdropFilter: "blur(12px) saturate(180%)",
-          borderBottom: "1px solid",
-          borderColor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
+          top: 16,
+          mx: { xs: 2, md: 4 },
+          zIndex: 1000,
+          bgcolor: isDark ? alpha("#0B0F1A", 0.72) : alpha("#fff", 0.8),
+          backdropFilter: "blur(20px) saturate(180%)",
+          borderRadius: 4,
+          border: "1px solid",
+          borderColor: isDark ? alpha("#fff", 0.12) : alpha("#000", 0.08),
           boxShadow: isDark 
-            ? `0 4px 12px -4px rgba(0, 0, 0, 0.4), inset 0 1px 0 ${alpha("#fff", 0.05)}`
-            : `0 4px 12px -4px rgba(0, 0, 0, 0.08), inset 0 1px 0 ${alpha("#fff", 0.7)}`,
+            ? `0 8px 32px -4px rgba(0, 0, 0, 0.5), inset 0 1px 1px ${alpha("#fff", 0.1)}`
+            : `0 8px 32px -4px rgba(0, 0, 0, 0.06), inset 0 1px 1px ${alpha("#fff", 0.8)}`,
+          transition: "all 300ms cubic-bezier(0.22, 1, 0.36, 1)",
         }}
       >
         <Container maxWidth="lg">
@@ -91,24 +94,39 @@ export default function LandingPage() {
               </Typography>
             </Box>
 
-            <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 4 }}>
-              {["Platform", "Security", "Compliance", "Pricing"].map((item) => (
-                <Typography
-                  key={item}
-                  component="a"
-                  href={`#${item.toLowerCase()}`}
-                  sx={{
-                    color: "text.secondary",
-                    textDecoration: "none",
-                    fontWeight: 500,
-                    fontSize: "0.9rem",
-                    "&:hover": { color: "text.primary" },
-                  }}
-                >
-                  {item}
-                </Typography>
-              ))}
-            </Box>
+              <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 4 }}>
+                {["Platform", "Security", "Compliance", "Pricing"].map((item) => (
+                  <Typography
+                    key={item}
+                    component="a"
+                    href={`#${item.toLowerCase()}`}
+                    sx={{
+                      color: "text.secondary",
+                      textDecoration: "none",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      transition: "all 200ms ease",
+                      position: "relative",
+                      "&::after": {
+                        content: '""',
+                        position: "absolute",
+                        bottom: -4,
+                        left: 0,
+                        width: 0,
+                        height: 2,
+                        bgcolor: "primary.main",
+                        transition: "width 200ms ease",
+                      },
+                      "&:hover": { 
+                        color: "text.primary",
+                        "&::after": { width: "100%" }
+                      },
+                    }}
+                  >
+                    {item}
+                  </Typography>
+                ))}
+              </Box>
 
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <ThemeToggle size="small" />
@@ -139,12 +157,14 @@ export default function LandingPage() {
           pt: { xs: 10, md: 14 },
           pb: { xs: 12, md: 18 },
           background: isDark
-            ? `radial-gradient(ellipse 80% 50% at 50% -10%, ${alpha(theme.palette.primary.main, 0.12)}, transparent),
-               radial-gradient(circle at 10% 20%, ${alpha("#ffffff", 0.03)} 0%, transparent 25%),
-               radial-gradient(circle at 90% 80%, ${alpha(theme.palette.secondary.main, 0.04)} 0%, transparent 25%)`
-            : `radial-gradient(ellipse 80% 50% at 50% -10%, ${alpha(theme.palette.primary.main, 0.06)}, transparent),
-               radial-gradient(circle at 15% 25%, ${alpha("#000000", 0.02)} 0%, transparent 30%),
-               radial-gradient(circle at 85% 75%, ${alpha(theme.palette.secondary.main, 0.03)} 0%, transparent 30%)`,
+            ? `radial-gradient(circle at 50% -20%, ${alpha(theme.palette.primary.main, 0.15)} 0%, transparent 70%),
+               radial-gradient(circle at 0% 0%, ${alpha(theme.palette.primary.main, 0.05)} 0%, transparent 40%),
+               radial-gradient(circle at 100% 100%, ${alpha(theme.palette.secondary.main, 0.05)} 0%, transparent 40%),
+               #05070A`
+            : `radial-gradient(circle at 50% -20%, ${alpha(theme.palette.primary.main, 0.08)} 0%, transparent 70%),
+               radial-gradient(circle at 0% 0%, ${alpha(theme.palette.primary.main, 0.03)} 0%, transparent 40%),
+               radial-gradient(circle at 100% 100%, ${alpha(theme.palette.secondary.main, 0.03)} 0%, transparent 40%),
+               #F8FAFC`,
           position: "relative",
           overflow: "hidden",
           "&::before": {
@@ -154,10 +174,10 @@ export default function LandingPage() {
             left: 0,
             right: 0,
             bottom: 0,
-            background: isDark 
-              ? `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E")`
-              : `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.015'/%3E%3C/svg%3E")`,
+            background: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+            opacity: isDark ? 0.03 : 0.02,
             pointerEvents: "none",
+            mixBlendMode: isDark ? "overlay" : "multiply",
           }
         }}
       >
@@ -226,52 +246,48 @@ export default function LandingPage() {
 
                     <MotionBox variants={fadeInUp} sx={{ mb: 4 }}>
                           <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 2 }}>
-                            <Button
-                              variant="contained"
-                              onClick={() => handleContactClick("I'd like to book a 15-min Offboarding Risk Check.")}
-                              sx={
-                                theme.unstable_sx({
-                                  fontWeight: 700,
-                                  px: 4,
-                                  py: 1.75,
-                                  borderRadius: 1.5,
-                                  fontSize: "0.95rem",
-                                  minWidth: 200,
-                                  height: 52,
-                                  boxShadow: `0 4px 15px ${alpha(theme.palette.primary.main, 0.25)}`,
-                                  textTransform: "none",
-                                  position: "relative",
-                                  overflow: "hidden",
-                                  transition: "all 200ms cubic-bezier(0.22, 1, 0.36, 1)",
-                                  "&::before": {
-                                    content: '""',
-                                    position: "absolute",
-                                    top: 0,
-                                    left: "-100%",
-                                    width: "100%",
-                                    height: "100%",
-                                    background: `linear-gradient(90deg, transparent, ${alpha("#ffffff", 0.2)}, transparent)`
-                                  },
-                                  "&:hover": {
-                                    boxShadow: `0 8px 25px ${alpha(theme.palette.primary.main, 0.4)}`,
-                                    transform: "translateY(-2px)",
+                              <Button
+                                variant="contained"
+                                onClick={() => handleContactClick("I'd like to book a 15-min Offboarding Risk Check.")}
+                                sx={
+                                  theme.unstable_sx({
+                                    fontWeight: 700,
+                                    px: 4,
+                                    py: 1.75,
+                                    borderRadius: 1.5,
+                                    fontSize: "0.95rem",
+                                    minWidth: 200,
+                                    height: 52,
+                                    boxShadow: `0 4px 15px ${alpha(theme.palette.primary.main, 0.25)}`,
+                                    textTransform: "none",
+                                    position: "relative",
+                                    overflow: "hidden",
+                                    transition: "all 300ms cubic-bezier(0.22, 1, 0.36, 1)",
                                     "&::before": {
-                                      left: "100%",
-                                      transition: "left 600ms ease"
-                                    }
-                                  },
-                                  "&:active": {
-                                    transform: "translateY(0)",
-                                    boxShadow: `0 2px 10px ${alpha(theme.palette.primary.main, 0.3)}`
-                                  },
-                                  "&:focus-visible": {
-                                    outline: "2px solid",
-                                    outlineColor: theme.palette.primary.main,
-                                    outlineOffset: "2px"
-                                  }
-                                })
-                              }
-                            >
+                                      content: '""',
+                                      position: "absolute",
+                                      top: 0,
+                                      left: "-100%",
+                                      width: "100%",
+                                      height: "100%",
+                                      background: `linear-gradient(90deg, transparent, ${alpha("#ffffff", 0.3)}, transparent)`,
+                                      transition: "none",
+                                    },
+                                    "&:hover": {
+                                      boxShadow: `0 12px 30px ${alpha(theme.palette.primary.main, 0.5)}`,
+                                      transform: "translateY(-3px)",
+                                      "&::before": {
+                                        left: "100%",
+                                        transition: "left 700ms ease-in-out"
+                                      }
+                                    },
+                                    "&:active": {
+                                      transform: "translateY(0)",
+                                      boxShadow: `0 2px 10px ${alpha(theme.palette.primary.main, 0.3)}`
+                                    },
+                                  })
+                                }
+                              >
                               Book a 15-min Offboarding Risk Check
                             </Button>
                             <Button
@@ -496,78 +512,84 @@ export default function LandingPage() {
         </Container>
       </Box>
 
-        <Box id="platform" sx={{ py: { xs: 14, md: 20 } }}>
-          <Container maxWidth="lg">
-            <Box sx={{ textAlign: "center", mb: 10 }}>
-              <Typography
-                variant="overline"
-                sx={{
-                  color: "primary.main",
-                  fontWeight: 700,
-                  letterSpacing: 1.5,
-                  mb: 2,
-                  display: "block",
-                  fontSize: "0.75rem",
-                }}
+          <Box id="platform" sx={{ py: { xs: 14, md: 20 } }}>
+            <Container maxWidth="lg">
+              <MotionBox
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                viewport={{ once: true, margin: "-100px" }}
+                sx={{ textAlign: "center", mb: 10 }}
               >
-                THE RISK
-              </Typography>
-              <Typography
-                variant="h2"
-                sx={{
-                  fontWeight: 800,
-                  letterSpacing: -1.5,
-                  mb: 3,
-                  fontSize: { xs: "2rem", md: "2.75rem" },
-                }}
-              >
-                Employee exits are your biggest
-                <br />
-                hidden security risk
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: "text.secondary",
-                  maxWidth: 600,
-                  mx: "auto",
-                  lineHeight: 1.8,
-                  fontSize: "1.05rem",
-                  mb: 4,
-                }}
-              >
-                Most companies assume offboarding is handled.
-              </Typography>
-              <Box 
-                sx={{ 
-                  textAlign: "left", 
-                  maxWidth: 400, 
-                  mx: "auto",
-                  bgcolor: isDark ? alpha("#fff", 0.03) : alpha("#000", 0.02),
-                  p: 4,
-                  borderRadius: 4,
-                  border: "1px solid",
-                  borderColor: isDark ? alpha("#fff", 0.06) : alpha("#000", 0.06),
-                }}
-              >
-                <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>In reality:</Typography>
-                {[
-                  "Access removal is manual and inconsistent",
-                  "Ownership is unclear between HR and IT",
-                  "There’s no proof when audits happen"
-                ].map((item, i) => (
-                  <Box key={i} sx={{ display: "flex", gap: 1.5, mb: 1.5 }}>
-                    <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: "primary.main", mt: 1.2, flexShrink: 0 }} />
-                    <Typography variant="body2" color="text.secondary" fontWeight={500}>{item}</Typography>
-                  </Box>
-                ))}
-                <Typography variant="body2" color="text.primary" fontWeight={700} sx={{ mt: 3, textAlign: "center" }}>
-                  All it takes is one missed account.
+                <Typography
+                  variant="overline"
+                  sx={{
+                    color: "primary.main",
+                    fontWeight: 700,
+                    letterSpacing: 1.5,
+                    mb: 2,
+                    display: "block",
+                    fontSize: "0.75rem",
+                  }}
+                >
+                  THE RISK
                 </Typography>
-              </Box>
-            </Box>
-          </Container>
-        </Box>
+                <Typography
+                  variant="h2"
+                  sx={{
+                    fontWeight: 800,
+                    letterSpacing: -1.5,
+                    mb: 3,
+                    fontSize: { xs: "2rem", md: "2.75rem" },
+                  }}
+                >
+                  Employee exits are your biggest
+                  <br />
+                  hidden security risk
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: "text.secondary",
+                    maxWidth: 600,
+                    mx: "auto",
+                    lineHeight: 1.8,
+                    fontSize: "1.05rem",
+                    mb: 4,
+                  }}
+                >
+                  Most companies assume offboarding is handled.
+                </Typography>
+                <Box 
+                  sx={{ 
+                    textAlign: "left", 
+                    maxWidth: 400, 
+                    mx: "auto",
+                    bgcolor: isDark ? alpha("#fff", 0.03) : alpha("#000", 0.02),
+                    p: 4,
+                    borderRadius: 4,
+                    border: "1px solid",
+                    borderColor: isDark ? alpha("#fff", 0.06) : alpha("#000", 0.06),
+                  }}
+                >
+                  <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>In reality:</Typography>
+                  {[
+                    "Access removal is manual and inconsistent",
+                    "Ownership is unclear between HR and IT",
+                    "There’s no proof when audits happen"
+                  ].map((item, i) => (
+                    <Box key={i} sx={{ display: "flex", gap: 1.5, mb: 1.5 }}>
+                      <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: "primary.main", mt: 1.2, flexShrink: 0 }} />
+                      <Typography variant="body2" color="text.secondary" fontWeight={500}>{item}</Typography>
+                    </Box>
+                  ))}
+                  <Typography variant="body2" color="text.primary" fontWeight={700} sx={{ mt: 3, textAlign: "center" }}>
+                    All it takes is one missed account.
+                  </Typography>
+                </Box>
+              </MotionBox>
+            </Container>
+          </Box>
 
       <Box
         id="security"
@@ -626,39 +648,47 @@ export default function LandingPage() {
                   transition={{ delay: index * 0.1, duration: 0.5 }}
                   viewport={{ once: true }}
                 >
-                  <Card
-                    variant="outlined"
-                    sx={
-                      theme.unstable_sx({
-                        height: "100%",
-                        minHeight: 180,
-                        borderRadius: 4,
-                        borderColor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
-                        bgcolor: isDark ? `linear-gradient(180deg, ${alpha("#fff", 0.02)} 0%, ${alpha("#000", 0.01)} 100%)` : "#fff",
-                        transition: "all 220ms cubic-bezier(0.22, 1, 0.36, 1)",
-                        position: "relative",
-                        overflow: "hidden",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 4,
-                        boxShadow: isDark 
-                          ? `0 4px 12px ${alpha("#000", 0.2)}, 0 1px 2px ${alpha("#000", 0.1)}`
-                          : `0 2px 8px ${alpha("#000", 0.05)}, 0 1px 2px ${alpha("#000", 0.03)}`,
-                        "&:hover": {
-                          borderColor: alpha(theme.palette.primary.main, 0.3),
-                          transform: "translateY(-4px)",
-                          boxShadow: isDark
-                            ? `0 12px 24px ${alpha(theme.palette.primary.main, 0.15)}, 0 4px 8px ${alpha("#000", 0.2)}`
-                            : `0 8px 16px ${alpha(theme.palette.primary.main, 0.1)}, 0 2px 4px ${alpha("#000", 0.05)}`,
-                        },
-                        "&:focus-within": {
-                          outline: "2px solid",
-                          outlineColor: theme.palette.primary.main,
-                          outlineOffset: "2px"
-                        }
-                      })
-                    }
-                  >
+                    <Card
+                      variant="outlined"
+                      sx={
+                        theme.unstable_sx({
+                          height: "100%",
+                          minHeight: 180,
+                          borderRadius: 6,
+                          borderColor: isDark ? alpha("#fff", 0.1) : alpha("#000", 0.08),
+                          bgcolor: isDark ? alpha("#0B0F1A", 0.6) : "#fff",
+                          backdropFilter: "blur(10px)",
+                          transition: "all 350ms cubic-bezier(0.22, 1, 0.36, 1)",
+                          position: "relative",
+                          overflow: "hidden",
+                          display: "flex",
+                          flexDirection: "column",
+                          boxShadow: isDark 
+                            ? `0 4px 20px ${alpha("#000", 0.4)}, inset 0 1px 1px ${alpha("#fff", 0.08)}`
+                            : `0 4px 20px ${alpha("#000", 0.05)}, inset 0 1px 1px ${alpha("#fff", 0.8)}`,
+                          "&:hover": {
+                            borderColor: alpha(theme.palette.primary.main, 0.4),
+                            transform: "translateY(-8px)",
+                            bgcolor: isDark ? alpha("#0B0F1A", 0.8) : "#fff",
+                            boxShadow: isDark
+                              ? `0 20px 40px -12px ${alpha("#000", 0.6)}, 0 0 20px ${alpha(theme.palette.primary.main, 0.1)}, inset 0 1px 1px ${alpha("#fff", 0.15)}`
+                              : `0 20px 40px -12px ${alpha("#000", 0.1)}, 0 0 20px ${alpha(theme.palette.primary.main, 0.05)}, inset 0 1px 1px ${alpha("#fff", 1)}`,
+                          },
+                          "&::after": {
+                            content: '""',
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: "100%",
+                            background: isDark 
+                              ? `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.05)} 0%, transparent 50%)`
+                              : `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.02)} 0%, transparent 50%)`,
+                            pointerEvents: "none",
+                          }
+                        })
+                      }
+                    >
                     <CardContent sx={{ p: 3.5 }}>
                       <Box
                         sx={
@@ -709,77 +739,125 @@ export default function LandingPage() {
         </Container>
       </Box>
 
-        <Box id="compliance" sx={{ py: { xs: 14, md: 20 } }}>
-          <Container maxWidth="lg">
-            <Box sx={{ textAlign: "center", mb: 10 }}>
-              <Typography
-                variant="overline"
-                sx={{
-                  color: "primary.main",
-                  fontWeight: 700,
-                  letterSpacing: 1.5,
-                  mb: 2,
-                  display: "block",
-                  fontSize: "0.75rem",
-                }}
-              >
-                THE OUTCOME
-              </Typography>
-              <Typography
-                variant="h2"
-                sx={{
-                  fontWeight: 800,
-                  letterSpacing: -1.5,
-                  mb: 3,
-                  fontSize: { xs: "2rem", md: "2.75rem" },
-                }}
-              >
-                What breaks without enforcement
-              </Typography>
-              <Box 
-                sx={{ 
-                  display: "flex", 
-                  flexDirection: "column", 
-                  gap: 2, 
-                  maxWidth: 400, 
-                  mx: "auto",
-                  mt: 6,
-                  textAlign: "left"
-                }}
-              >
-                {[
-                  { icon: "block", text: "Accounts stay active", color: "error.main" },
-                  { icon: "inventory_2", text: "Assets go missing", color: "warning.main" },
-                  { icon: "description", text: "Audits turn into guesswork", color: "info.main" }
-                ].map((item, i) => (
-                  <Box 
-                    key={i} 
-                    sx={{ 
-                      display: "flex", 
-                      alignItems: "center", 
-                      gap: 3,
-                      p: 3,
-                      borderRadius: 4,
-                      bgcolor: isDark ? alpha("#fff", 0.03) : alpha("#000", 0.02),
-                      border: "1px solid",
-                      borderColor: isDark ? alpha("#fff", 0.06) : alpha("#000", 0.06),
-                    }}
-                  >
-                    <span 
-                      className="material-symbols-outlined" 
-                      style={{ color: theme.palette.error.main, fontSize: 24 }}
-                    >
-                      {item.icon}
-                    </span>
-                    <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "1.1rem" }}>
-                      {item.text}
-                    </Typography>
-                  </Box>
-                ))}
+          <Box id="compliance" sx={{ py: { xs: 14, md: 20 } }}>
+            <Container maxWidth="lg">
+              <Box sx={{ textAlign: "center", mb: 10 }}>
+                <Typography
+                  variant="overline"
+                  sx={{
+                    color: "primary.main",
+                    fontWeight: 700,
+                    letterSpacing: 1.5,
+                    mb: 2,
+                    display: "block",
+                    fontSize: "0.75rem",
+                  }}
+                >
+                  THE OUTCOME
+                </Typography>
+                <Typography
+                  variant="h2"
+                  sx={{
+                    fontWeight: 800,
+                    letterSpacing: -1.5,
+                    mb: 3,
+                    fontSize: { xs: "2rem", md: "2.75rem" },
+                  }}
+                >
+                  What breaks without enforcement
+                </Typography>
               </Box>
-            </Box>
-          </Container>
-        </Box>
+
+              <Grid container spacing={3}>
+                {[
+                  { 
+                    icon: "block", 
+                    text: "Accounts stay active", 
+                    desc: "Ghost accounts linger for months, providing a backdoor to your sensitive data.",
+                    size: { xs: 12, md: 8 },
+                    color: "error.main"
+                  },
+                  { 
+                    icon: "inventory_2", 
+                    text: "Assets go missing", 
+                    desc: "Laptops and hardware disappear into the void without a verified chain of custody.",
+                    size: { xs: 12, md: 4 },
+                    color: "warning.main"
+                  },
+                  { 
+                    icon: "description", 
+                    text: "Audits turn into guesswork", 
+                    desc: "Scrambling for proof during SOC2 audits because steps weren't documented.",
+                    size: { xs: 12, md: 12 },
+                    color: "info.main"
+                  }
+                ].map((item, i) => (
+                  <Grid size={item.size} key={i}>
+                    <MotionBox
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: i * 0.1 }}
+                      viewport={{ once: true }}
+                    >
+                      <Card 
+                        variant="outlined"
+                        sx={{ 
+                          height: "100%",
+                          p: 4,
+                          borderRadius: 6,
+                          bgcolor: isDark ? alpha("#fff", 0.02) : "#fff",
+                          borderColor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
+                          position: "relative",
+                          overflow: "hidden",
+                          transition: "all 300ms ease",
+                          "&:hover": {
+                            borderColor: alpha(item.color as any, 0.4),
+                            bgcolor: isDark ? alpha("#fff", 0.04) : alpha("#000", 0.01),
+                          }
+                        }}
+                      >
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                          <span 
+                            className="material-symbols-outlined" 
+                            style={{ 
+                              color: item.color === "error.main" ? theme.palette.error.main : 
+                                     item.color === "warning.main" ? theme.palette.warning.main : 
+                                     theme.palette.info.main, 
+                              fontSize: 32 
+                            }}
+                          >
+                            {item.icon}
+                          </span>
+                          <Box>
+                            <Typography variant="h5" sx={{ fontWeight: 800, mb: 1, letterSpacing: -0.5 }}>
+                              {item.text}
+                            </Typography>
+                            <Typography variant="body1" sx={{ color: "text.secondary", lineHeight: 1.6, maxWidth: 500 }}>
+                              {item.desc}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            bottom: -20,
+                            right: -20,
+                            opacity: 0.03,
+                            transform: "rotate(-15deg)",
+                            pointerEvents: "none"
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: 160 }}>
+                            {item.icon}
+                          </span>
+                        </Box>
+                      </Card>
+                    </MotionBox>
+                  </Grid>
+                ))}
+              </Grid>
+            </Container>
+          </Box>
 
       <Box
         sx={{
@@ -788,7 +866,13 @@ export default function LandingPage() {
         }}
       >
         <Container maxWidth="md">
-          <Box sx={{ textAlign: "center" }}>
+          <MotionBox
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            viewport={{ once: true }}
+            sx={{ textAlign: "center" }}
+          >
             <Box
               sx={{
                 width: 64,
@@ -845,7 +929,13 @@ export default function LandingPage() {
                   { icon: "event_available", label: "Audit-Ready Exits", desc: "Same process, every time" },
                 ].map((item, index) => (
                 <Grid size={{ xs: 6, md: 3 }} key={index}>
-                  <Box sx={{ textAlign: "center" }}>
+                  <MotionBox
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1, duration: 0.5 }}
+                    viewport={{ once: true }}
+                    sx={{ textAlign: "center" }}
+                  >
                     <Box
                       sx={{
                         width: 48,
@@ -872,11 +962,11 @@ export default function LandingPage() {
                     <Typography variant="caption" color="text.secondary">
                       {item.desc}
                     </Typography>
-                  </Box>
+                  </MotionBox>
                 </Grid>
               ))}
             </Grid>
-          </Box>
+          </MotionBox>
         </Container>
       </Box>
 
@@ -1313,19 +1403,40 @@ export default function LandingPage() {
                 We’ll run your next employee exit end-to-end and prove the system works.
               </Typography>
                 <Box sx={{ display: "flex", gap: 2, justifyContent: "center", flexWrap: "wrap" }}>
-                  <Button
-                    variant="contained"
-                    size="large"
-                    onClick={() => handleContactClick("I'd like to book a 15-min risk check.")}
-                    sx={{
-                      fontWeight: 600,
-                      px: 5,
-                      py: 1.5,
-                      borderRadius: 2,
-                      fontSize: "1rem",
-                      textTransform: "none",
-                    }}
-                  >
+                    <Button
+                      variant="contained"
+                      size="large"
+                      onClick={() => handleContactClick("I'd like to book a 15-min risk check.")}
+                      sx={{
+                        fontWeight: 700,
+                        px: 5,
+                        py: 2,
+                        borderRadius: 2,
+                        fontSize: "1rem",
+                        textTransform: "none",
+                        position: "relative",
+                        overflow: "hidden",
+                        transition: "all 300ms cubic-bezier(0.22, 1, 0.36, 1)",
+                        "&::before": {
+                          content: '""',
+                          position: "absolute",
+                          top: 0,
+                          left: "-100%",
+                          width: "100%",
+                          height: "100%",
+                          background: `linear-gradient(90deg, transparent, ${alpha("#ffffff", 0.3)}, transparent)`,
+                          transition: "none",
+                        },
+                        "&:hover": {
+                          boxShadow: `0 12px 30px ${alpha(theme.palette.primary.main, 0.5)}`,
+                          transform: "translateY(-3px)",
+                          "&::before": {
+                            left: "100%",
+                            transition: "left 700ms ease-in-out"
+                          }
+                        },
+                      }}
+                    >
                     Book a 15-min risk check
                   </Button>
                   <Button
