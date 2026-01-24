@@ -208,9 +208,9 @@ export default function AssetsList({ assetReturns }: AssetsListProps) {
                       {proof.trackingNumber && `: ${proof.trackingNumber}`}
                       {proof.description && ` - ${proof.description}`}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ ml: "auto" }}>
-                      {new Date(proof.uploadedAt).toLocaleDateString()}
-                    </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ ml: "auto" }}>
+                        {new Date(proof.uploadedAt).toLocaleDateString("en-US")}
+                      </Typography>
                   </Box>
                 ))}
               </Box>

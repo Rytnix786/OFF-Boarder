@@ -30,7 +30,10 @@ export async function getTaskComments(taskId: string) {
 
   // Permission check
   if (orgSession) {
-    if (task.offboarding.organizationId !== orgSession.currentOrgId) {
+    const isPlatformAdmin = orgSession.user.isPlatformAdmin;
+    const hasMembership = orgSession.memberships.some(m => m.organizationId === task.offboarding.organizationId);
+    
+    if (!isPlatformAdmin && !hasMembership) {
       throw new Error("Unauthorized: Organization mismatch");
     }
   } else if (employeeSession) {
@@ -95,7 +98,10 @@ export async function createTaskComment(taskId: string, content: string) {
 
   // Permission check and author identification
   if (orgSession) {
-    if (task.offboarding.organizationId !== orgSession.currentOrgId) {
+    const isPlatformAdmin = orgSession.user.isPlatformAdmin;
+    const hasMembership = orgSession.memberships.some(m => m.organizationId === task.offboarding.organizationId);
+
+    if (!isPlatformAdmin && !hasMembership) {
       throw new Error("Unauthorized: Organization mismatch");
     }
     userId = orgSession.user.id;
