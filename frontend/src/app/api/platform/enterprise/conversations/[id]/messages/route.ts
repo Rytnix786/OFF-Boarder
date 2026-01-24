@@ -4,11 +4,11 @@ import { requirePlatformAdmin, getCurrentPlatformAdmin } from "@/lib/platform-au
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requirePlatformAdmin();
-    const { id: conversationId } = params;
+    const { id: conversationId } = await params;
 
     const messages = await prisma.enterpriseMessage.findMany({
       where: { conversationId },
@@ -24,11 +24,11 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: conversationId } }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const admin = await getCurrentPlatformAdmin();
-    const { id: conversationId } = params;
+    const { id: conversationId } = await params;
     const body = await request.json();
     const { content } = body;
 

@@ -4,11 +4,11 @@ import { requirePlatformAdmin } from "@/lib/platform-auth";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requirePlatformAdmin();
-    const { id } = params;
+    const { id } = await params;
 
     const conversation = await prisma.enterpriseConversation.findUnique({
       where: { id },
@@ -35,11 +35,11 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requirePlatformAdmin();
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { status } = body;
 
