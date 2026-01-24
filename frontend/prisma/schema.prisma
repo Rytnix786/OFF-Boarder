@@ -40,6 +40,7 @@ model User {
   createdAssets                                  Asset[]                @relation("AssetCreator")
   updatedAssets                                  Asset[]                @relation("AssetUpdater")
   assetEvidence                                  AssetEvidence[]
+  taskComments                                   TaskComment[]
 }
 
 model Membership {
@@ -229,6 +230,7 @@ model Employee {
   securityProfile       EmployeeSecurityProfile?
   employeeUserLinks     EmployeeUserLink[]
   offboardings          Offboarding[]
+  taskComments          TaskComment[]
 
   @@unique([organizationId, employeeId])
   @@unique([organizationId, email])
@@ -378,6 +380,7 @@ model OffboardingTask {
   approvals            Approval[]
   offboarding          Offboarding         @relation(fields: [offboardingId], references: [id], onDelete: Cascade)
   evidence             TaskEvidence[]
+  comments             TaskComment[]
 
   @@index([offboardingId])
   @@index([assignedToEmployeeId])
@@ -1035,7 +1038,7 @@ model GlobalSecurityPolicy {
   severity      String   @default("MEDIUM")
   createdBy     String?
   createdAt     DateTime @default(now())
-  updatedAt     DateTime
+  updatedAt     DateTime @updatedAt
 
   @@index([isActive])
   @@index([policyType])
@@ -1076,7 +1079,7 @@ model PlatformStatus {
   incidentReason  String?
   updatedBy       String?
   createdAt       DateTime       @default(now())
-  updatedAt       DateTime
+  updatedAt       DateTime       @updatedAt
 
   @@index([status])
 }
@@ -1124,6 +1127,29 @@ model SecurityEvent {
   @@index([eventType])
   @@index([offboardingId])
   @@index([organizationId])
+}
+
+model TaskComment {
+  id              String          @id @default(cuid())
+  taskId          String
+  userId          String?
+  employeeId      String?
+  content         String
+  authorType      CommentAuthorType
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  task            OffboardingTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user            User?           @relation(fields: [userId], references: [id])
+  employee        Employee?       @relation(fields: [employeeId], references: [id])
+
+  @@index([taskId])
+  @@index([createdAt])
+}
+
+enum CommentAuthorType {
+  ADMIN
+  ORG_USER
+  EMPLOYEE
 }
 
 enum SystemRole {
