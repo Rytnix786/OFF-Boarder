@@ -52,10 +52,13 @@ export default function LandingPage() {
           position: "sticky",
           top: 0,
           zIndex: 100,
-          bgcolor: alpha(theme.palette.background.default, 0.85),
-          backdropFilter: "blur(20px)",
+          bgcolor: alpha(theme.palette.background.default, 0.92),
+          backdropFilter: "blur(12px) saturate(180%)",
           borderBottom: "1px solid",
-          borderColor: isDark ? alpha("#fff", 0.06) : alpha("#000", 0.06),
+          borderColor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
+          boxShadow: isDark 
+            ? `0 4px 12px -4px rgba(0, 0, 0, 0.4), inset 0 1px 0 ${alpha("#fff", 0.05)}`
+            : `0 4px 12px -4px rgba(0, 0, 0, 0.08), inset 0 1px 0 ${alpha("#fff", 0.7)}`,
         }}
       >
         <Container maxWidth="lg">
@@ -118,7 +121,7 @@ export default function LandingPage() {
                     sx={{
                       fontWeight: 600,
                       px: 2.5,
-                      borderRadius: 2,
+                      borderRadius: 1.5,
                       fontSize: "0.85rem",
                       textTransform: "none",
                     }}
@@ -136,10 +139,26 @@ export default function LandingPage() {
           pt: { xs: 10, md: 14 },
           pb: { xs: 12, md: 18 },
           background: isDark
-            ? `radial-gradient(ellipse 80% 50% at 50% -10%, ${alpha(theme.palette.primary.main, 0.12)}, transparent)`
-            : `radial-gradient(ellipse 80% 50% at 50% -10%, ${alpha(theme.palette.primary.main, 0.06)}, transparent)`,
+            ? `radial-gradient(ellipse 80% 50% at 50% -10%, ${alpha(theme.palette.primary.main, 0.12)}, transparent),
+               radial-gradient(circle at 10% 20%, ${alpha("#ffffff", 0.03)} 0%, transparent 25%),
+               radial-gradient(circle at 90% 80%, ${alpha(theme.palette.secondary.main, 0.04)} 0%, transparent 25%)`
+            : `radial-gradient(ellipse 80% 50% at 50% -10%, ${alpha(theme.palette.primary.main, 0.06)}, transparent),
+               radial-gradient(circle at 15% 25%, ${alpha("#000000", 0.02)} 0%, transparent 30%),
+               radial-gradient(circle at 85% 75%, ${alpha(theme.palette.secondary.main, 0.03)} 0%, transparent 30%)`,
           position: "relative",
           overflow: "hidden",
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: isDark 
+              ? `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E")`
+              : `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.015'/%3E%3C/svg%3E")`,
+            pointerEvents: "none",
+          }
         }}
       >
         <Container maxWidth="lg">
@@ -210,41 +229,86 @@ export default function LandingPage() {
                             <Button
                               variant="contained"
                               onClick={() => handleContactClick("I'd like to book a 15-min Offboarding Risk Check.")}
-                              sx={{
-                                fontWeight: 600,
-                                px: 4,
-                                py: 1.5,
-                                borderRadius: 2,
-                                fontSize: "0.95rem",
-                                minWidth: 200,
-                                height: 50,
-                                boxShadow: "none",
-                                textTransform: "none",
-                                "&:hover": {
-                                  boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.35)}`,
-                                },
-                              }}
+                              sx={
+                                theme.unstable_sx({
+                                  fontWeight: 700,
+                                  px: 4,
+                                  py: 1.75,
+                                  borderRadius: 1.5,
+                                  fontSize: "0.95rem",
+                                  minWidth: 200,
+                                  height: 52,
+                                  boxShadow: `0 4px 15px ${alpha(theme.palette.primary.main, 0.25)}`,
+                                  textTransform: "none",
+                                  position: "relative",
+                                  overflow: "hidden",
+                                  transition: "all 200ms cubic-bezier(0.22, 1, 0.36, 1)",
+                                  "&::before": {
+                                    content: '""',
+                                    position: "absolute",
+                                    top: 0,
+                                    left: "-100%",
+                                    width: "100%",
+                                    height: "100%",
+                                    background: `linear-gradient(90deg, transparent, ${alpha("#ffffff", 0.2)}, transparent)`
+                                  },
+                                  "&:hover": {
+                                    boxShadow: `0 8px 25px ${alpha(theme.palette.primary.main, 0.4)}`,
+                                    transform: "translateY(-2px)",
+                                    "&::before": {
+                                      left: "100%",
+                                      transition: "left 600ms ease"
+                                    }
+                                  },
+                                  "&:active": {
+                                    transform: "translateY(0)",
+                                    boxShadow: `0 2px 10px ${alpha(theme.palette.primary.main, 0.3)}`
+                                  },
+                                  "&:focus-visible": {
+                                    outline: "2px solid",
+                                    outlineColor: theme.palette.primary.main,
+                                    outlineOffset: "2px"
+                                  }
+                                })
+                              }
                             >
                               Book a 15-min Offboarding Risk Check
                             </Button>
                             <Button
                               variant="outlined"
                               onClick={() => document.getElementById("platform")?.scrollIntoView({ behavior: "smooth" })}
-                              sx={{
-                                fontWeight: 500,
-                                px: 3,
-                                py: 1.5,
-                                borderRadius: 2,
-                                fontSize: "0.95rem",
-                                height: 50,
-                                color: "text.primary",
-                                textTransform: "none",
-                                borderColor: isDark ? alpha("#fff", 0.15) : alpha("#000", 0.15),
-                                "&:hover": {
-                                  borderColor: isDark ? alpha("#fff", 0.3) : alpha("#000", 0.3),
-                                  bgcolor: isDark ? alpha("#fff", 0.04) : alpha("#000", 0.02),
-                                },
-                              }}
+                              sx={
+                                theme.unstable_sx({
+                                  fontWeight: 600,
+                                  px: 3.5,
+                                  py: 1.75,
+                                  borderRadius: 1.5,
+                                  fontSize: "0.95rem",
+                                  height: 52,
+                                  color: "text.primary",
+                                  textTransform: "none",
+                                  position: "relative",
+                                  borderColor: isDark ? alpha("#fff", 0.18) : alpha("#000", 0.18),
+                                  borderWidth: 1.5,
+                                  transition: "all 200ms cubic-bezier(0.22, 1, 0.36, 1)",
+                                  backgroundColor: isDark ? alpha("#fff", 0.02) : alpha("#000", 0.01),
+                                  "&:hover": {
+                                    borderColor: theme.palette.primary.main,
+                                    backgroundColor: isDark ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.primary.main, 0.05),
+                                    transform: "translateY(-1px)",
+                                    boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.15)}`
+                                  },
+                                  "&:active": {
+                                    transform: "translateY(0)",
+                                    boxShadow: `0 2px 6px ${alpha(theme.palette.primary.main, 0.1)}`
+                                  },
+                                  "&:focus-visible": {
+                                    outline: "2px solid",
+                                    outlineColor: theme.palette.primary.main,
+                                    outlineOffset: "2px"
+                                  }
+                                })
+                              }
                               endIcon={
                                 <span className="material-symbols-outlined" style={{ fontSize: 18, opacity: 0.7 }}>
                                   play_circle
@@ -283,22 +347,43 @@ export default function LandingPage() {
                         {TRUST_BADGES.map((badge) => (
                           <Box
                             key={badge.label}
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 1.25,
-                              px: 2,
-                              py: 1,
-                              borderRadius: 2,
-                              bgcolor: isDark ? alpha("#fff", 0.05) : alpha("#000", 0.03),
-                              border: "1px solid",
-                              borderColor: isDark ? alpha("#fff", 0.1) : alpha("#000", 0.08),
-                              transition: "all 0.2s ease",
-                              "&:hover": {
-                                bgcolor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.05),
-                                borderColor: alpha(theme.palette.primary.main, 0.4),
-                              },
-                            }}
+                            sx={
+                              theme.unstable_sx({
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1.25,
+                                px: 2.5,
+                                py: 1.25,
+                                borderRadius: 1.5,
+                                bgcolor: isDark ? alpha("#fff", 0.04) : alpha("#000", 0.02),
+                                border: "1.5px solid",
+                                borderColor: isDark ? alpha("#fff", 0.12) : alpha("#000", 0.1),
+                                transition: "all 200ms cubic-bezier(0.22, 1, 0.36, 1)",
+                                cursor: "pointer",
+                                position: "relative",
+                                overflow: "hidden",
+                                "&::before": {
+                                  content: '""',
+                                  position: "absolute",
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  height: "100%",
+                                  background: `linear-gradient(90deg, transparent, ${alpha(theme.palette.primary.main, 0.05)}, transparent)`
+                                },
+                                "&:hover": {
+                                  bgcolor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.04),
+                                  borderColor: alpha(theme.palette.primary.main, 0.5),
+                                  transform: "translateY(-2px)",
+                                  boxShadow: `0 6px 15px ${alpha(theme.palette.primary.main, 0.15)}`
+                                },
+                                "&:focus-visible": {
+                                  outline: "2px solid",
+                                  outlineColor: theme.palette.primary.main,
+                                  outlineOffset: "2px"
+                                }
+                              })
+                            }
                           >
                             <span
                               className="material-symbols-outlined"
@@ -309,10 +394,12 @@ export default function LandingPage() {
                             <Typography 
                               variant="caption" 
                               sx={{ 
-                                fontWeight: 600, 
+                                fontWeight: 700, 
                                 color: "text.primary",
                                 fontSize: "0.8rem",
-                                letterSpacing: 0.2
+                                letterSpacing: 0.2,
+                                position: "relative",
+                                zIndex: 1
                               }}
                             >
                               {badge.label}
@@ -328,7 +415,6 @@ export default function LandingPage() {
               <MotionBox
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
                 sx={{ position: "relative" }}
               >
                 <Box
@@ -542,42 +628,76 @@ export default function LandingPage() {
                 >
                   <Card
                     variant="outlined"
-                    sx={{
-                      height: "100%",
-                      borderRadius: 4,
-                      borderColor: isDark ? alpha("#fff", 0.06) : alpha("#000", 0.06),
-                      bgcolor: isDark ? alpha("#fff", 0.02) : "#fff",
-                      transition: "all 0.3s ease",
-                      "&:hover": {
-                        borderColor: alpha(theme.palette.primary.main, 0.3),
-                        transform: "translateY(-4px)",
-                      },
-                    }}
+                    sx={
+                      theme.unstable_sx({
+                        height: "100%",
+                        minHeight: 180,
+                        borderRadius: 4,
+                        borderColor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
+                        bgcolor: isDark ? `linear-gradient(180deg, ${alpha("#fff", 0.02)} 0%, ${alpha("#000", 0.01)} 100%)` : "#fff",
+                        transition: "all 220ms cubic-bezier(0.22, 1, 0.36, 1)",
+                        position: "relative",
+                        overflow: "hidden",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 4,
+                        boxShadow: isDark 
+                          ? `0 4px 12px ${alpha("#000", 0.2)}, 0 1px 2px ${alpha("#000", 0.1)}`
+                          : `0 2px 8px ${alpha("#000", 0.05)}, 0 1px 2px ${alpha("#000", 0.03)}`,
+                        "&:hover": {
+                          borderColor: alpha(theme.palette.primary.main, 0.3),
+                          transform: "translateY(-4px)",
+                          boxShadow: isDark
+                            ? `0 12px 24px ${alpha(theme.palette.primary.main, 0.15)}, 0 4px 8px ${alpha("#000", 0.2)}`
+                            : `0 8px 16px ${alpha(theme.palette.primary.main, 0.1)}, 0 2px 4px ${alpha("#000", 0.05)}`,
+                        },
+                        "&:focus-within": {
+                          outline: "2px solid",
+                          outlineColor: theme.palette.primary.main,
+                          outlineOffset: "2px"
+                        }
+                      })
+                    }
                   >
-                    <CardContent sx={{ p: 4 }}>
+                    <CardContent sx={{ p: 3.5 }}>
                       <Box
-                        sx={{
-                          width: 52,
-                          height: 52,
-                          borderRadius: 3,
-                          bgcolor: alpha(theme.palette.primary.main, 0.1),
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          mb: 3,
-                        }}
+                        sx={
+                          theme.unstable_sx({
+                            width: 52,
+                            height: 52,
+                            borderRadius: 2,
+                            bgcolor: isDark ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.primary.main, 0.08),
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            mb: 3,
+                            position: "relative",
+                            border: `1px solid ${isDark ? alpha(theme.palette.primary.main, 0.15) : alpha(theme.palette.primary.main, 0.1)}`,
+                            transition: "all 200ms ease",
+                            "&:hover": {
+                              transform: "scale(1.05)",
+                              boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.2)}`,
+                              borderColor: alpha(theme.palette.primary.main, 0.3)
+                            }
+                          })
+                        }
                       >
                         <span
                           className="material-symbols-outlined"
-                          style={{ fontSize: 26, color: theme.palette.primary.main }}
+                          style={{ 
+                            fontSize: 24, 
+                            color: theme.palette.primary.main,
+                            transition: "all 200ms ease",
+                            filter: isDark ? `drop-shadow(0 1px 2px ${alpha("#000", 0.3)})` : "none"
+                          }}
                         >
                           {feature.icon}
                         </span>
                       </Box>
-                      <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5, fontSize: "1.1rem" }}>
+                      <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5, fontSize: "1.1rem", color: isDark ? "#FFFFFF" : "#0F172A" }}>
                         {feature.title}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: "text.secondary", lineHeight: 1.7 }}>
+                      <Typography variant="body2" sx={{ color: isDark ? "#E2E8F0" : "#475569", lineHeight: 1.7, fontSize: "0.95rem" }}>
                         {feature.description}
                       </Typography>
                     </CardContent>
@@ -822,52 +942,68 @@ export default function LandingPage() {
                     >
                         <Card
                             variant="outlined"
-                            sx={{
+                            sx={
+                              theme.unstable_sx({
                               height: "100%",
-
-                            borderRadius: 4,
-                            position: "relative",
-                            overflow: "hidden",
-                            borderColor: plan.isTrial || plan.popular
-                              ? alpha(theme.palette.primary.main, 0.4)
-                              : isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
-                            bgcolor: plan.isTrial || plan.popular
-                              ? isDark ? alpha(theme.palette.primary.main, 0.08) : alpha(theme.palette.primary.main, 0.04)
-                              : isDark ? alpha("#fff", 0.02) : "#fff",
-                            display: "flex",
-                            flexDirection: "column",
-                            transition: "all 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
-                            userSelect: "none",
-                            ...( (plan.isTrial || plan.popular) && {
-                              animation: "pricing-glow 3s ease-in-out infinite",
-                              "@keyframes pricing-glow": {
-                                "0%, 100%": { boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.1)}` },
-                                "50%": { boxShadow: `0 0 40px ${alpha(theme.palette.primary.main, 0.25)}` },
+                              borderRadius: 4,
+                              position: "relative",
+                              overflow: "hidden",
+                              borderColor: plan.isTrial || plan.popular
+                                ? alpha(theme.palette.primary.main, 0.3)
+                                : isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
+                              bgcolor: isDark 
+                                ? `linear-gradient(180deg, ${alpha("#fff", plan.isTrial || plan.popular ? 0.04 : 0.02)} 0%, ${alpha("#000", plan.isTrial || plan.popular ? 0.01 : 0.005)} 100%)`
+                                : plan.isTrial || plan.popular 
+                                  ? alpha(theme.palette.primary.main, 0.02)
+                                  : "#fff",
+                              display: "flex",
+                              flexDirection: "column",
+                              transition: "all 220ms cubic-bezier(0.22, 1, 0.36, 1)",
+                              userSelect: "none",
+                              boxShadow: isDark
+                                ? plan.isTrial || plan.popular
+                                  ? `0 20px 40px ${alpha("#000", 0.35)}`
+                                  : `0 12px 24px ${alpha("#000", 0.25)}`
+                                : plan.isTrial || plan.popular
+                                  ? `0 20px 40px ${alpha("#000", 0.15)}`
+                                  : `0 8px 16px ${alpha("#000", 0.08)}`,
+                              ...( (plan.isTrial || plan.popular) && {
+                                animation: "pricing-glow 4s ease-in-out infinite",
+                                "@keyframes pricing-glow": {
+                                  "0%, 100%": { 
+                                    boxShadow: isDark
+                                      ? `0 20px 40px ${alpha("#000", 0.35)}`
+                                      : `0 20px 40px ${alpha("#000", 0.15)}`
+                                  },
+                                  "50%": { 
+                                    boxShadow: isDark
+                                      ? `0 28px 60px ${alpha("#000", 0.45)}`
+                                      : `0 28px 60px ${alpha("#000", 0.2)}`
+                                  },
+                                },
+                              }),
+                              "&:hover": {
+                                borderColor: alpha(theme.palette.primary.main, plan.isTrial || plan.popular ? 0.5 : 0.3),
+                                transform: "translateY(-4px)",
+                                boxShadow: isDark
+                                  ? plan.isTrial || plan.popular
+                                    ? `0 28px 60px ${alpha("#000", 0.45)}`
+                                    : `0 20px 40px ${alpha("#000", 0.35)}`
+                                  : plan.isTrial || plan.popular
+                                    ? `0 28px 60px ${alpha("#000", 0.2)}`
+                                    : `0 16px 32px ${alpha("#000", 0.12)}`,
                               },
-                            }),
-                            "&:hover": {
-                              borderColor: alpha(theme.palette.primary.main, 0.6),
-                              transform: "translateY(-8px)",
-                              boxShadow: `0 20px 40px -12px ${alpha(theme.palette.primary.main, 0.2)}`,
-                            },
-                            "&:active": {
-                              transform: "translateY(-4px)",
-                            }
-                          }}
+                              "&:active": {
+                                transform: "translateY(-2px)",
+                              },
+                              "&:focus-within": {
+                                outline: "2px solid",
+                                outlineColor: theme.palette.primary.main,
+                                outlineOffset: "2px"
+                              }
+                            })
+                          }
                         >
-                          {(plan.isTrial || plan.popular) && (
-                            <Box
-                              sx={{
-                                position: "absolute",
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                height: 4,
-                                background: `linear-gradient(90deg, transparent, ${theme.palette.primary.main}, transparent)`,
-                                opacity: 0.6,
-                              }}
-                            />
-                          )}
                           <CardContent sx={{ p: 4, flex: 1, display: "flex", flexDirection: "column" }}>
                             <Box sx={{ mb: 3 }}>
                               <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
@@ -875,9 +1011,9 @@ export default function LandingPage() {
                                   variant="overline" 
                                   sx={{ 
                                     fontWeight: 800, 
-                                    fontSize: "0.75rem",
-                                    letterSpacing: 1.5,
-                                    color: plan.isTrial || plan.popular ? "primary.main" : "text.secondary"
+                                    fontSize: "0.8rem",
+                                    letterSpacing: 1.8,
+                                    color: plan.isTrial || plan.popular ? "primary.main" : isDark ? "#E2E8F0" : "#475569",
                                   }}
                                 >
                                   {plan.name}
@@ -922,23 +1058,23 @@ export default function LandingPage() {
                                   </Typography>
                                 )}
                               </Box>
-                              <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.9rem", lineHeight: 1.6, minHeight: "3rem" }}>
+                              <Typography variant="body2" sx={{ color: isDark ? "#E2E8F0" : "#475569", fontSize: "0.95rem", lineHeight: 1.6, minHeight: "3rem" }}>
                                 {plan.description}
                               </Typography>
                             </Box>
     
                             <Box sx={{ mb: 5, minHeight: "4.5rem", display: "flex", flexDirection: "column", justifyContent: "center" }}>
                               <Box sx={{ display: "flex", alignItems: "baseline" }}>
-                                <Typography sx={{ fontSize: "3rem", fontWeight: 800, lineHeight: 1, letterSpacing: -2 }}>
+                                <Typography sx={{ fontSize: "3rem", fontWeight: 800, lineHeight: 1, letterSpacing: -2, color: isDark ? "#FFFFFF" : "#0F172A" }}>
                                   {plan.price}
                                 </Typography>
                                 {plan.period && (
-                                  <Typography sx={{ color: "text.secondary", ml: 1, fontSize: "1rem", fontWeight: 600 }}>
+                                  <Typography sx={{ color: isDark ? "#E2E8F0" : "#64748B", ml: 1, fontSize: "1rem", fontWeight: 600 }}>
                                     /{plan.period}
                                   </Typography>
                                 )}
                               </Box>
-                              <Typography variant="caption" sx={{ color: "text.secondary", mt: 1.5, display: "block", fontWeight: 600, fontSize: "0.75rem", display: "flex", alignItems: "center", gap: 0.5 }}>
+                              <Typography variant="caption" sx={{ color: isDark ? "#E2E8F0" : "#64748B", mt: 1.5, display: "flex", alignItems: "center", gap: 0.5, fontWeight: 600, fontSize: "0.75rem" }}>
                                   {plan.isTrial ? (
                                     <>
                                       <span className="material-symbols-outlined" style={{ fontSize: 16, color: theme.palette.primary.main }}>schedule</span>
@@ -1009,7 +1145,7 @@ export default function LandingPage() {
                                 display: "block", 
                                 mb: 2, 
                                 fontWeight: 700, 
-                                color: "text.secondary",
+                                color: isDark ? "#E2E8F0" : "#475569",
                                 textTransform: "uppercase",
                                 letterSpacing: 0.5,
                                 fontSize: "0.65rem"
@@ -1030,7 +1166,7 @@ export default function LandingPage() {
                                   >
                                     check_circle
                                   </span>
-                                  <Typography variant="body2" sx={{ fontSize: "0.85rem", lineHeight: 1.5, display: "flex", alignItems: "center", gap: 0.5, fontWeight: 500 }}>
+                                  <Typography variant="body2" sx={{ fontSize: "0.9rem", lineHeight: 1.5, display: "flex", alignItems: "center", gap: 0.5, fontWeight: 500, color: isDark ? "#E2E8F0" : "#475569" }}>
                                     {text}
                                     {tooltip && (
                                       <Tooltip 
@@ -1066,7 +1202,7 @@ export default function LandingPage() {
                                 </Box>
                               );
                             })}
-                            {plan.limitations?.map((limitation, idx) => (
+                            {/* {plan.limitations?.map((limitation: string, idx: number) => (
                               <Box key={idx} sx={{ display: "flex", alignItems: "flex-start", gap: 1.25, mb: 1.5, opacity: 0.6 }}>
                                 <span
                                   className="material-symbols-outlined"
@@ -1078,7 +1214,7 @@ export default function LandingPage() {
                                   {limitation}
                                 </Typography>
                               </Box>
-                            ))}
+                            ))} */}
                           </Box>
                         </CardContent>
                       </Card>
@@ -1348,7 +1484,7 @@ export default function LandingPage() {
 
 const fadeInUp = {
   initial: { y: 20, opacity: 0 },
-  animate: { y: 0, opacity: 1, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }
+  animate: { y: 0, opacity: 1 }
 };
 
 const stagger = {
@@ -1385,6 +1521,20 @@ const OUTCOME_FEATURES = [
 ];
 
 const PRICING = [
+  {
+    name: "Free Trial",
+    description: "Try OffboardHQ risk-free for 14 days.",
+    price: "$0",
+    period: "mo",
+    cta: "Start Free Trial",
+    features: [
+      "1 Admin",
+      "5 Employees",
+      "14-day free trial",
+      "Core features included"
+    ],
+    isTrial: true
+  },
   {
     name: "Starter",
     description: "Essential offboarding for small teams.",
