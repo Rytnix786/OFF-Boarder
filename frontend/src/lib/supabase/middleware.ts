@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 function getClientIPFromRequest(request: NextRequest): string {
@@ -19,39 +20,58 @@ async function checkIPBlocked(
   ipAddress: string, 
   pathname: string
 ): Promise<{ blocked: boolean; error: boolean }> {
-  // Use absolute URL for fetch in middleware
-  const url = new URL("/api/blocked-ips/check", request.url);
-  
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
+    // Create an admin client to check IP blocks directly in the database
+    // This avoids the internal fetch timeout and AbortError
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          persistSession: false,
+        }
+      }
+    );
 
-    const response = await fetch(url.toString(), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-internal-skip-middleware": "true",
-      },
-      body: JSON.stringify({
-        ipAddress,
-        path: pathname,
-        method: request.method,
-        userAgent: request.headers.get("user-agent"),
-      }),
-      signal: controller.signal,
-    });
+    const now = new Date().toISOString();
+    
+    // Direct query to BlockedIP table
+    const { data: block, error } = await supabaseAdmin
+      .from("BlockedIP")
+      .select("id, organizationId")
+      .eq("ipAddress", ipAddress)
+      .eq("isActive", true)
+      .or(`expiresAt.is.null,expiresAt.gt.${now}`)
+      .order("scope", { ascending: true })
+      .limit(1)
+      .maybeSingle();
 
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      console.error(`[Middleware] IP check failed with status: ${response.status}`);
+    if (error) {
+      console.error("[Middleware] IP check query failed:", error);
       return { blocked: false, error: true };
     }
 
-    const result = await response.json();
-    return { blocked: !!result.blocked, error: false };
+    if (block) {
+      // Background recording of the attempt
+      supabaseAdmin
+        .from("BlockedIPAttempt")
+        .insert({
+          ipAddress,
+          blockedIPId: block.id,
+          path: pathname,
+          method: request.method,
+          userAgent: request.headers.get("user-agent"),
+        })
+        .then(({ error: insertError }) => {
+          if (insertError) console.error("[Middleware] Failed to record blocked attempt:", insertError);
+        });
+
+      return { blocked: true, error: false };
+    }
+
+    return { blocked: false, error: false };
   } catch (error) {
-    console.error("[Middleware] IP check fetch failed:", error);
+    console.error("[Middleware] IP check logic failed:", error);
     return { blocked: false, error: true };
   }
 }

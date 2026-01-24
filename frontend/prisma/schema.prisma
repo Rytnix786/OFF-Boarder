@@ -149,8 +149,9 @@ model Organization {
   securityPolicies         SecurityPolicy[]
   UserSession              UserSession[]
   workflowTemplates        WorkflowTemplate[]
-  enterpriseConversations  EnterpriseConversation[]
-}
+    enterpriseConversations  EnterpriseConversation[]
+    evidencePacks            EvidencePack[]
+  }
 
 model Department {
   id               String       @id @default(cuid())
@@ -232,10 +233,12 @@ model Employee {
   employeePortalInvites EmployeePortalInvite[]
   securityProfile       EmployeeSecurityProfile?
   employeeUserLinks     EmployeeUserLink[]
-  offboardings          Offboarding[]
-  taskComments          TaskComment[]
-  assignedTasks         OffboardingTask[]      @relation("TaskAssignedEmployee")
-}
+    offboardings          Offboarding[]
+    taskComments          TaskComment[]
+    assignedTasks         OffboardingTask[]      @relation("TaskAssignedEmployee")
+
+    @@index([organizationId, status, lastWorkingDay])
+  }
 
 model Permission {
   id              String                 @id @default(cuid())
@@ -351,6 +354,7 @@ model Offboarding {
   @@index([employeeId])
   @@index([status])
   @@index([riskLevel])
+  @@index([organizationId, riskLevel, createdAt])
 }
 
 model OffboardingTask {
@@ -498,6 +502,7 @@ model AssetReturn {
 model EvidencePack {
   id            String      @id @default(cuid())
   offboardingId String      @unique
+  organizationId String
   generatedAt   DateTime    @default(now()) @db.Timestamp(6)
   generatedBy   String?
   checksum      String?
@@ -508,8 +513,10 @@ model EvidencePack {
   sealedAt      DateTime?
   version       Int         @default(1)
   offboarding   Offboarding @relation(fields: [offboardingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([offboardingId])
+  @@index([organizationId])
 }
 
 model TaskEvidence {

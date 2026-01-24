@@ -372,105 +372,119 @@ export async function getRiskRadarDashboard(filters: {
   const orgId = session.currentOrgId!;
   const { department, status, riskLevel, dateFrom, dateTo, page = 1, pageSize = 20 } = filters;
 
-  const where: Record<string, unknown> = {
+  const where: any = {
     organizationId: orgId,
     status: { notIn: ["COMPLETED", "CANCELLED"] },
   };
 
   if (status) where.status = status;
   if (riskLevel) where.riskLevel = riskLevel;
+  if (department) {
+    where.employee = { departmentId: department };
+  }
   if (dateFrom || dateTo) {
     where.createdAt = {};
-    if (dateFrom) (where.createdAt as Record<string, unknown>).gte = new Date(dateFrom);
-    if (dateTo) (where.createdAt as Record<string, unknown>).lte = new Date(dateTo);
+    if (dateFrom) where.createdAt.gte = new Date(dateFrom);
+    if (dateTo) where.createdAt.lte = new Date(dateTo);
   }
 
-  const offboardings = await prisma.offboarding.findMany({
-    where,
-    include: {
-      employee: {
-        select: { id: true, firstName: true, lastName: true, email: true, department: { select: { id: true, name: true } } },
+  // Use Promise.all to fetch data in parallel
+  const [offboardings, total, alerts, ghostExits, accessRevocationsCount] = await Promise.all([
+    prisma.offboarding.findMany({
+      where,
+      include: {
+        employee: {
+          select: { 
+            id: true, 
+            firstName: true, 
+            lastName: true, 
+            email: true, 
+            department: { select: { id: true, name: true } } 
+          },
+        },
+        riskScore: {
+          select: { score: true }
+        },
+        _count: {
+          select: {
+            tasks: { where: { status: { in: ["PENDING", "IN_PROGRESS"] } } },
+            accessRevocations: { where: { status: "PENDING" } },
+            assetReturns: { where: { status: { notIn: ["RETURNED", "MISSING", "VERIFIED"] } } },
+          }
+        }
       },
-      tasks: { where: { status: { in: ["PENDING", "IN_PROGRESS"] } } },
-      assetReturns: { where: { status: { notIn: ["RETURNED", "MISSING", "VERIFIED"] } } },
-    },
-    orderBy: [{ riskLevel: "desc" }, { createdAt: "desc" }],
-  });
-
-  const offboardingIds = offboardings.map(o => o.id);
-  
-  const [riskScores, accessRevocations] = await Promise.all([
-    prisma.riskScore.findMany({
-      where: { offboardingId: { in: offboardingIds } },
+      orderBy: [
+        { riskScore: { score: "desc" } },
+        { createdAt: "desc" }
+      ],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     }),
-    prisma.accessRevocation.findMany({
-      where: { offboardingId: { in: offboardingIds }, status: "PENDING" },
+    prisma.offboarding.count({ where }),
+    prisma.securityEvent.findMany({
+      where: {
+        organizationId: orgId,
+        resolved: false,
+        createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 10,
     }),
-  ]);
-
-  const riskScoreMap = new Map(riskScores.map(rs => [rs.offboardingId, rs]));
-  const revocationCountMap = new Map<string, number>();
-  accessRevocations.forEach(ar => {
-    revocationCountMap.set(ar.offboardingId, (revocationCountMap.get(ar.offboardingId) || 0) + 1);
-  });
-
-  const enrichedOffboardings = offboardings.map(o => ({
-    ...o,
-    riskScore: riskScoreMap.get(o.id) || null,
-    accessRevocationsCount: revocationCountMap.get(o.id) || 0,
-  }));
-
-  let filteredOffboardings = enrichedOffboardings;
-  if (department) {
-    filteredOffboardings = enrichedOffboardings.filter(o => o.employee.department?.id === department);
-  }
-
-  const sortedByRisk = filteredOffboardings.sort((a, b) => {
-    const scoreA = a.riskScore?.score || 0;
-    const scoreB = b.riskScore?.score || 0;
-    return scoreB - scoreA;
-  });
-
-  const paginatedOffboardings = sortedByRisk.slice((page - 1) * pageSize, page * pageSize);
-  const total = sortedByRisk.length;
-
-  const alerts = await prisma.securityEvent.findMany({
-    where: {
-      organizationId: orgId,
-      resolved: false,
-      createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 10,
-  });
-
-  // Proactive Check: Find employees past their last working day who have no active offboarding
-  const ghostExits = await prisma.employee.findMany({
-    where: {
-      organizationId: orgId,
-      status: "ACTIVE",
-      lastWorkingDay: { lt: new Date() },
-      offboardings: {
-        none: {
+    prisma.employee.findMany({
+      where: {
+        organizationId: orgId,
+        status: "ACTIVE",
+        lastWorkingDay: { lt: new Date() },
+        offboardings: {
+          none: {
+            status: { notIn: ["COMPLETED", "CANCELLED"] }
+          }
+        }
+      },
+      select: { id: true, firstName: true, lastName: true, email: true }
+    }),
+    prisma.accessRevocation.count({
+      where: {
+        organizationId: orgId,
+        status: "PENDING",
+        offboarding: {
           status: { notIn: ["COMPLETED", "CANCELLED"] }
         }
       }
-    },
-    select: { id: true, firstName: true, lastName: true, email: true }
-  });
+    })
+  ]);
+
+  // Summary counts (optimized to use DB as much as possible)
+  const [criticalCount, highCount, unresolvedAssetsCount] = await Promise.all([
+    prisma.offboarding.count({
+      where: { ...where, riskLevel: "CRITICAL" }
+    }),
+    prisma.offboarding.count({
+      where: { ...where, riskLevel: "HIGH" }
+    }),
+    prisma.assetReturn.count({
+      where: {
+        offboarding: {
+          organizationId: orgId,
+          status: { notIn: ["COMPLETED", "CANCELLED"] }
+        },
+        status: { notIn: ["RETURNED", "MISSING", "VERIFIED"] }
+      }
+    })
+  ]);
 
   const summary = {
-    totalAtRisk: enrichedOffboardings.filter(o => o.riskLevel === "HIGH" || o.riskLevel === "CRITICAL").length + ghostExits.length,
-    criticalCount: enrichedOffboardings.filter(o => o.riskLevel === "CRITICAL").length + ghostExits.length,
-    highCount: enrichedOffboardings.filter(o => o.riskLevel === "HIGH").length,
-    pendingRevocations: accessRevocations.length,
-    unresolvedAssets: enrichedOffboardings.reduce((sum, o) => sum + o.assetReturns.length, 0),
+    totalAtRisk: criticalCount + highCount + ghostExits.length,
+    criticalCount: criticalCount + ghostExits.length,
+    highCount: highCount,
+    pendingRevocations: accessRevocationsCount,
+    unresolvedAssets: unresolvedAssetsCount,
     unresolvedAlerts: alerts.length + ghostExits.length,
     ghostExitsCount: ghostExits.length,
   };
 
   return {
-    offboardings: paginatedOffboardings.map(o => ({
+    offboardings: offboardings.map(o => ({
       id: o.id,
       employee: o.employee,
       status: o.status,
@@ -480,9 +494,9 @@ export async function getRiskRadarDashboard(filters: {
       createdAt: o.createdAt,
       isLockedDown: o.isLockedDown,
       isEscalated: o.isEscalated,
-      pendingTasksCount: o.tasks.length,
-      pendingRevocationsCount: o.accessRevocationsCount,
-      unresolvedAssetsCount: o.assetReturns.length,
+      pendingTasksCount: o._count.tasks,
+      pendingRevocationsCount: o._count.accessRevocations,
+      unresolvedAssetsCount: o._count.assetReturns,
     })),
     ghostExits,
     alerts,
