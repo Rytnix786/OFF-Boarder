@@ -41,6 +41,8 @@ model User {
   updatedAssets                                  Asset[]                @relation("AssetUpdater")
   assetEvidence                                  AssetEvidence[]
   taskComments                                   TaskComment[]
+  assignedTasks                                  OffboardingTask[]      @relation("TaskAssignedUser")
+  verifiedTasks                                  OffboardingTask[]      @relation("TaskVerifiedUser")
 }
 
 model Membership {
@@ -231,12 +233,7 @@ model Employee {
   employeeUserLinks     EmployeeUserLink[]
   offboardings          Offboarding[]
   taskComments          TaskComment[]
-
-  @@unique([organizationId, employeeId])
-  @@unique([organizationId, email])
-  @@index([organizationId])
-  @@index([departmentId])
-  @@index([managerMembershipId])
+  assignedTasks         OffboardingTask[]      @relation("TaskAssignedEmployee")
 }
 
 model Permission {
@@ -381,6 +378,9 @@ model OffboardingTask {
   offboarding          Offboarding         @relation(fields: [offboardingId], references: [id], onDelete: Cascade)
   evidence             TaskEvidence[]
   comments             TaskComment[]
+  assignedToUser       User?               @relation("TaskAssignedUser", fields: [assignedToUserId], references: [id])
+  assignedToEmployee   Employee?           @relation("TaskAssignedEmployee", fields: [assignedToEmployeeId], references: [id])
+  verifiedByUser       User?               @relation("TaskVerifiedUser", fields: [verifiedByUserId], references: [id])
 
   @@index([offboardingId])
   @@index([assignedToEmployeeId])

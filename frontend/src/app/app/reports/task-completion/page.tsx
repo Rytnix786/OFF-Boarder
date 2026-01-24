@@ -195,15 +195,15 @@ export default async function TaskCompletionReport({ searchParams }: PageProps) 
                         />
                       </TableCell>
                       <TableCell>
-                        <Typography variant="caption" color={isOverdue ? "error" : "text.secondary"}>
-                          {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "-"}
-                          {isOverdue && " (Overdue)"}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="caption">
-                          {task.completedAt ? new Date(task.completedAt).toLocaleDateString() : "-"}
-                        </Typography>
+                          <Typography variant="caption" color={isOverdue ? "error" : "text.secondary"}>
+                            {task.dueDate ? new Date(task.dueDate).toLocaleDateString("en-US") : "-"}
+                            {isOverdue && " (Overdue)"}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="caption">
+                            {task.completedAt ? new Date(task.completedAt).toLocaleDateString("en-US") : "-"}
+                          </Typography>
                       </TableCell>
                     </TableRow>
                   );

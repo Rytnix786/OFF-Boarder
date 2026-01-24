@@ -190,13 +190,13 @@ export default async function OffboardingSummaryReport({ searchParams }: PagePro
                       </TableCell>
                       <TableCell>
                         <Typography variant="caption">
-                          {new Date(offboarding.createdAt).toLocaleDateString()}
+                          {new Date(offboarding.createdAt).toLocaleDateString("en-US")}
                         </Typography>
                       </TableCell>
                       <TableCell>
                         <Typography variant="caption">
                           {offboarding.scheduledDate
-                            ? new Date(offboarding.scheduledDate).toLocaleDateString()
+                            ? new Date(offboarding.scheduledDate).toLocaleDateString("en-US")
                             : "-"}
                         </Typography>
                       </TableCell>

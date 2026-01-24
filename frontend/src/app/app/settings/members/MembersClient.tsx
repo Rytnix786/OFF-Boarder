@@ -489,7 +489,7 @@ export default function MembersClient({
                           </TableCell>
                           <TableCell>
                             <Typography variant="body2" color={new Date(jr.expiresAt) < new Date() ? "error" : "text.secondary"}>
-                              {new Date(jr.expiresAt).toLocaleDateString()}
+                              {new Date(jr.expiresAt).toLocaleDateString("en-US")}
                             </Typography>
                           </TableCell>
                           {canManage && (

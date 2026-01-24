@@ -120,7 +120,7 @@ export function PortalTaskList({ tasks, mode }: Props) {
                   {task.dueDate && (
                     <span className="flex items-center gap-1">
                       <span className="material-symbols-outlined text-sm">calendar_today</span>
-                      Due: {new Date(task.dueDate).toLocaleDateString()}
+                      Due: {new Date(task.dueDate).toLocaleDateString("en-US")}
                     </span>
                   )}
                   {isContributorTask && (
