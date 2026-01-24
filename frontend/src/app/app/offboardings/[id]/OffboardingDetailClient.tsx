@@ -48,6 +48,9 @@ import { acknowledgeMonitoringEvent } from "@/lib/actions/monitoring";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TaskEvidencePanel } from "@/components/offboarding/TaskEvidencePanel";
+import { TaskComments } from "@/components/offboarding/TaskComments";
+import MessageIcon from "@mui/icons-material/Message";
+import CloseIcon from "@mui/icons-material/Close";
 
 type EvidenceItem = {
   id: string;
@@ -164,6 +167,7 @@ export default function OffboardingDetailClient({
   const [riskDialog, setRiskDialog] = useState(false);
   const [approvalDialog, setApprovalDialog] = useState<Approval | null>(null);
   const [assetDialog, setAssetDialog] = useState<AssetReturn | null>(null);
+  const [selectedTaskForComments, setSelectedTaskForComments] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" } | null>(null);
 
   const completedTasks = offboarding.tasks.filter((t) => t.status === "COMPLETED" || t.status === "SKIPPED").length;
@@ -648,16 +652,34 @@ export default function OffboardingDetailClient({
                                       </Typography>
                                     )}
                                   </Box>
-                                  {task.completedAt && (
-                                    <Typography variant="caption" color="success.main">
-                                      Completed {new Date(task.completedAt).toLocaleDateString("en-US")}
-                                    </Typography>
-                                  )}
-                                </Box>
-  
-                              <Box onClick={(e) => e.stopPropagation()}>
-                                <TaskEvidencePanel
-                                  taskId={task.id}
+                                    {task.completedAt && (
+                                      <Typography variant="caption" color="success.main">
+                                        Completed {new Date(task.completedAt).toLocaleDateString("en-US")}
+                                      </Typography>
+                                    )}
+                                    <IconButton 
+                                      size="small" 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedTaskForComments(selectedTaskForComments === task.id ? null : task.id);
+                                      }}
+                                      color={selectedTaskForComments === task.id ? "primary" : "default"}
+                                      sx={{ ml: 1 }}
+                                    >
+                                      {selectedTaskForComments === task.id ? <CloseIcon fontSize="small" /> : <MessageIcon fontSize="small" />}
+                                    </IconButton>
+                                  </Box>
+    
+                                <Box onClick={(e) => e.stopPropagation()}>
+                                  <Collapse in={selectedTaskForComments === task.id}>
+                                    <Box sx={{ mb: 2, px: 2 }}>
+                                      <TaskComments taskId={task.id} />
+                                    </Box>
+                                  </Collapse>
+                                  
+                                  <TaskEvidencePanel
+                                    taskId={task.id}
+
                                   taskName={task.name}
                                   evidenceRequirement={task.evidenceRequirement}
                                   evidence={task.evidence}

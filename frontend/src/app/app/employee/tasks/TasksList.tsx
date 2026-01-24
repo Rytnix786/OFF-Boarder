@@ -24,6 +24,9 @@ import { useTheme } from "@mui/material/styles";
 import { completeEmployeeTask, addEmployeeTaskEvidence, deleteEmployeeTaskEvidence } from "@/lib/actions/employee-portal";
 import { useRouter } from "next/navigation";
 import type { OffboardingTask, TaskEvidence, EvidenceRequirement } from "@prisma/client";
+import { TaskComments } from "@/components/offboarding/TaskComments";
+import MessageIcon from "@mui/icons-material/Message";
+import CloseIcon from "@mui/icons-material/Close";
 
 type TaskWithEvidence = OffboardingTask & {
   evidence: TaskEvidence[];
@@ -45,9 +48,11 @@ export default function TasksList({ tasks }: TasksListProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loadingTaskId, setLoadingTaskId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
-  const [addEvidenceTaskId, setAddEvidenceTaskId] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
+    const [commentTaskId, setCommentTaskId] = useState<string | null>(null);
+    const [addEvidenceTaskId, setAddEvidenceTaskId] = useState<string | null>(null);
+
   const [evidenceType, setEvidenceType] = useState<"NOTE" | "LINK" | "FILE">("NOTE");
   const [evidenceLoading, setEvidenceLoading] = useState(false);
   const [evidenceError, setEvidenceError] = useState<string | null>(null);
@@ -267,12 +272,24 @@ export default function TasksList({ tasks }: TasksListProps) {
                       Due: {new Date(task.dueDate).toLocaleDateString()}
                     </Typography>
                   )}
-                  {task.completedAt && (
-                    <Typography variant="caption" color="success.main">
-                      Completed: {new Date(task.completedAt).toLocaleDateString()}
-                    </Typography>
-                  )}
-                </Box>
+                    {task.completedAt && (
+                      <Typography variant="caption" color="success.main">
+                        Completed: {new Date(task.completedAt).toLocaleDateString()}
+                      </Typography>
+                    )}
+                    <IconButton 
+                      size="small" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCommentTaskId(commentTaskId === task.id ? null : task.id);
+                      }}
+                      color={commentTaskId === task.id ? "primary" : "default"}
+                      sx={{ ml: 1, p: 0.5 }}
+                    >
+                      {commentTaskId === task.id ? <CloseIcon sx={{ fontSize: 18 }} /> : <MessageIcon sx={{ fontSize: 18 }} />}
+                    </IconButton>
+                  </Box>
+
 
                 {(task.evidenceRequirement === "REQUIRED" || task.evidenceRequirement === "OPTIONAL") && (
                   <Box sx={{ mt: 2 }}>
@@ -504,14 +521,23 @@ export default function TasksList({ tasks }: TasksListProps) {
                           >
                             Add Evidence
                           </Button>
-                        )}
+                          )}
+                        </Box>
+                      </Collapse>
+                    </Box>
+                  )}
+
+                  <Box sx={{ width: "100%", mt: 1 }}>
+                    <Collapse in={commentTaskId === task.id}>
+                      <Box sx={{ mb: 2 }}>
+                        <TaskComments taskId={task.id} />
                       </Box>
                     </Collapse>
                   </Box>
-                )}
-              </Box>
+                </Box>
 
-              {task.status !== "COMPLETED" && (
+                {task.status !== "COMPLETED" && (
+
                 <Tooltip title={!canComplete ? "Add required evidence first" : ""}>
                   <span>
                     <Button
