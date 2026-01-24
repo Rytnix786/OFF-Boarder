@@ -59,8 +59,10 @@ export const TERMINATION_HIGH_RISK_TASKS: DefaultTask[] = [
   { name: "Transfer critical responsibilities", description: "Reassign critical tasks and responsibilities to remaining team", category: "HR", order: 11, defaultDueDays: 1, isRequired: true, assigneeRole: "MANAGER" },
   { name: "Process final compensation", description: "Calculate and process final paycheck per legal requirements", category: "FINANCE", order: 12, defaultDueDays: 3, isRequired: true, requiresApproval: true, assigneeDepartment: "Finance" },
   { name: "Terminate benefits immediately", description: "Process immediate benefits termination", category: "FINANCE", order: 13, defaultDueDays: 1, isRequired: true, assigneeDepartment: "HR" },
-  { name: "Document termination", description: "Complete all termination documentation for HR records", category: "HR", order: 14, defaultDueDays: 3, isRequired: true, requiresApproval: true, assigneeDepartment: "HR" },
-];
+    { name: "Document termination", description: "Complete all termination documentation for HR records", category: "HR", order: 14, defaultDueDays: 3, isRequired: true, requiresApproval: true, assigneeDepartment: "HR" },
+    { name: "Return company property", description: "Confirm return of all company-issued equipment and materials", category: "EMPLOYEE", order: 15, defaultDueDays: 0, isRequired: true, isEmployeeRequired: true, evidenceRequirement: "OPTIONAL" },
+    { name: "Complete final attestation", description: "Verify all personal data removal and acknowledge final terms", category: "EMPLOYEE", order: 16, defaultDueDays: 0, isRequired: true, isEmployeeRequired: true, evidenceRequirement: "REQUIRED" },
+  ];
 
 export const PRIVILEGED_ACCESS_TASKS: DefaultTask[] = [
   { name: "Revoke admin credentials", description: "Immediately disable all administrative and privileged accounts", category: "SECURITY", order: 1, defaultDueDays: 0, isRequired: true, isHighRiskTask: true, requiresApproval: true, assigneeDepartment: "IT" },
@@ -77,8 +79,10 @@ export const PRIVILEGED_ACCESS_TASKS: DefaultTask[] = [
   { name: "Document system access", description: "Document all systems and access levels for audit trail", category: "IT", order: 12, defaultDueDays: 3, isRequired: true, assigneeDepartment: "IT" },
   { name: "Knowledge transfer - technical", description: "Complete technical knowledge transfer for maintained systems", category: "IT", order: 13, defaultDueDays: -7, isRequired: true, assigneeRole: "MANAGER" },
   { name: "Collect equipment", description: "Retrieve all equipment including development machines", category: "ASSETS", order: 14, defaultDueDays: 0, isRequired: true, assigneeDepartment: "IT" },
-  { name: "Final security review", description: "Complete security checklist and sign-off", category: "SECURITY", order: 15, defaultDueDays: 3, isRequired: true, requiresApproval: true, assigneeDepartment: "Security" },
-];
+    { name: "Final security review", description: "Complete security checklist and sign-off", category: "SECURITY", order: 15, defaultDueDays: 3, isRequired: true, requiresApproval: true, assigneeDepartment: "Security" },
+    { name: "Return company property", description: "Confirm return of all company-issued equipment and materials", category: "EMPLOYEE", order: 16, defaultDueDays: 0, isRequired: true, isEmployeeRequired: true, evidenceRequirement: "OPTIONAL" },
+    { name: "Complete final attestation", description: "Verify all personal data removal and acknowledge final terms", category: "EMPLOYEE", order: 17, defaultDueDays: 0, isRequired: true, isEmployeeRequired: true, evidenceRequirement: "REQUIRED" },
+  ];
 
 export const CONTRACTOR_OFFBOARDING_TASKS: DefaultTask[] = [
   { name: "Verify contract end date", description: "Confirm contract termination date and terms", category: "HR", order: 1, defaultDueDays: -14, isRequired: true, assigneeDepartment: "HR" },
@@ -92,8 +96,10 @@ export const CONTRACTOR_OFFBOARDING_TASKS: DefaultTask[] = [
   { name: "Process final invoice", description: "Verify and process final contractor invoice", category: "FINANCE", order: 9, defaultDueDays: 7, isRequired: true, requiresApproval: true, assigneeDepartment: "Finance" },
   { name: "Archive contractor files", description: "Archive work files and documentation", category: "IT", order: 10, defaultDueDays: 7, isRequired: true, assigneeDepartment: "IT" },
   { name: "NDA confirmation", description: "Send confidentiality obligations reminder", category: "LEGAL", order: 11, defaultDueDays: 0, isRequired: false, assigneeDepartment: "Legal" },
-  { name: "Close contractor record", description: "Update contractor status in HR systems", category: "HR", order: 12, defaultDueDays: 3, isRequired: true, assigneeDepartment: "HR" },
-];
+    { name: "Close contractor record", description: "Update contractor status in HR systems", category: "HR", order: 12, defaultDueDays: 3, isRequired: true, assigneeDepartment: "HR" },
+    { name: "Return company property", description: "Confirm return of all company-issued equipment and materials", category: "EMPLOYEE", order: 13, defaultDueDays: 0, isRequired: true, isEmployeeRequired: true, evidenceRequirement: "OPTIONAL" },
+    { name: "Complete final attestation", description: "Verify all personal data removal and acknowledge final terms", category: "EMPLOYEE", order: 14, defaultDueDays: 0, isRequired: true, isEmployeeRequired: true, evidenceRequirement: "REQUIRED" },
+  ];
 
 export const DEFAULT_WORKFLOW_TEMPLATES: DefaultWorkflowTemplate[] = [
   {

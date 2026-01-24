@@ -76,7 +76,7 @@ export async function createOffboarding(formData: FormData) {
     template = await ensureDefaultWorkflowTemplate(orgId);
   }
 
-  const templateWithTasks = template as typeof template & { tasks?: { name: string; description: string | null; category: string | null; defaultDueDays: number | null; requiresApproval: boolean; isHighRiskTask: boolean; isEmployeeRequired: boolean; evidenceRequirement?: "REQUIRED" | "OPTIONAL" | "NONE" }[] };
+  const templateWithTasks = template as any;
   const templateTasks = templateWithTasks.tasks || [];
   const allTasks = [...templateTasks];
 
@@ -90,7 +90,7 @@ export async function createOffboarding(formData: FormData) {
       requiresApproval: t.requiresApproval || false,
       isHighRiskTask: t.isHighRiskTask || false,
       isEmployeeRequired: t.isEmployeeRequired || false,
-      evidenceRequirement: ("evidenceRequirement" in t ? t.evidenceRequirement : "OPTIONAL") as "REQUIRED" | "OPTIONAL" | "NONE",
+      evidenceRequirement: (t as any).evidenceRequirement || "NONE",
     })));
   }
 
