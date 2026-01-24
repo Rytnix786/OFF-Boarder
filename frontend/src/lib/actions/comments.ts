@@ -30,9 +30,10 @@ export async function getTaskComments(taskId: string) {
 
   // Permission check
   if (orgSession) {
-    const isPlatformAdmin = orgSession.user.isPlatformAdmin;
+    const isPlatformAdmin = !!orgSession.user.isPlatformAdmin;
     const hasMembership = orgSession.memberships.some(m => m.organizationId === task.offboarding.organizationId);
     
+    // Platform Admins can audit any task comments
     if (!isPlatformAdmin && !hasMembership) {
       throw new Error("Unauthorized: Organization mismatch");
     }
@@ -98,14 +99,14 @@ export async function createTaskComment(taskId: string, content: string) {
 
   // Permission check and author identification
   if (orgSession) {
-    const isPlatformAdmin = orgSession.user.isPlatformAdmin;
+    const isPlatformAdmin = !!orgSession.user.isPlatformAdmin;
     const hasMembership = orgSession.memberships.some(m => m.organizationId === task.offboarding.organizationId);
 
     if (!isPlatformAdmin && !hasMembership) {
       throw new Error("Unauthorized: Organization mismatch");
     }
     userId = orgSession.user.id;
-    authorType = orgSession.user.isPlatformAdmin ? "ADMIN" : "ORG_USER";
+    authorType = isPlatformAdmin ? "ADMIN" : "ORG_USER";
     authorName = orgSession.user.name || orgSession.user.email;
   } else if (employeeSession) {
     if (task.offboarding.employeeId !== employeeSession.employee.id) {
