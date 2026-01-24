@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
+import { notifyPlatformAdmins } from "@/lib/notifications";
 
 export async function POST(req: Request) {
   try {
@@ -94,6 +95,15 @@ export async function POST(req: Request) {
       });
 
       return conv;
+    });
+
+    // Notify platform admins about the new inquiry
+    await notifyPlatformAdmins({
+      type: "enterprise_inquiry",
+      title: "New Enterprise Inquiry",
+      message: `${name} from ${company} sent a new message.`,
+      link: `/admin/enterprise`, // Assuming this is the path to view inquiries
+      fallbackOrganizationId: organizationId || undefined,
     });
 
     console.log(`[enterprise/contact] Created conversation ${conversation.id} for ${email}`);

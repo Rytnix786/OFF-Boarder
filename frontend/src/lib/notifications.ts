@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma.server";
 
 export type NotificationType =
   | "offboarding_started"
@@ -14,11 +15,13 @@ export type NotificationType =
   | "risk_level_changed"
   | "evidence_requested"
   | "evidence_rejected"
-    | "attestation_required"
-    | "offboarding_completed"
-    | "task_comment"
-    | "org_suspended"
-    | "org_reactivated";
+  | "attestation_required"
+  | "offboarding_completed"
+  | "task_comment"
+  | "org_suspended"
+  | "org_reactivated"
+  | "enterprise_inquiry"
+  | "enterprise_message";
 
 
 interface CreateNotificationParams {
@@ -46,6 +49,50 @@ export async function createNotification(params: CreateNotificationParams) {
     console.error("Failed to create notification:", error);
   }
 }
+
+export async function notifyPlatformAdmins(params: {
+  type: NotificationType;
+  title: string;
+  message: string;
+  link?: string;
+  fallbackOrganizationId?: string;
+}) {
+  try {
+    const admins = await prisma.user.findMany({
+      where: { isPlatformAdmin: true },
+      include: {
+        memberships: {
+          take: 1,
+          select: { organizationId: true },
+        },
+      },
+    });
+
+    if (admins.length === 0) return;
+
+    // We need an organizationId for the Notification model.
+    // Platform admins may not be in the "same" org as the inquiry.
+    // We'll use their first membership or a fallback.
+    const notifications = admins.map((admin) => ({
+      userId: admin.id,
+      organizationId: admin.memberships[0]?.organizationId || params.fallbackOrganizationId || "SYSTEM",
+      type: params.type,
+      title: params.title,
+      message: params.message,
+      link: params.link || null,
+    }));
+
+    const supabase = await createClient();
+    const { error } = await supabase.from("Notification").insert(notifications);
+    
+    if (error) {
+      console.error("Failed to notify platform admins:", error);
+    }
+  } catch (error) {
+    console.error("Error in notifyPlatformAdmins:", error);
+  }
+}
+
 
 export async function createEmployeeNotification(
   organizationId: string,
