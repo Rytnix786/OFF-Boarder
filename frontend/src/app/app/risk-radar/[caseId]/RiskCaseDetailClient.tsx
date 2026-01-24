@@ -173,6 +173,12 @@ const factorIcons: Record<string, string> = {
 export default function RiskCaseDetailClient({ offboarding, securityEvents, auditLogs, canManage }: RiskCaseDetailClientProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [isMounted, setIsMounted] = React.useState(false);
+  
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" } | null>(null);
   
   const [lockdownDialog, setLockdownDialog] = useState(false);
@@ -495,11 +501,11 @@ export default function RiskCaseDetailClient({ offboarding, securityEvents, audi
                   },
                 }}
               />
-              {offboarding.riskScore?.calculatedAt && (
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
-                  Last calculated: {new Date(offboarding.riskScore.calculatedAt).toLocaleString()}
-                </Typography>
-              )}
+                {isMounted && offboarding.riskScore?.calculatedAt && (
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+                    Last calculated: {new Date(offboarding.riskScore.calculatedAt).toLocaleString()}
+                  </Typography>
+                )}
             </Box>
           </Grid>
         </Grid>
