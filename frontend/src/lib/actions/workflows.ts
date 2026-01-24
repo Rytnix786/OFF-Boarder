@@ -45,20 +45,22 @@ export async function createWorkflowTemplate(formData: FormData) {
       isDefault: data.isDefault,
       organizationId: orgId,
       config: {},
-      tasks: {
-        create: DEFAULT_WORKFLOW_TASKS.map((task) => ({
-          name: task.name,
-          description: task.description,
-          category: task.category,
-          order: task.order,
-          defaultDueDays: task.defaultDueDays,
-          requiresApproval: task.requiresApproval || false,
-          isHighRiskTask: task.isHighRiskTask || false,
-          isRequired: task.isRequired ?? true,
-          assigneeRole: task.assigneeRole || null,
-          assigneeDepartment: task.assigneeDepartment || null,
-        })),
-      },
+        tasks: {
+          create: DEFAULT_WORKFLOW_TASKS.map((task) => ({
+            name: task.name,
+            description: task.description,
+            category: task.category,
+            order: task.order,
+            defaultDueDays: task.defaultDueDays,
+            requiresApproval: task.requiresApproval || false,
+            isHighRiskTask: task.isHighRiskTask || false,
+            isRequired: task.isRequired ?? true,
+            assigneeRole: task.assigneeRole || null,
+            assigneeDepartment: task.assigneeDepartment || null,
+            isEmployeeRequired: task.isEmployeeRequired || false,
+            evidenceRequirement: task.evidenceRequirement || "NONE",
+          })),
+        },
     },
     include: { tasks: true },
   });
@@ -155,20 +157,22 @@ export async function duplicateWorkflowTemplate(templateId: string, newName: str
       isDefault: false,
       organizationId: orgId,
       config: template.config as object,
-      tasks: {
-        create: template.tasks.map((task) => ({
-          name: task.name,
-          description: task.description,
-          category: task.category,
-          order: task.order,
-          defaultDueDays: task.defaultDueDays,
-          requiresApproval: task.requiresApproval,
-          isHighRiskTask: task.isHighRiskTask,
-          isRequired: task.isRequired,
-          assigneeRole: task.assigneeRole,
-          assigneeDepartment: task.assigneeDepartment,
-        })),
-      },
+        tasks: {
+          create: template.tasks.map((task) => ({
+            name: task.name,
+            description: task.description,
+            category: task.category,
+            order: task.order,
+            defaultDueDays: task.defaultDueDays,
+            requiresApproval: task.requiresApproval,
+            isHighRiskTask: task.isHighRiskTask,
+            isRequired: task.isRequired,
+            assigneeRole: task.assigneeRole,
+            assigneeDepartment: task.assigneeDepartment,
+            isEmployeeRequired: task.isEmployeeRequired,
+            evidenceRequirement: task.evidenceRequirement,
+          })),
+        },
     },
     include: { tasks: true },
   });
@@ -247,9 +251,10 @@ export async function addTemplateTask(templateId: string, formData: FormData) {
       isHighRiskTask: formData.get("isHighRiskTask") === "true",
       isRequired: formData.get("isRequired") !== "false",
       assigneeRole: formData.get("assigneeRole") as string || null,
-      assigneeDepartment: formData.get("assigneeDepartment") as string || null,
-      evidenceRequirement: (formData.get("evidenceRequirement") as "REQUIRED" | "OPTIONAL" | "NONE") || "NONE",
-    },
+        assigneeDepartment: formData.get("assigneeDepartment") as string || null,
+        isEmployeeRequired: formData.get("isEmployeeRequired") === "true",
+        evidenceRequirement: (formData.get("evidenceRequirement") as "REQUIRED" | "OPTIONAL" | "NONE") || "NONE",
+      },
   });
 
   await prisma.workflowTemplate.update({
@@ -294,9 +299,10 @@ export async function updateTemplateTask(taskId: string, formData: FormData) {
       isHighRiskTask: formData.has("isHighRiskTask") ? formData.get("isHighRiskTask") === "true" : task.isHighRiskTask,
       isRequired: formData.has("isRequired") ? formData.get("isRequired") === "true" : task.isRequired,
       assigneeRole: formData.get("assigneeRole") as string || task.assigneeRole,
-      assigneeDepartment: formData.get("assigneeDepartment") as string || task.assigneeDepartment,
-      evidenceRequirement: (formData.get("evidenceRequirement") as "REQUIRED" | "OPTIONAL" | "NONE") || task.evidenceRequirement,
-    },
+        assigneeDepartment: formData.get("assigneeDepartment") as string || task.assigneeDepartment,
+        isEmployeeRequired: formData.has("isEmployeeRequired") ? formData.get("isEmployeeRequired") === "true" : task.isEmployeeRequired,
+        evidenceRequirement: (formData.get("evidenceRequirement") as "REQUIRED" | "OPTIONAL" | "NONE") || task.evidenceRequirement,
+      },
   });
 
   await prisma.workflowTemplate.update({
@@ -442,10 +448,12 @@ async function createTemplateFromDefinition(
           requiresApproval: task.requiresApproval || false,
           isHighRiskTask: task.isHighRiskTask || false,
           isRequired: task.isRequired ?? true,
-          assigneeRole: task.assigneeRole || null,
-          assigneeDepartment: task.assigneeDepartment || null,
-        })),
-      },
+            assigneeRole: task.assigneeRole || null,
+            assigneeDepartment: task.assigneeDepartment || null,
+            isEmployeeRequired: task.isEmployeeRequired || false,
+            evidenceRequirement: task.evidenceRequirement || "NONE",
+          })),
+        },
     },
     include: { tasks: true },
   });
@@ -567,9 +575,11 @@ export async function getWorkflowTemplateSnapshot(templateId: string) {
       requiresApproval: t.requiresApproval,
       isHighRiskTask: t.isHighRiskTask,
       isRequired: t.isRequired,
-      assigneeRole: t.assigneeRole,
-      assigneeDepartment: t.assigneeDepartment,
-      order: t.order,
-    })),
-  };
-}
+        assigneeRole: t.assigneeRole,
+        assigneeDepartment: t.assigneeDepartment,
+        isEmployeeRequired: t.isEmployeeRequired,
+        evidenceRequirement: t.evidenceRequirement,
+        order: t.order,
+      })),
+    };
+  }
