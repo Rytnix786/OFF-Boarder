@@ -247,16 +247,16 @@ export async function POST(request: NextRequest) {
             },
           });
 
-            const membership = await tx.membership.create({
-              data: {
-                userId: user.id,
-                organizationId: invitation.organizationId,
-                systemRole: invitation.systemRole,
-                status: "ACTIVE",
-                invitedBy: invitation.invitedById,
-                approvedAt: new Date(),
-              },
-            });
+          const membership = await tx.membership.create({
+            data: {
+              userId: user.id,
+              organizationId: invitation.organizationId,
+              systemRole: invitation.systemRole,
+              status: "ACTIVE",
+              invitedBy: invitation.invitedById,
+              approvedAt: new Date(),
+            },
+          });
 
           await tx.invitation.update({
             where: { id: invitation.id },
@@ -459,9 +459,7 @@ export async function POST(request: NextRequest) {
     let targetUrl = "/register";
 
     if (revokedMembership || revokedEmployeeLink) {
-      // Platform admins are exempt from suspension blocks
       if (!dbUser.isPlatformAdmin) {
-        // Only block if they have NO active orgs or employee links
         if (!activeOrg && !activeEmployeeLink) {
           targetUrl = "/app/access-suspended";
         }
@@ -470,27 +468,28 @@ export async function POST(request: NextRequest) {
 
     if (targetUrl === "/register") {
       if (redirectUrl) {
-      const isEmployeeRedirect = redirectUrl.startsWith("/app/employee");
-      const isAppRedirect = redirectUrl.startsWith("/app") && !isEmployeeRedirect;
-      
-      if (isEmployeeRedirect && activeEmployeeLink) {
-        targetUrl = redirectUrl;
-      } else if (isAppRedirect && activeOrg) {
-        targetUrl = redirectUrl;
-      } else if (activeOrg) {
-        targetUrl = "/app";
-      } else if (activeEmployeeLink) {
-        targetUrl = "/app/employee";
-      } else if (pendingOrg) {
-        targetUrl = "/pending";
-      }
-    } else {
-      if (activeOrg) {
-        targetUrl = "/app";
-      } else if (activeEmployeeLink) {
-        targetUrl = "/app/employee";
-      } else if (pendingOrg) {
-        targetUrl = "/pending";
+        const isEmployeeRedirect = redirectUrl.startsWith("/app/employee");
+        const isAppRedirect = redirectUrl.startsWith("/app") && !isEmployeeRedirect;
+        
+        if (isEmployeeRedirect && activeEmployeeLink) {
+          targetUrl = redirectUrl;
+        } else if (isAppRedirect && activeOrg) {
+          targetUrl = redirectUrl;
+        } else if (activeOrg) {
+          targetUrl = "/app";
+        } else if (activeEmployeeLink) {
+          targetUrl = "/app/employee";
+        } else if (pendingOrg) {
+          targetUrl = "/pending";
+        }
+      } else {
+        if (activeOrg) {
+          targetUrl = "/app";
+        } else if (activeEmployeeLink) {
+          targetUrl = "/app/employee";
+        } else if (pendingOrg) {
+          targetUrl = "/pending";
+        }
       }
     }
 
