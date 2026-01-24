@@ -33,7 +33,9 @@ async function isServerAction(): Promise<boolean> {
   }
 }
 
-export async function getSupabaseUser() {
+import { cache } from "react";
+
+export const getSupabaseUser = cache(async () => {
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.getUser();
@@ -44,7 +46,7 @@ export async function getSupabaseUser() {
   } catch {
     return null;
   }
-}
+});
 
 export async function getAuthSession(orgSlug?: string): Promise<AuthSession | null> {
   const supabaseUser = await getSupabaseUser();
