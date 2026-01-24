@@ -862,23 +862,43 @@ export default function LandingPage() {
                   viewport={{ once: true }}
                   sx={{ height: "100%" }}
                 >
-                  <Card
-                    variant="outlined"
-                    sx={{
-                      ...cardStyle,
-                        borderColor: plan.isTrial || plan.popular
-                          ? alpha(theme.palette.primary.main, 0.4)
-                          : isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
+                    <Card
+                      variant="outlined"
+                      sx={{
+                        ...cardStyle,
+                        ...(plan.name === "Free Trial" && {
+                          background: isDark
+                            ? `linear-gradient(165deg, ${alpha(theme.palette.primary.main, 0.18)} 0%, ${alpha(theme.palette.primary.main, 0.04)} 100%)`
+                            : `linear-gradient(165deg, ${alpha(theme.palette.primary.main, 0.1)} 0%, ${alpha(theme.palette.primary.main, 0.02)} 100%)`,
+                          borderColor: theme.palette.primary.main,
+                          borderWidth: 2,
+                          boxShadow: isDark
+                            ? `0 25px 50px -12px ${alpha("#000", 0.7)}, 0 0 30px ${alpha(theme.palette.primary.main, 0.25)}`
+                            : `0 25px 50px -12px ${alpha("#000", 0.1)}, 0 0 30px ${alpha(theme.palette.primary.main, 0.15)}`,
+                        }),
+                        borderColor: plan.name === "Free Trial" 
+                          ? theme.palette.primary.main 
+                          : (plan.isTrial || plan.popular
+                            ? alpha(theme.palette.primary.main, 0.4)
+                            : isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08)),
                         bgcolor: isDark 
-                          ? plan.popular
-                            ? alpha(theme.palette.primary.main, 0.05)
-                            : alpha("#0B0F1A", 0.6)
-                          : plan.popular 
-                            ? alpha(theme.palette.primary.main, 0.02)
-                            : "#fff",
-                        boxShadow: plan.popular && isDark
-                          ? `0 20px 40px -12px ${alpha("#000", 0.6)}, 0 0 20px ${alpha(theme.palette.primary.main, 0.15)}`
-                          : undefined,
+                          ? plan.name === "Free Trial"
+                            ? alpha(theme.palette.primary.main, 0.08)
+                            : plan.popular
+                              ? alpha(theme.palette.primary.main, 0.05)
+                              : alpha("#0B0F1A", 0.6)
+                          : plan.name === "Free Trial"
+                            ? alpha(theme.palette.primary.main, 0.04)
+                            : plan.popular 
+                              ? alpha(theme.palette.primary.main, 0.02)
+                              : "#fff",
+                        boxShadow: plan.name === "Free Trial"
+                          ? (isDark 
+                              ? `0 25px 50px -12px ${alpha("#000", 0.7)}, 0 0 30px ${alpha(theme.palette.primary.main, 0.25)}`
+                              : `0 25px 50px -12px ${alpha("#000", 0.1)}, 0 0 30px ${alpha(theme.palette.primary.main, 0.15)}`)
+                          : (plan.popular && isDark
+                              ? `0 20px 40px -12px ${alpha("#000", 0.6)}, 0 0 20px ${alpha(theme.palette.primary.main, 0.15)}`
+                              : undefined),
                       }}
                     >
                       {plan.popular && (
@@ -977,8 +997,18 @@ export default function LandingPage() {
                               borderRadius: 1.5,
                               fontSize: "0.95rem",
                               textTransform: "none",
-                            transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
-                            ...( (plan.isTrial || plan.popular) && {
+                              transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+                              ...(plan.name === "Free Trial" && {
+                                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
+                                border: "none",
+                                boxShadow: `0 10px 20px ${alpha(theme.palette.primary.main, 0.3)}`,
+                                "&:hover": {
+                                  background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
+                                  boxShadow: `0 15px 30px ${alpha(theme.palette.primary.main, 0.5)}`,
+                                  transform: "scale(1.04) translateY(-2px)",
+                                }
+                              }),
+                              ...( (plan.isTrial || plan.popular) && plan.name !== "Free Trial" && {
                               bgcolor: theme.palette.primary.main,
                               "&:hover": {
                                 bgcolor: theme.palette.primary.dark,
@@ -1205,11 +1235,11 @@ const PRICING = [
     isTrial: true,
     features: ["Higher limits", "Full asset tracking", "Priority support", "Audit logs"]
   },
-  {
-    name: "Enterprise",
-    description: "Complete control for large organizations.",
-    price: "Custom",
-    cta: "Contact Security Team",
-    features: ["Custom limits", "SSO integration", "Dedicated success manager", "Custom workflows"]
-  }
-];
+    {
+      name: "Enterprise",
+      description: "Complete control for large organizations.",
+      price: "Custom",
+      cta: "Start Free Trial",
+      features: ["Custom limits", "SSO integration", "Dedicated success manager", "Custom workflows"]
+    }
+  ];
