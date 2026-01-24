@@ -177,16 +177,19 @@ export default function AppShell({ session, userPermissions, children }: AppShel
     if (notification.link) { setNotificationAnchor(null); router.push(notification.link); }
   };
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case "offboarding_started": return "group_remove";
-      case "task_completed": return "check_circle";
-      case "task_assigned": return "assignment";
-      case "member_joined": return "person_add";
-      case "integration_error": return "error";
-      default: return "notifications";
-    }
-  };
+    const getNotificationIcon = (type: string) => {
+      switch (type) {
+        case "offboarding_started": return "group_remove";
+        case "task_completed": return "check_circle";
+        case "task_assigned": return "assignment";
+        case "member_joined": return "person_add";
+        case "integration_error": return "error";
+        case "enterprise_inquiry": return "business_center";
+        case "enterprise_message": return "chat";
+        default: return "notifications";
+      }
+    };
+
 
   const handleSignOut = async () => {
       setProfileMenuAnchor(null);

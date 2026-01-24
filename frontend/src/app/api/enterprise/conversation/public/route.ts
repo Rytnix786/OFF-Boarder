@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { notifyPlatformAdmins } from "@/lib/notifications";
 
 export async function GET(req: Request) {
   try {
@@ -89,6 +90,15 @@ export async function POST(req: Request) {
       });
 
       return msg;
+    });
+
+    // Notify platform admins about the new message
+    await notifyPlatformAdmins({
+      type: "enterprise_message",
+      title: "New Public Message",
+      message: `New message in conversation: ${conversation.subject}`,
+      link: `/admin/enterprise/${conversation.id}`, // Link to the conversation in admin dashboard
+      fallbackOrganizationId: conversation.organizationId || undefined,
     });
 
     return NextResponse.json({
