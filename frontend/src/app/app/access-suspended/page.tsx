@@ -1,4 +1,4 @@
-import { Box, Typography, Button, Card, CardContent, alpha } from "@mui/material";
+import { Box, Typography, Card, CardContent, alpha } from "@mui/material";
 import { getAuthSession } from "@/lib/auth.server";
 import { SignOutButton } from "./SignOutButton";
 
@@ -48,10 +48,10 @@ export default async function AccessSuspendedPage() {
             This action may be part of an offboarding process or a security measure. If you believe this is an error, please contact your organization administrator or IT support department.
           </Typography>
 
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <SignOutButton />
-              
-              <Typography variant="caption" color="text.disabled">
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <SignOutButton />
+            
+            <Typography variant="caption" color="text.disabled">
               User ID: {session?.user.id || "Unknown"}
             </Typography>
           </Box>
