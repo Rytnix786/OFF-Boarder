@@ -38,10 +38,10 @@ export default function LandingPage() {
     setContactModalOpen(true);
   };
 
-  const cardStyle = {
-    height: "100%",
-    borderRadius: { xs: 10, md: 12 },
-    borderColor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
+    const cardStyle = {
+      height: "100%",
+      borderRadius: 1.5,
+      borderColor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
     bgcolor: isDark ? alpha("#0B0F1A", 0.6) : "#fff",
     backdropFilter: "blur(10px)",
     transition: "all 350ms cubic-bezier(0.22, 1, 0.36, 1)",

@@ -83,7 +83,7 @@ export function EnterpriseContactModal({
   const inputSx = {
     "& .MuiOutlinedInput-root": {
       bgcolor: isDark ? alpha("#fff", 0.03) : alpha("#000", 0.015),
-      borderRadius: 3,
+      borderRadius: 1.5,
       transition: "all 200ms cubic-bezier(0.4, 0, 0.2, 1)",
       "& fieldset": {
         borderColor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.1),
@@ -117,10 +117,10 @@ export function EnterpriseContactModal({
       fullWidth
       PaperProps={{
         sx: {
-          bgcolor: isDark ? "#0D1117" : "#fff",
-          backgroundImage: "none",
-          borderRadius: 6,
-          border: "1px solid",
+            bgcolor: isDark ? "#0D1117" : "#fff",
+            backgroundImage: "none",
+            borderRadius: 1.5,
+            border: "1px solid",
           borderColor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
           boxShadow: isDark 
             ? `0 24px 64px -12px rgba(0, 0, 0, 0.8)`
@@ -172,20 +172,20 @@ export function EnterpriseContactModal({
               Our security team has been notified. We’ll respond as soon as possible.
             </Typography>
 
-            <Button
-              onClick={handleClose}
-              variant="contained"
-              fullWidth
-              size="large"
-              sx={{ 
-                borderRadius: 3,
-                height: 56,
-                fontWeight: 700,
-                textTransform: "none",
-                bgcolor: "#10B981",
-                "&:hover": { bgcolor: "#059669" }
-              }}
-            >
+              <Button
+                onClick={handleClose}
+                variant="contained"
+                fullWidth
+                size="large"
+                sx={{ 
+                  borderRadius: 1.5,
+                  height: 56,
+                  fontWeight: 700,
+                  textTransform: "none",
+                  bgcolor: "#10B981",
+                  "&:hover": { bgcolor: "#059669" }
+                }}
+              >
               Done
             </Button>
           </MotionBox>
@@ -227,11 +227,11 @@ export function EnterpriseContactModal({
               </IconButton>
             </Box>
 
-            <Box sx={{ 
-              bgcolor: alpha("#fff", 0.03), 
-              borderRadius: 4, 
-              p: 2.5, 
-              mb: 4,
+              <Box sx={{ 
+                bgcolor: alpha("#fff", 0.03), 
+                borderRadius: 1.5, 
+                p: 2.5, 
+                mb: 4,
               border: "1px solid",
               borderColor: alpha("#fff", 0.06),
               display: 'flex',
@@ -261,12 +261,12 @@ export function EnterpriseContactModal({
               </Box>
             </Box>
 
-            {error && (
-              <Box sx={{ 
-                bgcolor: alpha("#EF4444", 0.1), 
-                borderRadius: 4, 
-                p: 2.5, 
-                mb: 4,
+              {error && (
+                <Box sx={{ 
+                  bgcolor: alpha("#EF4444", 0.1), 
+                  borderRadius: 1.5, 
+                  p: 2.5, 
+                  mb: 4,
                 border: "1px solid",
                 borderColor: alpha("#EF4444", 0.2),
                 display: 'flex',
@@ -361,32 +361,32 @@ export function EnterpriseContactModal({
               </Box>
 
               <Box sx={{ mt: 1 }}>
-                <Button
-                  onClick={handleSubmit}
-                  variant="contained"
-                  fullWidth
-                  disabled={loading}
-                  size="large"
-                  sx={{ 
-                    borderRadius: 4,
-                    height: 72,
-                    fontWeight: 800,
-                    textTransform: "none",
-                    fontSize: "1.1rem",
-                    bgcolor: "#10B981",
-                    boxShadow: `0 20px 40px ${alpha("#10B981", 0.2)}`,
-                    transition: "all 300ms cubic-bezier(0.22, 1, 0.36, 1)",
-                    "&:hover": {
-                      bgcolor: "#059669",
-                      transform: "translateY(-2px)",
-                      boxShadow: `0 24px 48px ${alpha("#10B981", 0.3)}`,
-                    },
-                    "&.Mui-disabled": {
-                      bgcolor: alpha("#10B981", 0.3),
-                      color: alpha("#fff", 0.5)
-                    }
-                  }}
-                >
+                  <Button
+                    onClick={handleSubmit}
+                    variant="contained"
+                    fullWidth
+                    disabled={loading}
+                    size="large"
+                    sx={{ 
+                      borderRadius: 1.5,
+                      height: 72,
+                      fontWeight: 800,
+                      textTransform: "none",
+                      fontSize: "1.1rem",
+                      bgcolor: "#10B981",
+                      boxShadow: `0 20px 40px ${alpha("#10B981", 0.2)}`,
+                      transition: "all 300ms cubic-bezier(0.22, 1, 0.36, 1)",
+                      "&:hover": {
+                        bgcolor: "#059669",
+                        transform: "translateY(-2px)",
+                        boxShadow: `0 24px 48px ${alpha("#10B981", 0.3)}`,
+                      },
+                      "&.Mui-disabled": {
+                        bgcolor: alpha("#10B981", 0.3),
+                        color: alpha("#fff", 0.5)
+                      }
+                    }}
+                  >
                   {loading ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                       <CircularProgress size={24} color="inherit" thickness={6} />
