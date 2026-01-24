@@ -49,6 +49,18 @@ export default async function AppLayout({
       redirect("/org-blocked");
     }
 
+    // Check for revoked/suspended memberships
+    const revokedMembership = await prisma.membership.findFirst({
+      where: {
+        userId: session.user.id,
+        status: { in: ["SUSPENDED", "REVOKED"] }
+      }
+    });
+
+    if (revokedMembership && !session.user.isPlatformAdmin) {
+      redirect("/app/access-suspended");
+    }
+
     if (session.user.isPlatformAdmin) {
       redirect("/admin");
     }
@@ -56,12 +68,15 @@ export default async function AppLayout({
     const employeeLink = await prisma.employeeUserLink.findFirst({
       where: {
         userId: session.user.id,
-        status: "VERIFIED",
+        status: { in: ["VERIFIED", "REVOKED"] },
         organization: { status: "ACTIVE" },
       },
     });
     
     if (employeeLink) {
+      if (employeeLink.status === "REVOKED") {
+        redirect("/app/access-suspended");
+      }
       redirect("/app/employee");
     }
     
