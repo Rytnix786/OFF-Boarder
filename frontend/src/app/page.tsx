@@ -55,24 +55,24 @@ export default function LandingPage() {
           zIndex: 1000,
           bgcolor: isDark ? alpha("#0B0F1A", 0.72) : alpha("#fff", 0.8),
           backdropFilter: "blur(20px) saturate(180%)",
-          borderRadius: 4,
-          border: "1px solid",
-          borderColor: isDark ? alpha("#fff", 0.12) : alpha("#000", 0.08),
-          boxShadow: isDark 
-            ? `0 8px 32px -4px rgba(0, 0, 0, 0.5), inset 0 1px 1px ${alpha("#fff", 0.1)}`
-            : `0 8px 32px -4px rgba(0, 0, 0, 0.06), inset 0 1px 1px ${alpha("#fff", 0.8)}`,
-          transition: "all 300ms cubic-bezier(0.22, 1, 0.36, 1)",
-        }}
-      >
-        <Container maxWidth="lg">
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              py: 2,
-            }}
-          >
+            borderRadius: 2,
+            border: "1px solid",
+            borderColor: isDark ? alpha("#fff", 0.1) : alpha("#000", 0.08),
+            boxShadow: isDark 
+              ? `0 12px 32px -4px rgba(0, 0, 0, 0.6), inset 0 1px 1px ${alpha("#fff", 0.05)}`
+              : `0 12px 32px -4px rgba(0, 0, 0, 0.08), inset 0 1px 1px ${alpha("#fff", 0.8)}`,
+            transition: "all 300ms cubic-bezier(0.22, 1, 0.36, 1)",
+          }}
+        >
+          <Container maxWidth="lg">
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                py: 1.5,
+              }}
+            >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
               <Box
                 sx={{
@@ -654,26 +654,26 @@ export default function LandingPage() {
                         theme.unstable_sx({
                           height: "100%",
                           minHeight: 180,
-                          borderRadius: 6,
-                          borderColor: isDark ? alpha("#fff", 0.1) : alpha("#000", 0.08),
-                          bgcolor: isDark ? alpha("#0B0F1A", 0.6) : "#fff",
-                          backdropFilter: "blur(10px)",
-                          transition: "all 350ms cubic-bezier(0.22, 1, 0.36, 1)",
-                          position: "relative",
-                          overflow: "hidden",
-                          display: "flex",
-                          flexDirection: "column",
-                          boxShadow: isDark 
-                            ? `0 4px 20px ${alpha("#000", 0.4)}, inset 0 1px 1px ${alpha("#fff", 0.08)}`
-                            : `0 4px 20px ${alpha("#000", 0.05)}, inset 0 1px 1px ${alpha("#fff", 0.8)}`,
-                          "&:hover": {
-                            borderColor: alpha(theme.palette.primary.main, 0.4),
-                            transform: "translateY(-8px)",
-                            bgcolor: isDark ? alpha("#0B0F1A", 0.8) : "#fff",
-                            boxShadow: isDark
-                              ? `0 20px 40px -12px ${alpha("#000", 0.6)}, 0 0 20px ${alpha(theme.palette.primary.main, 0.1)}, inset 0 1px 1px ${alpha("#fff", 0.15)}`
-                              : `0 20px 40px -12px ${alpha("#000", 0.1)}, 0 0 20px ${alpha(theme.palette.primary.main, 0.05)}, inset 0 1px 1px ${alpha("#fff", 1)}`,
-                          },
+                            borderRadius: 16,
+                            borderColor: isDark ? alpha("#fff", 0.1) : alpha("#000", 0.08),
+                            bgcolor: isDark ? alpha("#0B0F1A", 0.6) : "#fff",
+                            backdropFilter: "blur(10px)",
+                            transition: "all 350ms cubic-bezier(0.22, 1, 0.36, 1)",
+                            position: "relative",
+                            overflow: "hidden",
+                            display: "flex",
+                            flexDirection: "column",
+                            boxShadow: isDark 
+                              ? `0 4px 20px ${alpha("#000", 0.4)}, inset 0 1px 1px ${alpha("#fff", 0.08)}`
+                              : `0 4px 20px ${alpha("#000", 0.05)}, inset 0 1px 1px ${alpha("#fff", 0.8)}`,
+                            "&:hover": {
+                              borderColor: alpha(theme.palette.primary.main, 0.4),
+                              transform: "translateY(-4px)",
+                              bgcolor: isDark ? alpha("#0B0F1A", 0.8) : "#fff",
+                              boxShadow: isDark
+                                ? `0 20px 40px -12px ${alpha("#000", 0.6)}, 0 0 20px ${alpha(theme.palette.primary.main, 0.15)}, inset 0 1px 1px ${alpha("#fff", 0.15)}`
+                                : `0 20px 40px -12px ${alpha("#000", 0.1)}, 0 0 20px ${alpha(theme.palette.primary.main, 0.05)}, inset 0 1px 1px ${alpha("#fff", 1)}`,
+                            },
                           "&::after": {
                             content: '""',
                             position: "absolute",
@@ -799,23 +799,32 @@ export default function LandingPage() {
                       transition={{ delay: i * 0.1 }}
                       viewport={{ once: true }}
                     >
-                      <Card 
-                        variant="outlined"
-                        sx={{ 
-                          height: "100%",
-                          p: 4,
-                          borderRadius: 6,
-                          bgcolor: isDark ? alpha("#fff", 0.02) : "#fff",
-                          borderColor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
-                          position: "relative",
-                          overflow: "hidden",
-                          transition: "all 300ms ease",
-                          "&:hover": {
-                            borderColor: alpha(item.color as any, 0.4),
-                            bgcolor: isDark ? alpha("#fff", 0.04) : alpha("#000", 0.01),
-                          }
-                        }}
-                      >
+                        <Card 
+                          variant="outlined"
+                          sx={{ 
+                            height: "100%",
+                            p: 4,
+                            borderRadius: { xs: 14, md: 16 },
+                            bgcolor: isDark ? alpha("#fff", 0.02) : "#fff",
+                            borderColor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
+                            position: "relative",
+                            overflow: "hidden",
+                            transition: "all 350ms cubic-bezier(0.22, 1, 0.36, 1)",
+                            "&:hover": {
+                              borderColor: alpha(
+                                item.color === "error.main" ? theme.palette.error.main : 
+                                item.color === "warning.main" ? theme.palette.warning.main : 
+                                theme.palette.info.main, 
+                                0.4
+                              ),
+                              transform: "translateY(-4px)",
+                              bgcolor: isDark ? alpha("#fff", 0.04) : alpha("#000", 0.01),
+                              boxShadow: isDark
+                                ? `0 20px 40px -12px ${alpha("#000", 0.6)}`
+                                : `0 20px 40px -12px ${alpha("#000", 0.1)}`,
+                            }
+                          }}
+                        >
                         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                           <span 
                             className="material-symbols-outlined" 
@@ -1030,59 +1039,44 @@ export default function LandingPage() {
                       viewport={{ once: true }}
                       sx={{ height: "100%" }}
                     >
-                        <Card
-                            variant="outlined"
-                            sx={
-                              theme.unstable_sx({
-                              height: "100%",
-                              borderRadius: 4,
-                              position: "relative",
-                              overflow: "hidden",
-                              borderColor: plan.isTrial || plan.popular
-                                ? alpha(theme.palette.primary.main, 0.3)
-                                : isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
-                              bgcolor: isDark 
-                                ? `linear-gradient(180deg, ${alpha("#fff", plan.isTrial || plan.popular ? 0.04 : 0.02)} 0%, ${alpha("#000", plan.isTrial || plan.popular ? 0.01 : 0.005)} 100%)`
-                                : plan.isTrial || plan.popular 
-                                  ? alpha(theme.palette.primary.main, 0.02)
-                                  : "#fff",
-                              display: "flex",
-                              flexDirection: "column",
-                              transition: "all 220ms cubic-bezier(0.22, 1, 0.36, 1)",
-                              userSelect: "none",
-                              boxShadow: isDark
-                                ? plan.isTrial || plan.popular
-                                  ? `0 20px 40px ${alpha("#000", 0.35)}`
-                                  : `0 12px 24px ${alpha("#000", 0.25)}`
-                                : plan.isTrial || plan.popular
-                                  ? `0 20px 40px ${alpha("#000", 0.15)}`
-                                  : `0 8px 16px ${alpha("#000", 0.08)}`,
-                              ...( (plan.isTrial || plan.popular) && {
-                                animation: "pricing-glow 4s ease-in-out infinite",
-                                "@keyframes pricing-glow": {
-                                  "0%, 100%": { 
-                                    boxShadow: isDark
-                                      ? `0 20px 40px ${alpha("#000", 0.35)}`
-                                      : `0 20px 40px ${alpha("#000", 0.15)}`
-                                  },
-                                  "50%": { 
-                                    boxShadow: isDark
-                                      ? `0 28px 60px ${alpha("#000", 0.45)}`
-                                      : `0 28px 60px ${alpha("#000", 0.2)}`
-                                  },
-                                },
-                              }),
-                              "&:hover": {
-                                borderColor: alpha(theme.palette.primary.main, plan.isTrial || plan.popular ? 0.5 : 0.3),
-                                transform: "translateY(-4px)",
+                          <Card
+                              variant="outlined"
+                              sx={
+                                theme.unstable_sx({
+                                height: "100%",
+                                borderRadius: { xs: 14, md: 16 },
+                                position: "relative",
+                                overflow: "hidden",
+                                borderColor: plan.isTrial || plan.popular
+                                  ? alpha(theme.palette.primary.main, 0.3)
+                                  : isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
+                                bgcolor: isDark 
+                                  ? `linear-gradient(180deg, ${alpha("#fff", plan.isTrial || plan.popular ? 0.04 : 0.02)} 0%, ${alpha("#000", plan.isTrial || plan.popular ? 0.01 : 0.005)} 100%)`
+                                  : plan.isTrial || plan.popular 
+                                    ? alpha(theme.palette.primary.main, 0.02)
+                                    : "#fff",
+                                display: "flex",
+                                flexDirection: "column",
+                                transition: "all 350ms cubic-bezier(0.22, 1, 0.36, 1)",
+                                userSelect: "none",
                                 boxShadow: isDark
                                   ? plan.isTrial || plan.popular
-                                    ? `0 28px 60px ${alpha("#000", 0.45)}`
-                                    : `0 20px 40px ${alpha("#000", 0.35)}`
+                                    ? `0 20px 40px ${alpha("#000", 0.35)}`
+                                    : `0 12px 24px ${alpha("#000", 0.25)}`
                                   : plan.isTrial || plan.popular
-                                    ? `0 28px 60px ${alpha("#000", 0.2)}`
-                                    : `0 16px 32px ${alpha("#000", 0.12)}`,
-                              },
+                                    ? `0 20px 40px ${alpha("#000", 0.15)}`
+                                    : `0 8px 16px ${alpha("#000", 0.08)}`,
+                                "&:hover": {
+                                  borderColor: alpha(theme.palette.primary.main, plan.isTrial || plan.popular ? 0.5 : 0.3),
+                                  transform: "translateY(-4px)",
+                                  boxShadow: isDark
+                                    ? plan.isTrial || plan.popular
+                                      ? `0 28px 60px ${alpha("#000", 0.45)}`
+                                      : `0 20px 40px ${alpha("#000", 0.35)}`
+                                    : plan.isTrial || plan.popular
+                                      ? `0 28px 60px ${alpha("#000", 0.2)}`
+                                      : `0 16px 32px ${alpha("#000", 0.12)}`,
+                                },
                               "&:active": {
                                 transform: "translateY(-2px)",
                               },
