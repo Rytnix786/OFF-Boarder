@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(req: Request) {
   try {
@@ -12,21 +13,51 @@ export async function POST(req: Request) {
       );
     }
 
+    // Try to get authenticated user
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    let organizationId: string | null = null;
+    let senderId: string | null = null;
+    let senderType: "EXTERNAL_VISITOR" | "ORG_USER" = "EXTERNAL_VISITOR";
+
+    if (user) {
+      const dbUser = await prisma.user.findUnique({
+        where: { supabaseId: user.id },
+        include: {
+          memberships: {
+            where: { status: "ACTIVE" },
+            take: 1
+          }
+        }
+      });
+
+      if (dbUser) {
+        senderId = dbUser.id;
+        senderType = "ORG_USER";
+        if (dbUser.memberships.length > 0) {
+          organizationId = dbUser.memberships[0].organizationId;
+        }
+      }
+    }
+
     // Create conversation and initial message in a transaction
     const conversation = await prisma.$transaction(async (tx) => {
       const conv = await tx.enterpriseConversation.create({
         data: {
-          subject: `External Inquiry: ${company}`,
+          subject: `Security Inquiry: ${company}`,
           contactName: name,
           contactEmail: email,
           companyName: company,
           source: "Landing Page",
           status: "OPEN",
+          organizationId: organizationId,
           lastMessageAt: new Date(),
           messages: {
             create: {
               content: message,
-              senderType: "EXTERNAL_VISITOR",
+              senderId: senderId,
+              senderType: senderType,
             },
           },
         },
@@ -35,14 +66,23 @@ export async function POST(req: Request) {
       return conv;
     });
 
+    console.log(`[enterprise/contact] Created conversation ${conversation.id} for ${email}`);
+
     return NextResponse.json({
       success: true,
       conversationId: conversation.id,
     });
   } catch (error) {
-    console.error("Error creating external enterprise inquiry:", error);
+    console.error("Error creating enterprise inquiry:", error);
+    
+    // Check for specific Prisma errors
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    
     return NextResponse.json(
-      { error: "Failed to send message. Please try again later." },
+      { 
+        error: "Failed to send message. Please try again later.",
+        details: process.env.NODE_ENV === "development" ? errorMessage : undefined
+      },
       { status: 500 }
     );
   }
