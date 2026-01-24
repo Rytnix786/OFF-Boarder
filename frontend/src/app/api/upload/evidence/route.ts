@@ -39,6 +39,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Task ID and Offboarding ID are required" }, { status: 400 });
     }
 
+    // 1. Verify Offboarding belongs to Org
+    const offboarding = await prisma.offboarding.findFirst({
+      where: { id: offboardingId, organizationId: session.currentOrgId! },
+      include: { evidencePack: true }
+    });
+
+    if (!offboarding) {
+      return NextResponse.json({ error: "Offboarding not found or access denied" }, { status: 403 });
+    }
+
+    // 2. Verify Task belongs to Offboarding
+    const task = await prisma.offboardingTask.findFirst({
+      where: { id: taskId, offboardingId: offboardingId }
+    });
+
+    if (!task) {
+      return NextResponse.json({ error: "Task not found in this offboarding" }, { status: 404 });
+    }
+
+    // 3. Verify Evidence Pack is not sealed
+    if (offboarding.evidencePack?.sealed) {
+      return NextResponse.json({ 
+        error: "Evidence pack is sealed and immutable. No further evidence can be uploaded." 
+      }, { status: 403 });
+    }
+
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json({ error: "File size exceeds 50MB limit" }, { status: 400 });
     }

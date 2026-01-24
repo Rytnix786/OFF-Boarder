@@ -62,22 +62,24 @@ type SecurityEventItem = {
 type DashboardData = {
   offboardings: OffboardingItem[];
   alerts: SecurityEventItem[];
-  summary: {
-    totalAtRisk: number;
-    criticalCount: number;
-    highCount: number;
-    pendingRevocations: number;
-    unresolvedAssets: number;
-    unresolvedAlerts: number;
+    summary: {
+      totalAtRisk: number;
+      criticalCount: number;
+      highCount: number;
+      pendingRevocations: number;
+      unresolvedAssets: number;
+      unresolvedAlerts: number;
+      ghostExitsCount: number;
+    };
+    ghostExits: { id: string; firstName: string; lastName: string; email: string }[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
   };
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-};
 
-interface RiskRadarClientProps {
-  data: DashboardData;
+  interface RiskRadarClientProps {
+    data: DashboardData;
   departments: { id: string; name: string }[];
   filters: {
     department?: string;
@@ -414,33 +416,77 @@ export default function RiskRadarClient({ data, departments, filters, canManage 
         {/* Right Column: Coverage & Readiness */}
         <Grid size={{ xs: 12, lg: 4 }}>
           {/* SECTION B: Enforcement Coverage */}
-          <Box sx={{ mb: 6 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-              Enforcement Coverage
-            </Typography>
-            <Box sx={{ p: 3, borderRadius: 3, bgcolor: "action.hover", border: "1px solid", borderColor: "divider" }}>
-              <Typography sx={{ fontSize: "0.95rem", lineHeight: 1.6, color: "text.primary" }}>
-                Risk Radar is actively monitoring 12 enforced security policies across all employees and assets.
+            <Box sx={{ mb: 6 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
+                Enforcement Coverage
               </Typography>
-              <Divider sx={{ my: 2 }} />
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography sx={{ fontSize: "0.875rem", color: "text.secondary" }}>Policies monitored</Typography>
-                  <Typography sx={{ fontSize: "0.875rem", fontWeight: 700 }}>12</Typography>
-                </Box>
-                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography sx={{ fontSize: "0.875rem", color: "text.secondary" }}>Enforcement active</Typography>
-                  <Typography sx={{ fontSize: "0.875rem", fontWeight: 700, color: "success.main" }}>YES</Typography>
-                </Box>
-                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography sx={{ fontSize: "0.875rem", color: "text.secondary" }}>Coverage scope</Typography>
-                  <Typography sx={{ fontSize: "0.875rem", fontWeight: 700 }}>Org-wide</Typography>
+              <Box sx={{ p: 3, borderRadius: 3, bgcolor: "action.hover", border: "1px solid", borderColor: "divider" }}>
+                <Typography sx={{ fontSize: "0.95rem", lineHeight: 1.6, color: "text.primary" }}>
+                  Risk Radar is actively monitoring enforced security policies for all active offboarding cases and unauthorized access attempts.
+                </Typography>
+                <Divider sx={{ my: 2 }} />
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                    <Typography sx={{ fontSize: "0.875rem", color: "text.secondary" }}>Policies monitored</Typography>
+                    <Typography sx={{ fontSize: "0.875rem", fontWeight: 700 }}>12</Typography>
+                  </Box>
+                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                    <Typography sx={{ fontSize: "0.875rem", color: "text.secondary" }}>Population scanning</Typography>
+                    <Typography sx={{ fontSize: "0.875rem", fontWeight: 700, color: "success.main" }}>ACTIVE</Typography>
+                  </Box>
+                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                    <Typography sx={{ fontSize: "0.875rem", color: "text.secondary" }}>Coverage scope</Typography>
+                    <Typography sx={{ fontSize: "0.875rem", fontWeight: 700 }}>Org-wide</Typography>
+                  </Box>
                 </Box>
               </Box>
             </Box>
-          </Box>
 
-          {/* SECTION C: Escalation Readiness */}
+            {/* Ghost Exits Section */}
+            {data.ghostExits.length > 0 && (
+              <Box sx={{ mb: 6 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: "error.main" }}>
+                    Ghost Exits Detected
+                  </Typography>
+                  <Box sx={{ px: 1, py: 0.25, borderRadius: 1, bgcolor: "error.main", color: "white", fontSize: "0.75rem", fontWeight: 700 }}>
+                    {data.ghostExits.length}
+                  </Box>
+                </Box>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                  {data.ghostExits.map(ghost => (
+                    <Box 
+                      key={ghost.id}
+                      sx={{ 
+                        p: 2, 
+                        borderRadius: 2, 
+                        bgcolor: isDark ? "rgba(239, 68, 68, 0.05)" : "rgba(239, 68, 68, 0.02)",
+                        border: "1px solid",
+                        borderColor: isDark ? "rgba(239, 68, 68, 0.2)" : "rgba(239, 68, 68, 0.1)",
+                      }}
+                    >
+                      <Typography sx={{ fontWeight: 600, fontSize: "0.875rem" }}>
+                        {ghost.firstName} {ghost.lastName}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mb: 1 }}>
+                        Last day was {new Date().toLocaleDateString()} - No offboarding started.
+                      </Typography>
+                      <Button 
+                        size="small" 
+                        variant="outlined" 
+                        color="error"
+                        sx={{ fontSize: "0.7rem", py: 0 }}
+                        onClick={() => router.push(`/app/employees/${ghost.id}`)}
+                      >
+                        Initialize Exit
+                      </Button>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            )}
+
+            {/* SECTION C: Escalation Readiness */}
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
               Escalation Readiness

@@ -444,13 +444,29 @@ export async function getRiskRadarDashboard(filters: {
     take: 10,
   });
 
+  // Proactive Check: Find employees past their last working day who have no active offboarding
+  const ghostExits = await prisma.employee.findMany({
+    where: {
+      organizationId: orgId,
+      status: "ACTIVE",
+      lastWorkingDay: { lt: new Date() },
+      offboardings: {
+        none: {
+          status: { notIn: ["COMPLETED", "CANCELLED"] }
+        }
+      }
+    },
+    select: { id: true, firstName: true, lastName: true, email: true }
+  });
+
   const summary = {
-    totalAtRisk: enrichedOffboardings.filter(o => o.riskLevel === "HIGH" || o.riskLevel === "CRITICAL").length,
-    criticalCount: enrichedOffboardings.filter(o => o.riskLevel === "CRITICAL").length,
+    totalAtRisk: enrichedOffboardings.filter(o => o.riskLevel === "HIGH" || o.riskLevel === "CRITICAL").length + ghostExits.length,
+    criticalCount: enrichedOffboardings.filter(o => o.riskLevel === "CRITICAL").length + ghostExits.length,
     highCount: enrichedOffboardings.filter(o => o.riskLevel === "HIGH").length,
     pendingRevocations: accessRevocations.length,
     unresolvedAssets: enrichedOffboardings.reduce((sum, o) => sum + o.assetReturns.length, 0),
-    unresolvedAlerts: alerts.length,
+    unresolvedAlerts: alerts.length + ghostExits.length,
+    ghostExitsCount: ghostExits.length,
   };
 
   return {
@@ -468,6 +484,7 @@ export async function getRiskRadarDashboard(filters: {
       pendingRevocationsCount: o.accessRevocationsCount,
       unresolvedAssetsCount: o.assetReturns.length,
     })),
+    ghostExits,
     alerts,
     summary,
     total,
@@ -899,10 +916,26 @@ export async function requestEvidencePack(offboardingId: string) {
   if (offboarding.evidencePack) {
     return { 
       success: true, 
-      message: "Evidence pack already exists",
+      message: "Evidence pack finalized and ready for export.",
       evidencePack: offboarding.evidencePack,
     };
   }
+
+  const evidencePack = await prisma.evidencePack.create({
+    data: {
+      offboardingId,
+      organizationId: orgId,
+      generatedBy: session.user.id,
+      checksum: "PENDING",
+      data: {},
+      accessLog: {
+        [new Date().toISOString()]: {
+          userId: session.user.id,
+          action: "pack_initialized",
+        },
+      },
+    },
+  });
 
   await prisma.securityEvent.create({
     data: {
@@ -910,23 +943,23 @@ export async function requestEvidencePack(offboardingId: string) {
       organizationId: orgId,
       offboardingId,
       eventType: "EVIDENCE_PACK_REQUESTED",
-      description: "Evidence pack generation requested",
-      metadata: { requestedBy: session.user.id },
+      description: "Evidence pack initialized and ready for capture",
+      metadata: { requestedBy: session.user.id, packId: evidencePack.id },
     },
   });
 
   await createAuditLog(session, orgId, {
-    action: "evidence_pack.requested",
+    action: "evidence_pack.initialized",
     entityType: "EvidencePack",
     entityId: offboardingId,
-    newData: { status: "requested" },
+    newData: { status: "ready" },
   });
 
   revalidatePath(`/app/risk-radar/${offboardingId}`);
   
   return { 
     success: true, 
-    message: "Evidence pack requested. It will be generated when the offboarding is completed.",
+    message: "Evidence pack initialized. You can now download the PDF or seal the records.",
   };
 }
 
