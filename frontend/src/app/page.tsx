@@ -862,32 +862,33 @@ export default function LandingPage() {
                   viewport={{ once: true }}
                   sx={{ height: "100%" }}
                 >
-                      <Card
-                        variant="outlined"
-                        sx={{
-                          ...cardStyle,
-                          borderColor: plan.popular || plan.isTrial
-                            ? alpha(theme.palette.primary.main, 0.3)
-                            : isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
-                          "&:hover": {
-                            ...cardStyle["&:hover"],
-                            ...(plan.name === "Free Trial" && {
-                              background: isDark
-                                ? `linear-gradient(165deg, ${alpha(theme.palette.primary.main, 0.18)} 0%, ${alpha(theme.palette.primary.main, 0.04)} 100%)`
-                                : `linear-gradient(165deg, ${alpha(theme.palette.primary.main, 0.1)} 0%, ${alpha(theme.palette.primary.main, 0.02)} 100%)`,
-                              borderColor: theme.palette.primary.main,
-                              boxShadow: isDark
-                                ? `0 25px 50px -12px ${alpha("#000", 0.7)}, 0 0 30px ${alpha(theme.palette.primary.main, 0.3)}`
-                                : `0 25px 50px -12px ${alpha("#000", 0.1)}, 0 0 30px ${alpha(theme.palette.primary.main, 0.2)}`,
-                            }),
-                            ...(plan.popular && {
-                              boxShadow: isDark
-                                ? `0 30px 60px -12px ${alpha("#000", 0.7)}, 0 0 40px ${alpha(theme.palette.primary.main, 0.25)}`
-                                : `0 30px 60px -12px ${alpha("#000", 0.15)}, 0 0 40px ${alpha(theme.palette.primary.main, 0.15)}`,
-                            })
-                          }
-                        }}
-                      >
+                        <Card
+                          variant="outlined"
+                          sx={{
+                            ...cardStyle,
+                            "&:hover": {
+                              ...cardStyle["&:hover"],
+                              ...(plan.name === "Free Trial" && {
+                                background: isDark
+                                  ? `linear-gradient(165deg, ${alpha(theme.palette.primary.main, 0.18)} 0%, ${alpha(theme.palette.primary.main, 0.04)} 100%)`
+                                  : `linear-gradient(165deg, ${alpha(theme.palette.primary.main, 0.1)} 0%, ${alpha(theme.palette.primary.main, 0.02)} 100%)`,
+                                borderColor: theme.palette.primary.main,
+                                boxShadow: isDark
+                                  ? `0 25px 50px -12px ${alpha("#000", 0.7)}, 0 0 30px ${alpha(theme.palette.primary.main, 0.3)}`
+                                  : `0 25px 50px -12px ${alpha("#000", 0.1)}, 0 0 30px ${alpha(theme.palette.primary.main, 0.2)}`,
+                              }),
+                              ...(plan.popular && {
+                                background: isDark
+                                  ? `linear-gradient(165deg, ${alpha(theme.palette.primary.main, 0.12)} 0%, ${alpha(theme.palette.primary.main, 0.02)} 100%)`
+                                  : `linear-gradient(165deg, ${alpha(theme.palette.primary.main, 0.06)} 0%, ${alpha(theme.palette.primary.main, 0.01)} 100%)`,
+                                borderColor: theme.palette.primary.main,
+                                boxShadow: isDark
+                                  ? `0 30px 60px -12px ${alpha("#000", 0.7)}, 0 0 40px ${alpha(theme.palette.primary.main, 0.25)}`
+                                  : `0 30px 60px -12px ${alpha("#000", 0.15)}, 0 0 40px ${alpha(theme.palette.primary.main, 0.15)}`,
+                              })
+                            }
+                          }}
+                        >
                       {plan.popular && (
                         <Box
                           sx={{
@@ -965,57 +966,52 @@ export default function LandingPage() {
                       </Box>
 
                       <Box sx={{ mb: 4 }}>
-                          <Button
-                            fullWidth
-                            variant={plan.isTrial || plan.popular ? "contained" : "outlined"}
-                            onClick={() => {
-                              if (plan.name === "Enterprise") {
-                                handleContactClick("I'm interested in the Enterprise plan.");
-                              } else {
-                                const params = new URLSearchParams();
-                                params.set("plan", plan.name.toLowerCase());
-                                if (plan.isTrial) params.set("trial", "true");
-                                window.location.href = `/register?${params.toString()}`;
-                              }
-                            }}
-                              sx={{
-                                fontWeight: 800,
-                                py: 2,
-                                borderRadius: 1.5,
-                                fontSize: "0.95rem",
-                                textTransform: "none",
-                                transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
-                                ...(plan.name === "Free Trial" && {
-                                  background: "transparent",
-                                  border: `2px solid ${theme.palette.primary.main}`,
-                                  color: "primary.main",
-                                  "&:hover": {
-                                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
-                                    border: "none",
-                                    color: "white",
-                                    boxShadow: `0 15px 30px ${alpha(theme.palette.primary.main, 0.5)}`,
-                                    transform: "scale(1.04) translateY(-2px)",
-                                  }
-                                }),
-                                ...( (plan.isTrial || plan.popular) && plan.name !== "Free Trial" && {
-                                bgcolor: theme.palette.primary.main,
-                                "&:hover": {
-                                  bgcolor: theme.palette.primary.dark,
-                                  boxShadow: `0 8px 25px ${alpha(theme.palette.primary.main, 0.4)}`,
-                                  transform: "scale(1.02)",
+                            <Button
+                              fullWidth
+                              variant="outlined"
+                              onClick={() => {
+                                if (plan.name === "Enterprise") {
+                                  handleContactClick("I'm interested in the Enterprise plan.");
+                                } else {
+                                  const params = new URLSearchParams();
+                                  params.set("plan", plan.name.toLowerCase());
+                                  if (plan.isTrial) params.set("trial", "true");
+                                  window.location.href = `/register?${params.toString()}`;
                                 }
-                              }),
-                              ...(!plan.isTrial && !plan.popular && {
-                                borderColor: isDark ? alpha("#fff", 0.15) : alpha("#000", 0.15),
-                                color: "text.primary",
-                                borderWidth: 2,
-                                "&:hover": {
-                                  borderColor: theme.palette.primary.main,
-                                  bgcolor: alpha(theme.palette.primary.main, 0.04),
-                                },
-                              }),
-                            }}
-                          >
+                              }}
+                                sx={{
+                                  fontWeight: 800,
+                                  py: 2,
+                                  borderRadius: 1.5,
+                                  fontSize: "0.95rem",
+                                  textTransform: "none",
+                                  transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+                                  borderColor: isDark ? alpha("#fff", 0.15) : alpha("#000", 0.15),
+                                  color: "text.primary",
+                                  borderWidth: 2,
+                                  ...(plan.name === "Free Trial" && {
+                                    background: "transparent",
+                                    borderColor: theme.palette.primary.main,
+                                    color: "primary.main",
+                                    "&:hover": {
+                                      background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
+                                      borderColor: "transparent",
+                                      color: "white",
+                                      boxShadow: `0 15px 30px ${alpha(theme.palette.primary.main, 0.5)}`,
+                                      transform: "scale(1.04) translateY(-2px)",
+                                    }
+                                  }),
+                                  ...(plan.name !== "Free Trial" && {
+                                    "&:hover": {
+                                      bgcolor: theme.palette.primary.main,
+                                      borderColor: theme.palette.primary.main,
+                                      color: "white",
+                                      boxShadow: `0 8px 25px ${alpha(theme.palette.primary.main, 0.4)}`,
+                                      transform: "scale(1.02)",
+                                    }
+                                  }),
+                                }}
+                            >
                           {plan.cta}
                         </Button>
                       </Box>
@@ -1190,45 +1186,45 @@ const CONTROL_FEATURES = [
   { icon: "history_edu", title: "No Steps Skipped, Ever", description: "Every action is logged and verified, creating a defensible audit trail by default." },
 ];
 
-const PRICING = [
-  {
-    name: "Free Trial",
-    description: "Try OffboardHQ risk-free for 14 days.",
-    price: "$0",
-    period: "mo",
-    cta: "Start Free Trial",
-    features: ["1 Admin", "5 Employees", "14-day free trial", "Core features included"],
-    isTrial: true
-  },
-  {
-    name: "Starter",
-    description: "Essential offboarding for small teams.",
-    price: "$9.99",
-    period: "mo",
-    cta: "Start Free Trial",
-    features: [
-      { text: "Up to 30 Employees", tooltip: "Employees are individuals tracked via Employee Portal." },
-      { text: "Up to 5 Org Users", tooltip: "Org users manage the platform." },
-      "Core access revocation",
-      "Email support"
-    ],
-    isTrial: true
-  },
-  {
-    name: "Growth",
-    description: "Scale your security and compliance workflows.",
-    price: "$29.99",
-    period: "mo",
-    cta: "Start Free Trial",
-    popular: true,
-    isTrial: true,
-    features: ["Higher limits", "Full asset tracking", "Priority support", "Audit logs"]
-  },
+  const PRICING = [
+    {
+      name: "Free Trial",
+      description: "Try OffboardHQ risk-free for 14 days.",
+      price: "$0",
+      period: "mo",
+      cta: "Start Free Trial",
+      features: ["1 Admin", "5 Employees", "14-day free trial", "Core features included"],
+      isTrial: true
+    },
+    {
+      name: "Starter",
+      description: "Essential offboarding for small teams.",
+      price: "$9.99",
+      period: "mo",
+      cta: "Choose Starter",
+      features: [
+        { text: "Up to 30 Employees", tooltip: "Employees are individuals tracked via Employee Portal." },
+        { text: "Up to 5 Org Users", tooltip: "Org users manage the platform." },
+        "Core access revocation",
+        "Email support"
+      ],
+      isTrial: true
+    },
+    {
+      name: "Growth",
+      description: "Scale your security and compliance workflows.",
+      price: "$29.99",
+      period: "mo",
+      cta: "Choose Growth",
+      popular: true,
+      isTrial: true,
+      features: ["Higher limits", "Full asset tracking", "Priority support", "Audit logs"]
+    },
     {
       name: "Enterprise",
       description: "Complete control for large organizations.",
       price: "Custom",
-      cta: "Start Free Trial",
+      cta: "Contact Security Team",
       features: ["Custom limits", "SSO integration", "Dedicated success manager", "Custom workflows"]
     }
   ];

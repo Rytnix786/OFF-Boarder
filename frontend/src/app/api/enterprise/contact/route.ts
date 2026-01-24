@@ -51,8 +51,8 @@ export async function POST(req: Request) {
           contactEmail: email,
           companyName: company,
           source: "Landing Page",
-          status: "OPEN",
-          organizationId: organizationId || undefined, // Use undefined for optional fields in Prisma if null
+          status: "OPEN" as const,
+          organizationId: organizationId || null,
           lastMessageAt: new Date(),
         },
       });
