@@ -40,7 +40,7 @@ export default function LandingPage() {
 
   const cardStyle = {
     height: "100%",
-    borderRadius: { xs: 14, md: 16 },
+    borderRadius: { xs: 10, md: 12 },
     borderColor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
     bgcolor: isDark ? alpha("#0B0F1A", 0.6) : "#fff",
     backdropFilter: "blur(10px)",
@@ -79,7 +79,7 @@ export default function LandingPage() {
           zIndex: 1000,
             bgcolor: isDark ? alpha("#0B0F1A", 0.72) : alpha("#fff", 0.8),
             backdropFilter: "blur(20px) saturate(180%)",
-            borderRadius: 2,
+            borderRadius: 1,
             border: "1px solid",
             borderColor: isDark ? alpha("#fff", 0.1) : alpha("#000", 0.08),
             boxShadow: isDark 
@@ -436,7 +436,7 @@ export default function LandingPage() {
                   sx={{
                     position: "relative",
                     zIndex: 1,
-                    borderRadius: 4,
+                    borderRadius: 1.5,
                     overflow: "hidden",
                     border: `1px solid ${isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08)}`,
                   }}
@@ -566,7 +566,7 @@ export default function LandingPage() {
                 mx: "auto",
                 bgcolor: isDark ? alpha("#fff", 0.03) : alpha("#000", 0.02),
                 p: 4,
-                borderRadius: 4,
+                borderRadius: 1.5,
                 border: "1px solid",
                 borderColor: isDark ? alpha("#fff", 0.06) : alpha("#000", 0.06),
               }}
@@ -654,7 +654,7 @@ export default function LandingPage() {
                         sx={{
                           width: 52,
                           height: 52,
-                          borderRadius: 2,
+                          borderRadius: 1,
                           bgcolor: isDark ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.primary.main, 0.08),
                           display: "flex",
                           alignItems: "center",
@@ -809,24 +809,24 @@ export default function LandingPage() {
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              sx={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 1,
-                px: 2,
-                py: 0.75,
-                borderRadius: 100,
-                bgcolor: alpha(theme.palette.primary.main, 0.1),
-                color: "primary.main",
-                border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-                mb: 3,
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>auto_awesome</span>
-              <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: 1, textTransform: "uppercase" }}>
-                14-Day Free Trial Available
-              </Typography>
-            </MotionBox>
+                sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 1,
+                  px: 2,
+                  py: 0.75,
+                  borderRadius: 1,
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  color: "primary.main",
+                  border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                  mb: 3,
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>auto_awesome</span>
+                <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: 1, textTransform: "uppercase" }}>
+                  14-Day Free Trial Available
+                </Typography>
+              </MotionBox>
             <Typography
               variant="h2"
               sx={{
@@ -971,12 +971,12 @@ export default function LandingPage() {
                               window.location.href = `/register?${params.toString()}`;
                             }
                           }}
-                          sx={{
-                            fontWeight: 800,
-                            py: 2,
-                            borderRadius: 3,
-                            fontSize: "0.95rem",
-                            textTransform: "none",
+                            sx={{
+                              fontWeight: 800,
+                              py: 2,
+                              borderRadius: 1.5,
+                              fontSize: "0.95rem",
+                              textTransform: "none",
                             transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
                             ...( (plan.isTrial || plan.popular) && {
                               bgcolor: theme.palette.primary.main,
