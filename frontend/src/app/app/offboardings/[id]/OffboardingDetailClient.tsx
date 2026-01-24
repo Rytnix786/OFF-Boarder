@@ -570,16 +570,16 @@ export default function OffboardingDetailClient({
                                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                                   <Tooltip title={disabledReason} placement="top">
                                     <span>
-                                      <Checkbox
-                                        checked={task.status === "COMPLETED"}
-                                        disabled={isDisabled}
-                                        onChange={() => {}}
-                                        onClick={(e) => e.stopPropagation()}
-                                        sx={{
-                                          color: task.status === "COMPLETED" ? "success.main" : undefined,
-                                          "&.Mui-checked": { color: "success.main" },
-                                        }}
-                                      />
+                                        <Checkbox
+                                          checked={task.status === "COMPLETED"}
+                                          disabled={isDisabled}
+                                          onChange={() => !isDisabled && handleTaskToggle(task.id, task.status)}
+                                          onClick={(e) => e.stopPropagation()}
+                                          sx={{
+                                            color: task.status === "COMPLETED" ? "success.main" : undefined,
+                                            "&.Mui-checked": { color: "success.main" },
+                                          }}
+                                        />
                                     </span>
                                   </Tooltip>
                                 <Box sx={{ flex: 1 }}>
