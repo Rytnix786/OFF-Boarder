@@ -62,6 +62,10 @@ export async function POST(req: Request) {
 
     // Create conversation and initial message in a transaction
     const conversation = await prisma.$transaction(async (tx) => {
+      // Generate public token for unauthenticated reply access
+      const publicToken = crypto.randomUUID();
+      const publicTokenExpires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+
       // 1. Create the conversation
       const conv = await tx.enterpriseConversation.create({
           data: {
@@ -74,6 +78,8 @@ export async function POST(req: Request) {
             organizationId: organizationId || null,
             lastMessageAt: new Date(),
             ipAddress: ip,
+            publicToken,
+            publicTokenExpires,
           },
         });
 
@@ -95,6 +101,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       conversationId: conversation.id,
+      publicToken: conversation.publicToken,
     });
   } catch (error) {
     console.error("Error creating enterprise inquiry:", error);
