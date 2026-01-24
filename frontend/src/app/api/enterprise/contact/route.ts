@@ -4,6 +4,25 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function POST(req: Request) {
   try {
+    const forwarded = req.headers.get("x-forwarded-for");
+    const ip = forwarded ? forwarded.split(',')[0] : (req.headers.get("x-real-ip") || "unknown");
+
+    // Rate limit: 1 message per IP every 15 minutes
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+    const recentInquiry = await prisma.enterpriseConversation.findFirst({
+      where: {
+        ipAddress: ip,
+        createdAt: { gte: fifteenMinutesAgo }
+      }
+    });
+
+    if (recentInquiry && process.env.NODE_ENV !== "development") {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait 15 minutes before sending another message." },
+        { status: 429 }
+      );
+    }
+
     const { name, email, company, message } = await req.json();
 
     if (!name || !email || !company || !message) {
@@ -45,17 +64,18 @@ export async function POST(req: Request) {
     const conversation = await prisma.$transaction(async (tx) => {
       // 1. Create the conversation
       const conv = await tx.enterpriseConversation.create({
-        data: {
-          subject: `Security Inquiry: ${company}`,
-          contactName: name,
-          contactEmail: email,
-          companyName: company,
-          source: "Landing Page",
-          status: "OPEN" as const,
-          organizationId: organizationId || null,
-          lastMessageAt: new Date(),
-        },
-      });
+          data: {
+            subject: `Security Inquiry: ${company}`,
+            contactName: name,
+            contactEmail: email,
+            companyName: company,
+            source: "Landing Page",
+            status: "OPEN" as const,
+            organizationId: organizationId || null,
+            lastMessageAt: new Date(),
+            ipAddress: ip,
+          },
+        });
 
       // 2. Create the initial message
       await tx.enterpriseMessage.create({
