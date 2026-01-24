@@ -43,6 +43,7 @@ export async function POST(req: Request) {
 
     // Create conversation and initial message in a transaction
     const conversation = await prisma.$transaction(async (tx) => {
+      // 1. Create the conversation
       const conv = await tx.enterpriseConversation.create({
         data: {
           subject: `Security Inquiry: ${company}`,
@@ -51,15 +52,18 @@ export async function POST(req: Request) {
           companyName: company,
           source: "Landing Page",
           status: "OPEN",
-          organizationId: organizationId,
+          organizationId: organizationId || undefined, // Use undefined for optional fields in Prisma if null
           lastMessageAt: new Date(),
-          messages: {
-            create: {
-              content: message,
-              senderId: senderId,
-              senderType: senderType,
-            },
-          },
+        },
+      });
+
+      // 2. Create the initial message
+      await tx.enterpriseMessage.create({
+        data: {
+          conversationId: conv.id,
+          content: message,
+          senderId: senderId || undefined,
+          senderType: senderType,
         },
       });
 

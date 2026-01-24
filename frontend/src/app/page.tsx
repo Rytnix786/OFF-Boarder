@@ -54,11 +54,11 @@ export default function LandingPage() {
       : `0 4px 20px ${alpha("#000", 0.05)}, inset 0 1px 1px ${alpha("#fff", 0.8)}`,
     "&:hover": {
       borderColor: alpha(theme.palette.primary.main, 0.4),
-      transform: "translateY(-4px)",
+      transform: "translateY(-6px)",
       bgcolor: isDark ? alpha("#0B0F1A", 0.8) : "#fff",
       boxShadow: isDark
-        ? `0 20px 40px -12px ${alpha("#000", 0.6)}, 0 0 20px ${alpha(theme.palette.primary.main, 0.15)}, inset 0 1px 1px ${alpha("#fff", 0.15)}`
-        : `0 20px 40px -12px ${alpha("#000", 0.1)}, 0 0 20px ${alpha(theme.palette.primary.main, 0.05)}, inset 0 1px 1px ${alpha("#fff", 1)}`,
+        ? `0 30px 60px -12px ${alpha("#000", 0.7)}, 0 0 30px ${alpha(theme.palette.primary.main, 0.2)}, inset 0 1px 1px ${alpha("#fff", 0.15)}`
+        : `0 30px 60px -12px ${alpha("#000", 0.15)}, 0 0 30px ${alpha(theme.palette.primary.main, 0.1)}, inset 0 1px 1px ${alpha("#fff", 1)}`,
     }
   };
 
@@ -77,26 +77,26 @@ export default function LandingPage() {
           top: 16,
           mx: { xs: 2, md: 4 },
           zIndex: 1000,
-          bgcolor: isDark ? alpha("#0B0F1A", 0.72) : alpha("#fff", 0.8),
-          backdropFilter: "blur(20px) saturate(180%)",
-          borderRadius: 4,
-          border: "1px solid",
-          borderColor: isDark ? alpha("#fff", 0.1) : alpha("#000", 0.08),
-          boxShadow: isDark 
-            ? `0 12px 32px -4px rgba(0, 0, 0, 0.6), inset 0 1px 1px ${alpha("#fff", 0.05)}`
-            : `0 12px 32px -4px rgba(0, 0, 0, 0.08), inset 0 1px 1px ${alpha("#fff", 0.8)}`,
-          transition: "all 300ms cubic-bezier(0.22, 1, 0.36, 1)",
-        }}
-      >
-        <Container maxWidth="lg">
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              py: 1.5,
-            }}
-          >
+            bgcolor: isDark ? alpha("#0B0F1A", 0.72) : alpha("#fff", 0.8),
+            backdropFilter: "blur(20px) saturate(180%)",
+            borderRadius: 2,
+            border: "1px solid",
+            borderColor: isDark ? alpha("#fff", 0.1) : alpha("#000", 0.08),
+            boxShadow: isDark 
+              ? `0 12px 32px -4px rgba(0, 0, 0, 0.6), inset 0 1px 1px ${alpha("#fff", 0.05)}`
+              : `0 12px 32px -4px rgba(0, 0, 0, 0.08), inset 0 1px 1px ${alpha("#fff", 0.8)}`,
+            transition: "all 300ms cubic-bezier(0.22, 1, 0.36, 1)",
+          }}
+        >
+          <Container maxWidth="lg">
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                py: 1.2,
+              }}
+            >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
               <Box
                 sx={{
@@ -719,48 +719,48 @@ export default function LandingPage() {
           </Box>
 
           <Grid container spacing={3}>
-            {[
-              { 
-                icon: "block", 
-                text: "Accounts stay active", 
-                desc: "Ghost accounts linger for months, providing a backdoor to your sensitive data.",
-                xs: 12, md: 8,
-                color: theme.palette.error.main
-              },
-              { 
-                icon: "inventory_2", 
-                text: "Assets go missing", 
-                desc: "Laptops and hardware disappear into the void without a verified chain of custody.",
-                xs: 12, md: 4,
-                color: theme.palette.warning.main
-              },
-              { 
-                icon: "description", 
-                text: "Audits turn into guesswork", 
-                desc: "Scrambling for proof during SOC2 audits because steps weren't documented.",
-                xs: 12, md: 12,
-                color: theme.palette.info.main
-              }
-            ].map((item, i) => (
-              <Grid item xs={item.xs} md={item.md} key={i}>
-                <MotionBox
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.1 }}
-                  viewport={{ once: true }}
-                  sx={{ height: "100%" }}
-                >
-                  <Card 
-                    variant="outlined"
-                    sx={{ 
-                      ...cardStyle,
-                      p: 4,
-                      "&:hover": {
-                        ...cardStyle["&:hover"],
-                        borderColor: alpha(item.color, 0.4),
-                      }
-                    }}
+              {[
+                { 
+                  icon: "block", 
+                  text: "Accounts stay active", 
+                  desc: "Ghost accounts linger for months, providing a backdoor to your sensitive data.",
+                  xs: 12, md: 8,
+                  color: "#EF4444" // theme.palette.error.main
+                },
+                { 
+                  icon: "inventory_2", 
+                  text: "Assets go missing", 
+                  desc: "Laptops and hardware disappear into the void without a verified chain of custody.",
+                  xs: 12, md: 4,
+                  color: "#F59E0B" // theme.palette.warning.main
+                },
+                { 
+                  icon: "description", 
+                  text: "Audits turn into guesswork", 
+                  desc: "Scrambling for proof during SOC2 audits because steps weren't documented.",
+                  xs: 12, md: 12,
+                  color: "#3B82F6" // theme.palette.info.main
+                }
+              ].map((item, i) => (
+                <Grid item xs={item.xs} md={item.md} key={i}>
+                  <MotionBox
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.1 }}
+                    viewport={{ once: true }}
+                    sx={{ height: "100%" }}
                   >
+                    <Card 
+                      variant="outlined"
+                      sx={{ 
+                        ...cardStyle,
+                        p: 3.5,
+                        "&:hover": {
+                          ...cardStyle["&:hover"],
+                          borderColor: alpha(item.color, 0.4),
+                        }
+                      }}
+                    >
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                       <span 
                         className="material-symbols-outlined" 
@@ -866,49 +866,66 @@ export default function LandingPage() {
                     variant="outlined"
                     sx={{
                       ...cardStyle,
-                      borderColor: plan.isTrial || plan.popular
-                        ? alpha(theme.palette.primary.main, 0.3)
-                        : isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
-                      bgcolor: isDark 
-                        ? `linear-gradient(180deg, ${alpha("#fff", plan.isTrial || plan.popular ? 0.04 : 0.02)} 0%, ${alpha("#000", plan.isTrial || plan.popular ? 0.01 : 0.005)} 100%)`
-                        : plan.isTrial || plan.popular 
-                          ? alpha(theme.palette.primary.main, 0.02)
-                          : "#fff",
-                    }}
-                  >
-                    <CardContent sx={{ p: 4, flex: 1, display: "flex", flexDirection: "column" }}>
-                      <Box sx={{ mb: 3 }}>
-                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
-                          <Typography 
-                            variant="overline" 
-                            sx={{ 
-                              fontWeight: 800, 
-                              fontSize: "0.8rem",
-                              letterSpacing: 1.8,
-                              color: plan.isTrial || plan.popular ? "primary.main" : isDark ? "#E2E8F0" : "#475569",
-                            }}
-                          >
-                            {plan.name}
-                          </Typography>
-                          {plan.popular && (
-                            <Typography
-                              variant="caption"
-                              sx={{
-                                px: 1.5,
-                                py: 0.5,
-                                borderRadius: 1.5,
-                                bgcolor: isDark ? alpha("#fff", 0.1) : alpha("#000", 0.06),
-                                color: "text.primary",
-                                fontWeight: 800,
-                                fontSize: "0.65rem",
-                                letterSpacing: 0.5,
-                                textTransform: "uppercase",
+                        borderColor: plan.isTrial || plan.popular
+                          ? alpha(theme.palette.primary.main, 0.4)
+                          : isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
+                        bgcolor: isDark 
+                          ? plan.popular
+                            ? alpha(theme.palette.primary.main, 0.05)
+                            : alpha("#0B0F1A", 0.6)
+                          : plan.popular 
+                            ? alpha(theme.palette.primary.main, 0.02)
+                            : "#fff",
+                        boxShadow: plan.popular && isDark
+                          ? `0 20px 40px -12px ${alpha("#000", 0.6)}, 0 0 20px ${alpha(theme.palette.primary.main, 0.15)}`
+                          : undefined,
+                      }}
+                    >
+                      {plan.popular && (
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: 4,
+                            background: `linear-gradient(90deg, transparent, ${theme.palette.primary.main}, transparent)`,
+                          }}
+                        />
+                      )}
+                      <CardContent sx={{ p: 4, flex: 1, display: "flex", flexDirection: "column" }}>
+                        <Box sx={{ mb: 3 }}>
+                          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+                            <Typography 
+                              variant="overline" 
+                              sx={{ 
+                                fontWeight: 800, 
+                                fontSize: "0.8rem",
+                                letterSpacing: 1.8,
+                                color: plan.popular ? "primary.main" : isDark ? "#E2E8F0" : "#475569",
                               }}
                             >
-                              Popular
+                              {plan.name}
                             </Typography>
-                          )}
-                        </Box>
+                            {plan.popular && (
+                              <Box
+                                sx={{
+                                  px: 1.5,
+                                  py: 0.5,
+                                  borderRadius: 1.5,
+                                  bgcolor: "primary.main",
+                                  color: "white",
+                                  fontWeight: 800,
+                                  fontSize: "0.65rem",
+                                  letterSpacing: 0.5,
+                                  textTransform: "uppercase",
+                                  boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.3)}`,
+                                }}
+                              >
+                                Popular
+                              </Box>
+                            )}
+                          </Box>
                         <Typography variant="body2" sx={{ color: isDark ? "#E2E8F0" : "#475569", fontSize: "0.95rem", lineHeight: 1.6, minHeight: "3rem" }}>
                           {plan.description}
                         </Typography>
