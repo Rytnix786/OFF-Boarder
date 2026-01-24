@@ -570,23 +570,33 @@ export default function OffboardingDetailClient({
                                 return "";
                               };
                               
-                              const isDisabled = !canUpdate || loading === task.id || isOffboardingClosed || hasPendingApproval || hasRequiredEvidence || isAdminBlocked;
-                              const disabledReason = getDisabledReason();
-                              
-                                return (
-                                <Box
-                                  key={task.id}
-                                  sx={{
-                                    p: 2,
-                                    borderRadius: 2,
-                                    bgcolor: task.status === "COMPLETED" ? alpha("#22c55e", 0.05) : task.isHighRiskTask ? alpha("#ef4444", 0.05) : hasRequiredEvidence ? alpha("#f59e0b", 0.03) : "transparent",
-                                    border: "1px solid",
-                                    borderColor: task.status === "COMPLETED" ? alpha("#22c55e", 0.2) : task.isHighRiskTask ? alpha("#ef4444", 0.2) : hasRequiredEvidence ? alpha("#f59e0b", 0.2) : "divider",
-                                    cursor: !isDisabled ? "pointer" : "default",
-                                    "&:hover": !isDisabled ? { bgcolor: alpha("#3b82f6", 0.03) } : {},
-                                  }}
-                                  onClick={() => !isDisabled && handleTaskToggle(task.id, task.status)}
-                                >
+                                const isDisabled = !canUpdate || loading === task.id || isOffboardingClosed || hasPendingApproval || hasRequiredEvidence || isAdminBlocked;
+                                const disabledReason = getDisabledReason();
+                                
+                                // Dynamic hover color based on status
+                                const getHoverBg = () => {
+                                  if (isDisabled) return {};
+                                  if (task.status === "COMPLETED") return { bgcolor: alpha("#22c55e", 0.1) };
+                                  if (task.isHighRiskTask) return { bgcolor: alpha("#ef4444", 0.1) };
+                                  if (hasRequiredEvidence) return { bgcolor: alpha("#f59e0b", 0.08) };
+                                  return { bgcolor: alpha("#3b82f6", 0.08) };
+                                };
+                                
+                                  return (
+                                  <Box
+                                    key={task.id}
+                                    sx={{
+                                      p: 2,
+                                      borderRadius: 2,
+                                      bgcolor: task.status === "COMPLETED" ? alpha("#22c55e", 0.05) : task.isHighRiskTask ? alpha("#ef4444", 0.05) : hasRequiredEvidence ? alpha("#f59e0b", 0.03) : "transparent",
+                                      border: "1px solid",
+                                      borderColor: task.status === "COMPLETED" ? alpha("#22c55e", 0.2) : task.isHighRiskTask ? alpha("#ef4444", 0.2) : hasRequiredEvidence ? alpha("#f59e0b", 0.2) : "divider",
+                                      cursor: !isDisabled ? "pointer" : "default",
+                                      transition: "all 0.2s ease",
+                                      "&:hover": getHoverBg(),
+                                    }}
+                                    onClick={() => !isDisabled && handleTaskToggle(task.id, task.status)}
+                                  >
                                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                                     <Tooltip title={disabledReason} placement="top">
                                       <Box 
@@ -676,12 +686,12 @@ export default function OffboardingDetailClient({
                                     </IconButton>
                                   </Box>
     
-                                <Box onClick={(e) => e.stopPropagation()}>
-                                  <Collapse in={selectedTaskForComments === task.id}>
-                                    <Box sx={{ mb: 2, px: 2 }}>
-                                      <TaskComments taskId={task.id} />
-                                    </Box>
-                                  </Collapse>
+                                  <Box onClick={(e) => e.stopPropagation()}>
+                                    <Collapse in={selectedTaskForComments === task.id} unmountOnExit>
+                                      <Box sx={{ mb: 2, px: 2 }}>
+                                        <TaskComments taskId={task.id} />
+                                      </Box>
+                                    </Collapse>
                                   
                                   <TaskEvidencePanel
                                     taskId={task.id}

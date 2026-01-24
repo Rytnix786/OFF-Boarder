@@ -55,21 +55,33 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   async function loadComments() {
+    if (!taskId) return;
     setLoading(true);
     setError(null);
     try {
       const data = await getTaskComments(taskId);
       setComments(data as any);
     } catch (err: any) {
-      console.error("Failed to load comments:", err);
-      setError(err.message || "Failed to load comments. Please try again.");
+      console.error("Error loading comments:", err);
+      setError(err.message || "Failed to load comments.");
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    loadComments();
+    let active = true;
+    
+    const fetch = async () => {
+      if (!active) return;
+      await loadComments();
+    };
+    
+    fetch();
+    
+    return () => {
+      active = false;
+    };
   }, [taskId]);
 
   useEffect(() => {
