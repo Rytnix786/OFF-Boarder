@@ -115,26 +115,33 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/invitations");
 
-  if (isBlockCheckRequired) {
-    const { blocked, error } = await checkIPBlocked(request, ipAddress, pathname);
-    
-    // Fail-closed for /admin and /app routes if check fails or errors
-    const isPrivilegedRoute = pathname.startsWith("/admin") || pathname.startsWith("/app");
-    
-    if (blocked || (error && isPrivilegedRoute)) {
-      console.warn(`[Middleware] Blocking request for IP ${ipAddress} on ${pathname}. Reason: ${blocked ? 'IP Blocked' : 'Security Check Error (Fail-Closed)'}`);
-      return new NextResponse(
-        JSON.stringify({ 
-          error: "Access denied", 
-          message: blocked ? "Your IP has been blocked." : "Security check failed. Please try again later." 
-        }),
-        {
-          status: 403,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+    if (isBlockCheckRequired) {
+      const { blocked, error } = await checkIPBlocked(request, ipAddress, pathname);
+      
+      // Fail-closed for /admin and /app routes if check fails or errors
+      const isPrivilegedRoute = pathname.startsWith("/admin") || pathname.startsWith("/app");
+      
+      // Relaxed check for development or localhost to prevent being locked out
+      const isDevelopment = process.env.NODE_ENV === "development";
+      const isLocalhost = ipAddress === "127.0.0.1" || ipAddress === "::1" || ipAddress === "localhost";
+      const shouldFailClosed = !isDevelopment || !isLocalhost;
+      
+      if (blocked || (error && isPrivilegedRoute && shouldFailClosed)) {
+        console.warn(`[Middleware] Blocking request for IP ${ipAddress} on ${pathname}. Reason: ${blocked ? 'IP Blocked' : 'Security Check Error (Fail-Closed)'}`);
+        return new NextResponse(
+          JSON.stringify({ 
+            error: "Access denied", 
+            message: blocked ? "Your IP has been blocked." : "Security check failed. Please try again later." 
+          }),
+          {
+            status: 403,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      } else if (error && isPrivilegedRoute) {
+        console.warn(`[Middleware] Security check failed for IP ${ipAddress} but allowed due to development/localhost bypass.`);
+      }
     }
-  }
 
   const isProtectedRoute = pathname.startsWith("/app") || pathname.startsWith("/admin");
   const isStatusPageRoute = 

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AuthSession } from "@/lib/auth-types";
 import AdminProfileMenu from "./AdminProfileMenu";
+import PlatformNotificationCenter from "@/components/layout/PlatformNotificationCenter";
 import { createClient, clearRememberMe } from "@/lib/supabase/client";
 import { PlatformContext, usePlatformContext, NAV_ITEMS } from "./AdminPlatformContext";
 
@@ -285,9 +286,10 @@ export default function AdminPlatformClientLayout({ children, session }: { child
                   />
                 )}
               </Box>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <AdminProfileMenu session={session} />
-              </Box>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <PlatformNotificationCenter />
+                  <AdminProfileMenu session={session} />
+                </Box>
             </Toolbar>
           </AppBar>
 
