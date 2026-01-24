@@ -106,14 +106,13 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const isBlockCheckRequired =
-    pathname === "/login" ||
-    pathname === "/register" ||
-    pathname.startsWith("/admin") ||
-    pathname.startsWith("/invite") ||
-    pathname.startsWith("/app") ||
-    pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/api/invitations");
+    const isBlockCheckRequired =
+      pathname === "/login" ||
+      pathname === "/register" ||
+      pathname.startsWith("/admin") ||
+      pathname.startsWith("/invite") ||
+      pathname.startsWith("/app") ||
+      (pathname.startsWith("/api/") && !pathname.startsWith("/api/blocked-ips/check") && !pathname.startsWith("/api/platform/auth/sign-out"));
 
     if (isBlockCheckRequired) {
       const { blocked, error } = await checkIPBlocked(request, ipAddress, pathname);

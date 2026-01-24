@@ -670,14 +670,20 @@ export default function WorkflowsClient({ templates, canManage, departments }: W
   return (
     <Box sx={{ pb: 8 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 10 }}>
-        <Box sx={{ maxWidth: 600 }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1.5, letterSpacing: "-0.025em" }}>
-            Offboarding Protocols
-          </Typography>
-          <Typography sx={{ color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)", fontSize: "1.05rem", lineHeight: 1.6 }}>
-            Controlled exit procedures that enforce security policies, coordinate department actions, and generate compliance evidence.
-          </Typography>
-        </Box>
+          <Box sx={{ maxWidth: 600 }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 1.5, letterSpacing: "-0.025em" }}>
+              Offboarding Protocols
+            </Typography>
+            <Typography sx={{ color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)", fontSize: "1.05rem", lineHeight: 1.6, mb: 2 }}>
+              Controlled exit procedures that enforce security policies, coordinate department actions, and generate compliance evidence.
+            </Typography>
+            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1, px: 1.5, py: 0.5, borderRadius: 1, bgcolor: isDark ? "rgba(255,193,7,0.1)" : "rgba(255,193,7,0.05)", border: "1px solid", borderColor: isDark ? "rgba(255,193,7,0.2)" : "rgba(255,193,7,0.15)" }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16, color: "#f59e0b" }}>info</span>
+              <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: "#f59e0b", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                Current Mode: Manual Execution Only
+              </Typography>
+            </Box>
+          </Box>
         {canManage && templates.length > 0 && (
           <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
             <Button
