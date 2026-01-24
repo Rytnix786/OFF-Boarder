@@ -217,34 +217,41 @@ export async function updateSession(request: NextRequest) {
                 return supabaseResponse;
               }
 
-              const memberships = (userData.memberships || []) as any[];
-              const employeeLinks = (userData.employeeUserLinks || []) as any[];
+                const memberships = (userData.memberships || []) as any[];
+                const employeeLinks = (userData.employeeUserLinks || []) as any[];
 
-              const isEmployeePortal = pathname.startsWith("/app/employee");
-
-              if (isEmployeePortal) {
-                // For employee portal, check if their employee link is revoked
+                // Check for revoked access globally
                 const hasRevokedEmployeeLink = employeeLinks.some((l: any) => l.status === "REVOKED");
-                if (hasRevokedEmployeeLink && pathname !== "/app/access-suspended") {
+                const hasRevokedMembership = memberships.some((m) => m.status === "REVOKED");
+                
+                if ((hasRevokedEmployeeLink || hasRevokedMembership) && pathname !== "/app/access-suspended") {
                   const url = request.nextUrl.clone();
                   url.pathname = "/app/access-suspended";
                   return NextResponse.redirect(url);
                 }
-              } else {
-                // For admin dashboard, check if their membership is revoked
-                // Only block if ALL memberships are revoked or if we can identify the current one
-                // For now, if they have at least one ACTIVE membership, let them through to the app
-                const hasActiveMembership = memberships.some((m) => m.status === "ACTIVE" && m.organization?.status === "ACTIVE");
-                const hasSuspendedMembership = memberships.some((m) => m.status === "SUSPENDED" || m.status === "REVOKED");
-                
-                // If they have NO active memberships but have suspended ones, block them
-                if (!hasActiveMembership && hasSuspendedMembership) {
-                  if (pathname !== "/app/access-suspended") {
+
+                const isEmployeePortal = pathname.startsWith("/app/employee");
+
+                if (isEmployeePortal) {
+                  // For employee portal, check if their employee link is revoked (already handled globally above, but keeping for safety)
+                  if (hasRevokedEmployeeLink && pathname !== "/app/access-suspended") {
                     const url = request.nextUrl.clone();
                     url.pathname = "/app/access-suspended";
                     return NextResponse.redirect(url);
                   }
-                }
+                } else {
+                  // For admin dashboard, check if their membership is revoked
+                  // Only block if ALL memberships are revoked or if we can identify the current one
+                  // For now, if they have at least one ACTIVE membership, let them through to the app
+                  const hasActiveMembership = memberships.some((m) => m.status === "ACTIVE" && m.organization?.status === "ACTIVE");
+                  const hasSuspendedMembership = memberships.some((m) => m.status === "SUSPENDED" || m.status === "REVOKED");
+                  
+                  // If they have NO active memberships but have suspended ones, block them (revoked already handled globally)
+                  if (!hasActiveMembership && hasSuspendedMembership && pathname !== "/app/access-suspended") {
+                    const url = request.nextUrl.clone();
+                    url.pathname = "/app/access-suspended";
+                    return NextResponse.redirect(url);
+                  }
 
                 const hasSuspendedOrg = memberships.some((m) => m.organization?.status === "SUSPENDED");
                 if (hasSuspendedOrg && !hasActiveMembership) {

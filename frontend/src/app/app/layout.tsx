@@ -31,6 +31,18 @@ export default async function AppLayout({
     redirect("/login");
   }
 
+  // Exempt status pages from redirection logic to prevent loops
+  const statusPages = [
+    "/app/pending",
+    "/app/access-suspended",
+    "/app/access-denied",
+    "/org-blocked"
+  ];
+  
+  if (statusPages.includes(pathname)) {
+    return <>{children}</>;
+  }
+
   if (!session.currentMembership) {
     const blockedMembership = await prisma.membership.findFirst({
       where: {
