@@ -1,17 +1,14 @@
 "use server";
 
 import { prisma } from "@/lib/prisma.server";
-import { getAuthSession } from "@/lib/auth.server";
-import { getEmployeePortalSession } from "@/lib/employee-auth.server";
+import { getAnySession } from "@/lib/session.server";
 import { revalidatePath } from "next/cache";
 import { CommentAuthorType } from "@prisma/client";
 import { createNotificationForOrgMembers, createEmployeeNotification } from "@/lib/notifications";
 import { createAuditLog } from "@/lib/audit.server";
 
 export async function getTaskComments(taskId: string) {
-  // Try to get Org session first
-  const orgSession = await getAuthSession();
-  const employeeSession = await getEmployeePortalSession();
+  const { orgSession, employeeSession } = await getAnySession();
 
   if (!orgSession && !employeeSession) {
     throw new Error("Unauthorized");
@@ -28,10 +25,9 @@ export async function getTaskComments(taskId: string) {
     throw new Error("Task not found");
   }
 
-  // Permission check
   let hasAccess = false;
 
-  // 1. Check Org Access (Admin or Member)
+  // 1. Check Org Access
   if (orgSession) {
     const isPlatformAdmin = !!orgSession.user.isPlatformAdmin;
     const hasMembership = orgSession.memberships.some(m => m.organizationId === task.offboarding.organizationId);
@@ -40,7 +36,7 @@ export async function getTaskComments(taskId: string) {
     }
   }
 
-  // 2. Check Employee Access (if not already granted via Org Access)
+  // 2. Check Employee Access
   if (!hasAccess && employeeSession) {
     const isOwnOffboarding = task.offboarding.employeeId === employeeSession.employee.id;
     const isAssignedToEmployee = task.isEmployeeRequired && task.assignedToEmployeeId === employeeSession.employee.id;
@@ -51,13 +47,7 @@ export async function getTaskComments(taskId: string) {
   }
 
   if (!hasAccess) {
-    if (orgSession && !employeeSession) {
-      throw new Error("Unauthorized: Organization mismatch");
-    } else if (!orgSession && employeeSession) {
-      throw new Error("Unauthorized: Employee mismatch or task not assigned");
-    } else {
-      throw new Error("Unauthorized: You do not have permission to view these comments");
-    }
+    throw new Error("Unauthorized: You do not have permission to view these comments");
   }
 
   return prisma.taskComment.findMany({
@@ -87,8 +77,7 @@ export async function createTaskComment(taskId: string, content: string) {
     return { error: "Comment content cannot be empty" };
   }
 
-  const orgSession = await getAuthSession();
-  const employeeSession = await getEmployeePortalSession();
+  const { orgSession, employeeSession } = await getAnySession();
 
   if (!orgSession && !employeeSession) {
     throw new Error("Unauthorized");
@@ -109,25 +98,15 @@ export async function createTaskComment(taskId: string, content: string) {
   let userId: string | null = null;
   let employeeId: string | null = null;
   let authorName: string = "";
-
-  // Permission check and author identification
   let hasAccess = false;
 
-  // 1. Try to identify as Employee first (if they are using the employee portal)
-  if (employeeSession) {
-    const isOwnOffboarding = task.offboarding.employeeId === employeeSession.employee.id;
-    const isAssignedToEmployee = task.isEmployeeRequired && task.assignedToEmployeeId === employeeSession.employee.id;
-
-    if (isOwnOffboarding && isAssignedToEmployee) {
-      employeeId = employeeSession.employee.id;
-      authorType = "EMPLOYEE";
-      authorName = `${employeeSession.employee.firstName} ${employeeSession.employee.lastName}`;
-      hasAccess = true;
-    }
-  }
-
-  // 2. If not employee or employee check failed, try Org Session
-  if (!hasAccess && orgSession) {
+  // Identify author and check access
+  if (employeeSession && task.offboarding.employeeId === employeeSession.employee.id && task.assignedToEmployeeId === employeeSession.employee.id) {
+    employeeId = employeeSession.employee.id;
+    authorType = "EMPLOYEE";
+    authorName = `${employeeSession.employee.firstName} ${employeeSession.employee.lastName}`;
+    hasAccess = true;
+  } else if (orgSession) {
     const isPlatformAdmin = !!orgSession.user.isPlatformAdmin;
     const hasMembership = orgSession.memberships.some(m => m.organizationId === task.offboarding.organizationId);
 
@@ -157,48 +136,45 @@ export async function createTaskComment(taskId: string, content: string) {
     },
   });
 
-  // Notifications
+  // Background operations (notifications & audit)
+  // Note: We don't necessarily need to await all of these if they are non-critical for the user response,
+  // but for consistency we'll keep them as is or use Promise.all.
+  const backgroundTasks = [];
+
   if (authorType === "EMPLOYEE") {
-    // Notify admins/org users
-    await createNotificationForOrgMembers(
+    backgroundTasks.push(createNotificationForOrgMembers(
       task.offboarding.organizationId,
-      "SYSTEM", // System notification
+      "SYSTEM",
       "task_comment",
       "New Employee Comment",
       `${authorName} commented on task: ${task.name}`,
       `/app/offboardings/${task.offboardingId}?task=${taskId}`,
       task.offboarding.employeeId
-    );
-  } else {
-    // Notify employee if it's their task
-    if (task.isEmployeeRequired && task.assignedToEmployeeId) {
-      await createEmployeeNotification(
-        task.offboarding.organizationId,
-        task.offboarding.employeeId,
-        "task_comment",
-        "New Admin Comment",
-        `Admin commented on your task: ${task.name}`,
-        "/app/employee/tasks"
-      );
-    }
+    ));
+  } else if (task.isEmployeeRequired && task.assignedToEmployeeId) {
+    backgroundTasks.push(createEmployeeNotification(
+      task.offboarding.organizationId,
+      task.offboarding.employeeId,
+      "task_comment",
+      "New Admin Comment",
+      `Admin commented on your task: ${task.name}`,
+      "/app/employee/tasks"
+    ));
   }
 
-  // Audit Log (only for Org Users)
   if (orgSession) {
-    await createAuditLog(orgSession, orgSession.currentOrgId!, {
+    backgroundTasks.push(createAuditLog(orgSession, orgSession.currentOrgId!, {
       action: "task.comment_created" as any,
       entityType: "TaskComment",
       entityId: comment.id,
-      metadata: {
-        taskId,
-        taskName: task.name,
-        offboardingId: task.offboardingId,
-      },
-    });
+      metadata: { taskId, taskName: task.name, offboardingId: task.offboardingId },
+    }));
   }
 
-  revalidatePath(`/app/offboardings/${task.offboardingId}`);
-  revalidatePath("/app/employee/tasks");
+  await Promise.allSettled(backgroundTasks);
 
+  // Targeted revalidation
+  revalidatePath(`/app/offboardings/${task.offboardingId}`);
+  
   return { success: true, comment };
 }
