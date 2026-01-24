@@ -1,3 +1,5 @@
+"use client";
+
 import React, { use, useState, useEffect } from "react";
 import { 
   Box, 

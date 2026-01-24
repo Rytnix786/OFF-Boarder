@@ -42,27 +42,35 @@ export function invalidateUserCache(userId: string) {
   invalidateCache(`user:${userId}`);
 }
 
-export const getNotificationsWithCount = cache(async (userId: string, orgId: string) => {
-  const cacheKey = `user:${userId}:org:${orgId}:notifications`;
+export const getNotificationsWithCount = cache(async (userId: string, orgId?: string) => {
+  const cacheKey = `user:${userId}:org:${orgId || "all"}:notifications`;
   const cached = getCached<{ notifications: unknown[]; unreadCount: number }>(cacheKey);
   if (cached) return cached;
 
   const supabase = await createClient();
 
+  let query = supabase
+    .from("Notification")
+    .select("id, type, title, message, link, read, createdAt")
+    .eq("userId", userId);
+  
+  if (orgId) {
+    query = query.eq("organizationId", orgId);
+  }
+
+  let countQuery = supabase
+    .from("Notification")
+    .select("id", { count: "exact", head: true })
+    .eq("userId", userId)
+    .eq("read", false);
+
+  if (orgId) {
+    countQuery = countQuery.eq("organizationId", orgId);
+  }
+
   const [notificationsResult, countResult] = await Promise.all([
-    supabase
-      .from("Notification")
-      .select("id, type, title, message, link, read, createdAt")
-      .eq("userId", userId)
-      .eq("organizationId", orgId)
-      .order("createdAt", { ascending: false })
-      .limit(20),
-    supabase
-      .from("Notification")
-      .select("id", { count: "exact", head: true })
-      .eq("userId", userId)
-      .eq("organizationId", orgId)
-      .eq("read", false),
+    query.order("createdAt", { ascending: false }).limit(20),
+    countQuery,
   ]);
 
   const notifications = notificationsResult.data || [];

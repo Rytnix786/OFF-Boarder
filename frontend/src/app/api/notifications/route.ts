@@ -11,10 +11,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { notifications, unreadCount } = await getNotificationsWithCount(
-    session.user.id,
-    session.currentOrgId!
-  );
+    const { notifications, unreadCount } = await getNotificationsWithCount(
+      session.user.id,
+      session.currentOrgId || undefined
+    );
 
   const duration = Date.now() - startTime;
   
