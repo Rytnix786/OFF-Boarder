@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -119,6 +119,11 @@ export default function RiskRadarClient({ data, departments, filters, canManage 
   const [loading, setLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" } | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   
   const [markRiskDialog, setMarkRiskDialog] = useState<string | null>(null);
   const [lockdownDialog, setLockdownDialog] = useState<string | null>(null);
@@ -328,14 +333,14 @@ export default function RiskRadarClient({ data, departments, filters, canManage 
                       ))}
                     </Box>
 
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, pt: 2, borderTop: "1px solid", borderColor: "divider" }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: 14, color: isDark ? "#6b7280" : "#9ca3af" }}>
-                        check_circle
-                      </span>
-                      <Typography sx={{ fontSize: "0.75rem", color: "text.secondary" }}>
-                        Last evaluated: {new Date().toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-                      </Typography>
-                    </Box>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, pt: 2, borderTop: "1px solid", borderColor: "divider" }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 14, color: isDark ? "#6b7280" : "#9ca3af" }}>
+                          check_circle
+                        </span>
+                        <Typography sx={{ fontSize: "0.75rem", color: "text.secondary" }}>
+                          Last evaluated: {isMounted ? new Date().toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "..."}
+                        </Typography>
+                      </Box>
                   </Box>
                 ) : (
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -390,11 +395,11 @@ export default function RiskRadarClient({ data, departments, filters, canManage 
                           letterSpacing: "0.05em"
                         }}>
                           {item.riskLevel}
-                        </Typography>
-                        <Typography sx={{ color: "text.secondary", fontSize: "0.75rem" }}>
-                          {new Date(item.createdAt).toLocaleDateString()}
-                        </Typography>
-                      </Box>
+                          </Typography>
+                          <Typography sx={{ color: "text.secondary", fontSize: "0.75rem" }}>
+                            {new Date(item.createdAt).toLocaleDateString("en-US")}
+                          </Typography>
+                        </Box>
                     </Box>
                   ))}
                 </Box>
@@ -465,12 +470,12 @@ export default function RiskRadarClient({ data, departments, filters, canManage 
                         borderColor: isDark ? "rgba(239, 68, 68, 0.2)" : "rgba(239, 68, 68, 0.1)",
                       }}
                     >
-                      <Typography sx={{ fontWeight: 600, fontSize: "0.875rem" }}>
-                        {ghost.firstName} {ghost.lastName}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mb: 1 }}>
-                        Last day was {new Date().toLocaleDateString()} - No offboarding started.
-                      </Typography>
+                        <Typography sx={{ fontWeight: 600, fontSize: "0.875rem" }}>
+                          {ghost.firstName} {ghost.lastName}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mb: 1 }}>
+                          Last day was {isMounted ? new Date().toLocaleDateString("en-US") : "..."} - No offboarding started.
+                        </Typography>
                       <Button 
                         size="small" 
                         variant="outlined" 
