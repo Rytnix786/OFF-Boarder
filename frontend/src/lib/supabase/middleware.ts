@@ -208,14 +208,17 @@ export async function updateSession(request: NextRequest) {
             .select(`
               id,
               isPlatformAdmin,
-              memberships:Membership (
-                status,
-                organization:Organization (
-                  id,
+                memberships:Membership (
                   status,
-                  slug
-                )
-              ),
+                  systemRole,
+                  organization:Organization (
+                    id,
+                    status,
+                    slug,
+                    isSetupComplete
+                  )
+                ),
+
               employeeUserLinks:EmployeeUserLink (
                 status,
                 organizationId
@@ -281,13 +284,27 @@ export async function updateSession(request: NextRequest) {
                   }
                 }
 
-                if (!hasActiveMembership) {
-                  if (pathname !== "/app/pending" && pathname !== "/app/setup" && pathname !== "/app/access-suspended") {
-                    const url = request.nextUrl.clone();
-                    url.pathname = "/app/pending";
-                    return NextResponse.redirect(url);
+                  if (!hasActiveMembership) {
+                    if (pathname !== "/app/pending" && pathname !== "/app/setup" && pathname !== "/app/access-suspended") {
+                      const url = request.nextUrl.clone();
+                      url.pathname = "/app/pending";
+                      return NextResponse.redirect(url);
+                    }
+                  } else {
+                    // Check if setup is complete for owners
+                    const activeMembership = memberships.find(m => m.status === "ACTIVE" && m.organization?.status === "ACTIVE");
+                    if (activeMembership && !activeMembership.organization?.isSetupComplete && activeMembership.systemRole === "OWNER") {
+                      const isSetupRoute = pathname.startsWith("/app/setup");
+                      const isProfileRoute = pathname.startsWith("/app/settings/profile");
+                      
+                      if (!isSetupRoute && !isProfileRoute && pathname.startsWith("/app")) {
+                        const url = request.nextUrl.clone();
+                        url.pathname = "/app/setup";
+                        return NextResponse.redirect(url);
+                      }
+                    }
                   }
-                }
+
               }
             }
       }
