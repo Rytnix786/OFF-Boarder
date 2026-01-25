@@ -159,11 +159,11 @@ export default function EmployeeSecurityClient({
   );
 
   const portalLink = securityProfile.employee.employeeUserLinks[0];
-  const isComplianceWindowExpired = portalLink?.status === "REVOKED" && (
-    portalLink.accessExpiresAt 
-      ? new Date() > new Date(portalLink.accessExpiresAt)
-      : true // If revoked but no expiresAt, we assume expired if no grace period logic is visible here
-  );
+  const isTemporaryAccessActive = portalLink?.status === "REVOKED" && 
+    portalLink.accessExpiresAt && 
+    new Date(portalLink.accessExpiresAt) > new Date();
+
+  const isComplianceWindowExpired = portalLink?.status === "REVOKED" && !isTemporaryAccessActive;
 
   const activeOffboarding = securityProfile.employee.offboardings[0];
   const pendingAssets = securityProfile.employee.assets.filter(
@@ -352,7 +352,85 @@ export default function EmployeeSecurityClient({
           </Alert>
         )}
 
-          {isComplianceWindowExpired && (
+            {isTemporaryAccessActive && (
+              <Box
+                sx={{
+                  mb: 4,
+                  p: 3,
+                  borderRadius: 4,
+                  background: `linear-gradient(135deg, ${alpha("#10b981", 0.15)} 0%, ${alpha("#10b981", 0.05)} 100%)`,
+                  border: "1px solid",
+                  borderColor: alpha("#10b981", 0.3),
+                  boxShadow: `0 4px 20px ${alpha("#000", 0.2)}`,
+                  position: "relative",
+                  overflow: "hidden",
+                  "&::before": {
+                    content: '""',
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "4px",
+                    height: "100%",
+                    background: "#10b981",
+                  }
+                }}
+              >
+                <Box sx={{ display: "flex", gap: 2.5, alignItems: "center" }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: 48,
+                      height: 48,
+                      borderRadius: "50%",
+                      bgcolor: alpha("#10b981", 0.2),
+                      color: "#10b981",
+                      flexShrink: 0,
+                      boxShadow: `0 0 15px ${alpha("#10b981", 0.3)}`,
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 28 }}>check_circle</span>
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="h6" sx={{ color: "#ecfdf5", fontWeight: 800, fontSize: "1.15rem", mb: 0.5, letterSpacing: "-0.01em" }}>
+                      Temporary Access Active
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: alpha("#ecfdf5", 0.7), lineHeight: 1.6, maxWidth: "650px", fontWeight: 500 }}>
+                      An administrative override is currently active. The employee can access the portal to complete their offboarding tasks until 
+                      <strong style={{ color: "#10b981", marginLeft: "4px" }}>{formatDate(portalLink.accessExpiresAt)}</strong>.
+                    </Typography>
+                  </Box>
+                  {canManage && (
+                    <Button
+                      variant="contained"
+                      disableElevation
+                      startIcon={<span className="material-symbols-outlined">more_time</span>}
+                      onClick={() => setActionDialog({ type: "grantAccess", open: true })}
+                      sx={{
+                        background: `linear-gradient(135deg, #10b981 0%, #059669 100%)`,
+                        boxShadow: `0 4px 12px ${alpha("#10b981", 0.4)}`,
+                        "&:hover": { 
+                          background: `linear-gradient(135deg, #10b981 20%, #059669 100%)`,
+                          boxShadow: `0 6px 16px ${alpha("#10b981", 0.5)}`,
+                          transform: "translateY(-1px)",
+                        },
+                        borderRadius: "12px",
+                        textTransform: "none",
+                        fontWeight: 800,
+                        px: 3,
+                        py: 1,
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      Extend Further
+                    </Button>
+                  )}
+                </Box>
+              </Box>
+            )}
+
+            {isComplianceWindowExpired && (
             <Box
               sx={{
                 mb: 4,

@@ -221,7 +221,8 @@ export async function updateSession(request: NextRequest) {
 
               employeeUserLinks:EmployeeUserLink (
                 status,
-                organizationId
+                organizationId,
+                accessExpiresAt
               )
             `)
             .eq("supabaseId", user.id)
@@ -247,7 +248,12 @@ export async function updateSession(request: NextRequest) {
                     // or if they have a revoked membership and are trying to access the admin dashboard.
                     // A user might be revoked in one org but active in another, so we must be careful.
                     const isEmployeePortal = pathname.startsWith("/app/employee");
-                    const hasRevokedEmployeeLink = employeeLinks.some((l: any) => l.status === "REVOKED");
+                    const hasRevokedEmployeeLink = employeeLinks.some((l: any) => {
+                      if (l.status !== "REVOKED") return false;
+                      // If it's revoked but has a future expiry, it's NOT considered "revoked" for blocking purposes
+                      if (l.accessExpiresAt && new Date(l.accessExpiresAt) > new Date()) return false;
+                      return true;
+                    });
                     const hasActiveEmployeeLink = employeeLinks.some((l: any) => l.status === "VERIFIED" || l.status === "PENDING_VERIFICATION");
                     const hasRevokedMembership = memberships.some((m) => m.status === "REVOKED");
                     const hasActiveMembership = memberships.some((m) => m.status === "ACTIVE" && m.organization?.status === "ACTIVE");
