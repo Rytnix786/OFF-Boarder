@@ -188,7 +188,7 @@ async function isServerAction(): Promise<boolean> {
   }
 }
 
-export async function requireEmployeePortalAuth(): Promise<EmployeePortalSession> {
+export async function requireEmployeePortalAuth(options?: { allowRevoked?: boolean }): Promise<EmployeePortalSession> {
   const supabaseUser = await getSupabaseUser();
   
   if (!supabaseUser) {
@@ -211,6 +211,10 @@ export async function requireEmployeePortalAuth(): Promise<EmployeePortalSession
 
   // Handle revoked employee portal access
   if (session.employeeLink.status === "REVOKED") {
+    if (options?.allowRevoked) {
+      return session;
+    }
+
     const inServerAction = await isServerAction();
     if (inServerAction) {
       throw new Error("Your access to the employee portal has been revoked.");

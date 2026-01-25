@@ -14,7 +14,8 @@ export type EmployeeNotification = {
 };
 
 export async function markNotificationRead(notificationId: string) {
-  const session = await requireEmployeePortalAuth();
+  const session = await requireEmployeePortalAuth({ allowRevoked: true });
+  if (session.employeeLink.status === "REVOKED") return { success: true };
 
   const notification = await prisma.notification.findFirst({
     where: {
@@ -38,7 +39,8 @@ export async function markNotificationRead(notificationId: string) {
 }
 
 export async function markAllNotificationsRead() {
-  const session = await requireEmployeePortalAuth();
+  const session = await requireEmployeePortalAuth({ allowRevoked: true });
+  if (session.employeeLink.status === "REVOKED") return { success: true };
 
   await prisma.notification.updateMany({
     where: {
@@ -54,7 +56,8 @@ export async function markAllNotificationsRead() {
 }
 
 export async function getUnreadNotificationCount() {
-  const session = await requireEmployeePortalAuth();
+  const session = await requireEmployeePortalAuth({ allowRevoked: true });
+  if (session.employeeLink.status === "REVOKED") return 0;
 
   const count = await prisma.notification.count({
     where: {
@@ -68,7 +71,8 @@ export async function getUnreadNotificationCount() {
 }
 
 export async function getRecentNotifications(limit: number = 5): Promise<EmployeeNotification[]> {
-  const session = await requireEmployeePortalAuth();
+  const session = await requireEmployeePortalAuth({ allowRevoked: true });
+  if (session.employeeLink.status === "REVOKED") return [];
 
   const notifications = await prisma.notification.findMany({
     where: {
