@@ -233,7 +233,7 @@ export async function assignAssetToEmployee(assetId: string, employeeId: string)
     prisma.asset.findFirst({ where: { id: assetId, organizationId: orgId } }),
     prisma.employee.findFirst({ 
       where: { id: employeeId, organizationId: orgId },
-      include: { employeeUserLinks: { where: { status: "VERIFIED" }, select: { userId: true } } }
+      include: { employeeUserLinks: { select: { userId: true, status: true } } }
     }),
   ]);
 
