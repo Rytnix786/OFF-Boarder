@@ -166,19 +166,20 @@ export async function generateEvidencePack(offboardingId: string) {
         },
       })
     : await prisma.evidencePack.create({
-        data: {
-          offboardingId,
-          data: evidenceData,
-          checksum,
-          generatedBy: session.user.id,
-          accessLog: {
-            [new Date().toISOString()]: {
-              userId: session.user.id,
-              action: "generated",
+          data: {
+            offboardingId,
+            organizationId: orgId,
+            data: evidenceData,
+            checksum,
+            generatedBy: session.user.id,
+            accessLog: {
+              [new Date().toISOString()]: {
+                userId: session.user.id,
+                action: "generated",
+              },
             },
           },
-        },
-      });
+        });
 
   await createAuditLog(session, orgId, {
     action: "evidence.generated" as any,
