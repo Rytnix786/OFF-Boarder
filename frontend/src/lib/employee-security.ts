@@ -663,16 +663,6 @@ export async function blockEmployeeIP(
   return blockedIP;
 }
 
-    revalidatePath("/app/employees");
-    return { success: true };
-  } catch (err) {
-    if (err instanceof AuthError) {
-      return { error: err.message, authError: true };
-    }
-    throw err;
-  }
-}
-
 export async function grantTemporaryAccess(
   session: AuthSession,
   employeeId: string,

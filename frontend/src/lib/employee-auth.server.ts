@@ -2,7 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma.server";
 import { getSupabaseUser } from "@/lib/auth.server";
 import { redirect } from "next/navigation";
-import { EmployeeUserLinkStatus, EmployeeStatus, RiskLevel } from "@prisma/client";
+import { EmployeeUserLinkStatus, EmployeeStatus, RiskLevel, SecurityEventType, Prisma } from "@prisma/client";
 import { headers } from "next/headers";
 
 export type EmployeePortalUser = {
@@ -228,6 +228,9 @@ export async function requireEmployeePortalAuth(options?: { allowRevoked?: boole
     }
 
     if (expiryTime && new Date() > expiryTime) {
+      // Notify admins if not already notified for this expiration
+      notifyAdminsOfExpiration(session).catch(console.error);
+
       const inServerAction = await isServerAction();
       if (inServerAction) {
         throw new Error("Your compliance window has expired. Please contact HR for assistance.");
@@ -400,5 +403,67 @@ export function getSimplifiedRiskLevel(riskLevel: RiskLevel | null): "Normal" | 
     case "NORMAL":
     default:
       return "Normal";
+  }
+}
+
+/**
+ * Notifies all admins and owners of an organization when an employee's
+ * compliance window (grace period) has expired.
+ */
+async function notifyAdminsOfExpiration(session: EmployeePortalSession) {
+  try {
+    const admins = await prisma.membership.findMany({
+      where: {
+        organizationId: session.organizationId,
+        systemRole: { in: ["OWNER", "ADMIN"] },
+        status: "ACTIVE",
+      },
+      select: { userId: true },
+    });
+
+    if (admins.length === 0) return;
+
+    const notificationType = `grace_expired:${session.employeeLink.id}`;
+    
+    // Check if we've already sent a notification for this specific expiration link in the last 24h
+    // This prevents spamming admins on every page load attempt by the employee
+    const existing = await prisma.notification.findFirst({
+      where: {
+        organizationId: session.organizationId,
+        type: notificationType,
+        createdAt: { gt: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+      }
+    });
+
+    if (existing) return;
+
+    // Create notifications for all admins
+    await prisma.notification.createMany({
+      data: admins.map(admin => ({
+        userId: admin.userId,
+        organizationId: session.organizationId,
+        type: notificationType,
+        title: "Compliance Window Expired",
+        message: `The access window for ${session.employee.firstName} ${session.employee.lastName} has expired. Their portal access is now locked.`,
+        link: `/app/employees/${session.employee.id}/security`,
+      }))
+    });
+    
+    // Log a security event
+    await prisma.securityEvent.create({
+      data: {
+        organizationId: session.organizationId,
+        employeeId: session.employee.id,
+        eventType: SecurityEventType.ACCESS_REVOKED,
+        description: "Employee portal access locked due to expired compliance window.",
+        metadata: {
+          expiredAt: new Date().toISOString(),
+          linkId: session.employeeLink.id,
+          employeeName: `${session.employee.firstName} ${session.employee.lastName}`
+        } as Prisma.InputJsonValue
+      }
+    });
+  } catch (error) {
+    console.error("Failed to notify admins of grace period expiration:", error);
   }
 }
