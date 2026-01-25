@@ -107,7 +107,7 @@ export default async function AppLayout({
       },
     });
     
-    if (employeeLink) {
+    if (employeeLink && session.memberships.length === 0) {
       if (employeeLink.status === "REVOKED") {
         redirect("/app/access-suspended");
       }
