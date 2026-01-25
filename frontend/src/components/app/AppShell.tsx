@@ -119,9 +119,11 @@ export default function AppShell({ session, userPermissions, children }: AppShel
   const [unreadCount, setUnreadCount] = useState(0);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
+  const isRevoked = session.employeeLink?.status === "REVOKED";
   const role = session.currentMembership?.systemRole as SystemRole;
-  const navSections = filterSectionsByPermissions(MODULE_SECTIONS, userPermissions);
-  const settingsSections = filterSectionsByPermissions(SETTINGS_SECTIONS, userPermissions);
+  
+  const navSections = isRevoked ? [] : filterSectionsByPermissions(MODULE_SECTIONS, userPermissions);
+  const settingsSections = isRevoked ? [] : filterSectionsByPermissions(SETTINGS_SECTIONS, userPermissions);
   const roleColor = getRoleColor(role);
   const roleDisplayName = getRoleDisplayName(role);
 
@@ -295,19 +297,24 @@ export default function AppShell({ session, userPermissions, children }: AppShel
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <AppBar position="sticky" elevation={0} sx={{ bgcolor: isDark ? alpha(t.colors.background.void, 0.9) : alpha(t.colors.background.lightPaper, 0.95), backdropFilter: "blur(8px)", borderBottom: `1px solid ${isDark ? t.colors.border.subtle : t.colors.border.light}`, color: "text.primary" }}>
             <Toolbar sx={{ height: 56, px: { xs: 2, md: 3 }, gap: 2 }}>
-              <Search onClick={() => setCommandPaletteOpen(true)} sx={{ cursor: "pointer" }}>
-                <SearchIconWrapper><span className="material-symbols-outlined" style={{ fontSize: 18 }}>search</span></SearchIconWrapper>
-                <StyledInputBase placeholder="Search..." inputProps={{ "aria-label": "search" }} readOnly sx={{ pointerEvents: "none" }} />
-                <Typography variant="caption" sx={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: "text.disabled", fontSize: "0.6875rem", fontWeight: 600, bgcolor: isDark ? t.colors.background.surfaceLight : "#E2E8F0", px: 0.75, py: 0.25, borderRadius: 0.75 }}>⌘K</Typography>
-              </Search>
+              {!isRevoked && (
+                <Search onClick={() => setCommandPaletteOpen(true)} sx={{ cursor: "pointer" }}>
+                  <SearchIconWrapper><span className="material-symbols-outlined" style={{ fontSize: 18 }}>search</span></SearchIconWrapper>
+                  <StyledInputBase placeholder="Search..." inputProps={{ "aria-label": "search" }} readOnly sx={{ pointerEvents: "none" }} />
+                  <Typography variant="caption" sx={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: "text.disabled", fontSize: "0.6875rem", fontWeight: 600, bgcolor: isDark ? t.colors.background.surfaceLight : "#E2E8F0", px: 0.75, py: 0.25, borderRadius: 0.75 }}>⌘K</Typography>
+                </Search>
+              )}
             <Box sx={{ flexGrow: 1 }} />
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <ThemeToggle size="small" />
-                <IconButton size="small" onClick={(e) => setNotificationAnchor(e.currentTarget)} sx={{ width: 32, height: 32, color: isDark ? t.colors.icon.default.dark : t.colors.icon.default.light, "&:hover": { bgcolor: isDark ? t.colors.glass.hover : "#F1F5F9" } }}>
-                  <Badge badgeContent={unreadCount} color="error" sx={{ "& .MuiBadge-badge": { fontSize: 9, height: 14, minWidth: 14 } }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>notifications</span>
-                </Badge>
-              </IconButton>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <ThemeToggle size="small" />
+                  {!isRevoked && (
+                    <IconButton size="small" onClick={(e) => setNotificationAnchor(e.currentTarget)} sx={{ width: 32, height: 32, color: isDark ? t.colors.icon.default.dark : t.colors.icon.default.light, "&:hover": { bgcolor: isDark ? t.colors.glass.hover : "#F1F5F9" } }}>
+                      <Badge badgeContent={unreadCount} color="error" sx={{ "& .MuiBadge-badge": { fontSize: 9, height: 14, minWidth: 14 } }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>notifications</span>
+                      </Badge>
+                    </IconButton>
+                  )}
+
               <Divider orientation="vertical" flexItem sx={{ mx: 1, height: 20, alignSelf: "center" }} />
               <Box onClick={(e) => setProfileMenuAnchor(e.currentTarget)} sx={{ display: "flex", alignItems: "center", gap: 1, pl: 0.5, pr: 1, py: 0.5, borderRadius: 1.5, cursor: "pointer", border: "1px solid transparent", "&:hover": { bgcolor: isDark ? t.colors.glass.hover : "#F1F5F9", border: `1px solid ${isDark ? t.colors.border.subtle : t.colors.border.light}` } }}>
                 <Avatar src={session.user.avatarUrl || undefined} sx={{ width: 28, height: 28, fontSize: 11, fontWeight: 700, bgcolor: roleColor }}>{userInitials}</Avatar>

@@ -108,6 +108,11 @@ export default async function AppLayout({
     });
     
     if (employeeLink && session.memberships.length === 0) {
+      session.employeeLink = {
+        status: employeeLink.status,
+        organizationId: employeeLink.organizationId,
+      };
+
       if (employeeLink.status === "REVOKED") {
         // Allow grace routes for compliance even if revoked
         const complianceGraceRoutes = [

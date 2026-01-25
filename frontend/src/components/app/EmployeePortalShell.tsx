@@ -119,6 +119,13 @@ export default function EmployeePortalShell({ session, children }: EmployeePorta
       router.refresh();
     };
 
+  const isRevoked = session.employeeLink.status === "REVOKED";
+
+  const visibleNavItems = navItems.filter(item => {
+    if (!isRevoked) return true;
+    return item.label === "Attestation" || item.label === "My Assets";
+  });
+
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
       <Box
@@ -171,7 +178,7 @@ export default function EmployeePortalShell({ session, children }: EmployeePorta
         <Divider />
 
         <List sx={{ px: 1.5, py: 2, flex: 1, overflow: "auto" }}>
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const isActive = pathname === item.href || (item.href !== "/app/employee" && pathname.startsWith(item.href));
               const isDisabled = !session.hasActiveOffboarding && item.href !== "/app/employee" && !item.alwaysEnabled;
               const isNotification = item.label === "Notifications";
@@ -283,104 +290,109 @@ export default function EmployeePortalShell({ session, children }: EmployeePorta
             color: "text.primary",
           }}
         >
-          <Toolbar sx={{ height: 64, px: { xs: 2, md: 3 } }}>
-            <Typography variant="h6" fontWeight={700} sx={{ flex: 1 }}>
-              Employee Portal
-            </Typography>
+            <Toolbar sx={{ height: 64, px: { xs: 2, md: 3 } }}>
+              <Typography variant="h6" fontWeight={700} sx={{ flex: 1 }}>
+                Employee Portal
+              </Typography>
 
-<Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                      <IconButton size="small" onClick={handleNotifOpen}>
-                        <Badge badgeContent={unreadCount} color="error" max={99}>
-                          <span className="material-symbols-outlined">notifications</span>
-                        </Badge>
-                      </IconButton>
-                      <Popover
-                        open={Boolean(notifAnchor)}
-                        anchorEl={notifAnchor}
-                        onClose={handleNotifClose}
-                        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                        transformOrigin={{ vertical: "top", horizontal: "right" }}
-                        PaperProps={{
-                          sx: {
-                            width: 360,
-                            maxHeight: 420,
-                            mt: 1,
-                            borderRadius: 2,
-                            boxShadow: theme.shadows[8],
-                          },
-                        }}
-                      >
-                        <Box sx={{ p: 2, borderBottom: "1px solid", borderColor: "divider", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <Typography variant="subtitle1" fontWeight={600}>Notifications</Typography>
-                          {unreadCount > 0 && (
-                            <Chip size="small" label={`${unreadCount} unread`} color="error" sx={{ height: 22, fontSize: "0.7rem" }} />
-                          )}
-                        </Box>
-                        <Box sx={{ maxHeight: 280, overflow: "auto" }}>
-                          {notifLoading ? (
-                            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                              <CircularProgress size={24} />
-                            </Box>
-                          ) : notifications.length === 0 ? (
-                            <Box sx={{ py: 4, textAlign: "center" }}>
-                              <span className="material-symbols-outlined" style={{ fontSize: 36, opacity: 0.3 }}>notifications_none</span>
-                              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>No notifications</Typography>
-                            </Box>
-                          ) : (
-                            <List disablePadding>
-                              {notifications.map((notif) => (
-                                <ListItem
-                                  key={notif.id}
-                                  disablePadding
-                                  sx={{
-                                    bgcolor: notif.read ? "transparent" : alpha(theme.palette.primary.main, 0.04),
+  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                        {!isRevoked && (
+                          <>
+                            <IconButton size="small" onClick={handleNotifOpen}>
+                              <Badge badgeContent={unreadCount} color="error" max={99}>
+                                <span className="material-symbols-outlined">notifications</span>
+                              </Badge>
+                            </IconButton>
+                            <Popover
+                              open={Boolean(notifAnchor)}
+                              anchorEl={notifAnchor}
+                              onClose={handleNotifClose}
+                              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                              transformOrigin={{ vertical: "top", horizontal: "right" }}
+                              PaperProps={{
+                                sx: {
+                                  width: 360,
+                                  maxHeight: 420,
+                                  mt: 1,
+                                  borderRadius: 2,
+                                  boxShadow: theme.shadows[8],
+                                },
+                              }}
+                            >
+                              <Box sx={{ p: 2, borderBottom: "1px solid", borderColor: "divider", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <Typography variant="subtitle1" fontWeight={600}>Notifications</Typography>
+                                {unreadCount > 0 && (
+                                  <Chip size="small" label={`${unreadCount} unread`} color="error" sx={{ height: 22, fontSize: "0.7rem" }} />
+                                )}
+                              </Box>
+                              <Box sx={{ maxHeight: 280, overflow: "auto" }}>
+                                {notifLoading ? (
+                                  <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                                    <CircularProgress size={24} />
+                                  </Box>
+                                ) : notifications.length === 0 ? (
+                                  <Box sx={{ py: 4, textAlign: "center" }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: 36, opacity: 0.3 }}>notifications_none</span>
+                                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>No notifications</Typography>
+                                  </Box>
+                                ) : (
+                                  <List disablePadding>
+                                    {notifications.map((notif) => (
+                                      <ListItem
+                                        key={notif.id}
+                                        disablePadding
+                                        sx={{
+                                          bgcolor: notif.read ? "transparent" : alpha(theme.palette.primary.main, 0.04),
+                                        }}
+                                      >
+                                        <ListItemButton
+                                          onClick={() => {
+                                            if (!notif.read) handleMarkAsRead(notif.id);
+                                            handleNotifClose();
+                                            router.push("/app/employee/notifications");
+                                          }}
+                                          sx={{ py: 1.5, px: 2 }}
+                                        >
+                                          <ListItemIcon sx={{ minWidth: 36 }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: 20, color: notif.read ? theme.palette.text.disabled : theme.palette.primary.main }}>
+                                              {notif.type === "task_assigned" ? "task_alt" : notif.type === "security_alert" ? "security" : "notifications"}
+                                            </span>
+                                          </ListItemIcon>
+                                          <ListItemText
+                                            primary={notif.title}
+                                            secondary={new Date(notif.createdAt).toLocaleDateString()}
+                                            primaryTypographyProps={{
+                                              fontWeight: notif.read ? 400 : 600,
+                                              fontSize: "0.875rem",
+                                              noWrap: true,
+                                            }}
+                                            secondaryTypographyProps={{ fontSize: "0.75rem" }}
+                                          />
+                                        </ListItemButton>
+                                      </ListItem>
+                                    ))}
+                                  </List>
+                                )}
+                              </Box>
+                              <Box sx={{ p: 1.5, borderTop: "1px solid", borderColor: "divider" }}>
+                                <Button
+                                  fullWidth
+                                  size="small"
+                                  onClick={() => {
+                                    handleNotifClose();
+                                    router.push("/app/employee/notifications");
                                   }}
+                                  sx={{ textTransform: "none", fontWeight: 500 }}
                                 >
-                                  <ListItemButton
-                                    onClick={() => {
-                                      if (!notif.read) handleMarkAsRead(notif.id);
-                                      handleNotifClose();
-                                      router.push("/app/employee/notifications");
-                                    }}
-                                    sx={{ py: 1.5, px: 2 }}
-                                  >
-                                    <ListItemIcon sx={{ minWidth: 36 }}>
-                                      <span className="material-symbols-outlined" style={{ fontSize: 20, color: notif.read ? theme.palette.text.disabled : theme.palette.primary.main }}>
-                                        {notif.type === "task_assigned" ? "task_alt" : notif.type === "security_alert" ? "security" : "notifications"}
-                                      </span>
-                                    </ListItemIcon>
-                                    <ListItemText
-                                      primary={notif.title}
-                                      secondary={new Date(notif.createdAt).toLocaleDateString()}
-                                      primaryTypographyProps={{
-                                        fontWeight: notif.read ? 400 : 600,
-                                        fontSize: "0.875rem",
-                                        noWrap: true,
-                                      }}
-                                      secondaryTypographyProps={{ fontSize: "0.75rem" }}
-                                    />
-                                  </ListItemButton>
-                                </ListItem>
-                              ))}
-                            </List>
-                          )}
-                        </Box>
-                        <Box sx={{ p: 1.5, borderTop: "1px solid", borderColor: "divider" }}>
-                          <Button
-                            fullWidth
-                            size="small"
-                            onClick={() => {
-                              handleNotifClose();
-                              router.push("/app/employee/notifications");
-                            }}
-                            sx={{ textTransform: "none", fontWeight: 500 }}
-                          >
-                            View all notifications
-                          </Button>
-                          </Box>
-                        </Popover>
+                                  View all notifications
+                                </Button>
+                              </Box>
+                            </Popover>
+                          </>
+                        )}
                         
                         <ThemeToggle size="small" />
+
   
                       <Box
 

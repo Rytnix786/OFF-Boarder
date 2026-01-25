@@ -30,4 +30,8 @@ export type AuthSession = {
   memberships: MembershipWithOrg[];
   currentMembership: MembershipWithOrg | null;
   currentOrgId: string | null;
+  employeeLink?: {
+    status: string;
+    organizationId: string;
+  } | null;
 };
