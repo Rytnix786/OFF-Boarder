@@ -227,15 +227,20 @@ export async function requireEmployeePortalAuth(options?: { allowRevoked?: boole
       expiryTime = new Date(session.employeeLink.revokedAt.getTime() + gracePeriodHours * 60 * 60 * 1000);
     }
 
-    if (expiryTime && new Date() > expiryTime) {
-      // Notify admins if not already notified for this expiration
-      notifyAdminsOfExpiration(session).catch(console.error);
+    if (expiryTime) {
+      // Add a 30-second buffer to prevent flickering near the expiration boundary
+      // consistent with the middleware check
+      const nowWithBuffer = new Date(Date.now() - 30000);
+      if (expiryTime < nowWithBuffer) {
+        // Notify admins if not already notified for this expiration
+        notifyAdminsOfExpiration(session).catch(console.error);
 
-      const inServerAction = await isServerAction();
-      if (inServerAction) {
-        throw new Error("Your compliance window has expired. Please contact HR for assistance.");
+        const inServerAction = await isServerAction();
+        if (inServerAction) {
+          throw new Error("Your compliance window has expired. Please contact HR for assistance.");
+        }
+        redirect("/app/access-suspended?error=expired");
       }
-      redirect("/app/access-suspended?error=expired");
     }
 
     if (options?.allowRevoked) {

@@ -300,62 +300,95 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
 }
 
 export async function grantTemporaryAccess(employeeId: string, hours: number) {
-  try {
-    const session = await requireActiveOrg();
-    await requirePermission(session, "employee:update");
+  let lastError: any = null;
+  const maxRetries = 3;
+  const retryDelay = 500; // ms
 
-    const orgId = session.currentOrgId!;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const session = await requireActiveOrg();
+      await requirePermission(session, "employee:update");
 
-    const employee = await prisma.employee.findFirst({
-      where: { id: employeeId, organizationId: orgId },
-      include: {
-        employeeUserLinks: {
-          where: { organizationId: orgId },
+      const orgId = session.currentOrgId!;
+
+      const employee = await prisma.employee.findFirst({
+        where: { id: employeeId, organizationId: orgId },
+        include: {
+          employeeUserLinks: {
+            where: { organizationId: orgId },
+          },
         },
-      },
-    });
+      });
 
-    if (!employee) {
-      return { error: "Employee not found" };
+      if (!employee) {
+        return { error: "Employee not found" };
+      }
+
+      const link = employee.employeeUserLinks[0];
+      if (!link) {
+        return { error: "Employee does not have a linked user account" };
+      }
+
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + hours);
+
+      await prisma.employeeUserLink.update({
+        where: { id: link.id },
+        data: {
+          accessExpiresAt: expiresAt,
+          status: "REVOKED",
+        },
+      });
+
+      await createAuditLog(session, orgId, {
+        action: "employee.access_extended",
+        entityType: "EmployeeUserLink",
+        entityId: link.id,
+        metadata: { 
+          employeeId, 
+          employeeName: `${employee.firstName} ${employee.lastName}`,
+          extendedByHours: hours,
+          expiresAt: expiresAt.toISOString(),
+          retryAttempt: attempt > 1 ? attempt : undefined,
+        },
+      });
+
+      revalidatePath(`/app/employees/${employeeId}`);
+      revalidatePath(`/app/employees/${employeeId}/security`);
+      return { success: true, expiresAt };
+    } catch (err: any) {
+      lastError = err;
+      
+      // Don't retry auth or permission errors
+      if (err instanceof AuthError || err.message?.includes("Permission denied")) {
+        return { error: err.message, authError: true };
+      }
+
+      // If it's a connection error or pool exhaustion, retry
+      const isRetryable = 
+        err.message?.includes("MaxClientsInSessionMode") || 
+        err.message?.includes("pool_size") ||
+        err.message?.includes("connection pool") ||
+        err.code === "P2024"; // Prisma timeout
+
+      if (!isRetryable || attempt === maxRetries) {
+        break;
+      }
+
+      console.warn(`[grantTemporaryAccess] Attempt ${attempt} failed, retrying in ${retryDelay}ms...`, err.message);
+      await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
     }
-
-    const link = employee.employeeUserLinks[0];
-    if (!link) {
-      return { error: "Employee does not have a linked user account" };
-    }
-
-    const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + hours);
-
-    await prisma.employeeUserLink.update({
-      where: { id: link.id },
-      data: {
-        accessExpiresAt: expiresAt,
-        status: "REVOKED", // Ensure it's in revoked status but with an override
-      },
-    });
-
-    await createAuditLog(session, orgId, {
-      action: "employee.access_extended",
-      entityType: "EmployeeUserLink",
-      entityId: link.id,
-      metadata: { 
-        employeeId, 
-        employeeName: `${employee.firstName} ${employee.lastName}`,
-        extendedByHours: hours,
-        expiresAt: expiresAt.toISOString(),
-      },
-    });
-
-    revalidatePath(`/app/employees/${employeeId}`);
-    revalidatePath(`/app/employees/${employeeId}/security`);
-    return { success: true, expiresAt };
-  } catch (err) {
-    if (err instanceof AuthError) {
-      return { error: err.message, authError: true };
-    }
-    throw err;
   }
+
+  const errorMessage = lastError?.message || "Unknown database error";
+  const isConnectionError = errorMessage.includes("MaxClientsInSessionMode") || errorMessage.includes("pool_size");
+  
+  return { 
+    error: isConnectionError 
+      ? "Database is currently busy (Connection Pool Limit). Please try again in a few seconds." 
+      : `Failed to grant access: ${errorMessage}`,
+    details: lastError?.code || "INTERNAL_ERROR"
+  };
 }
 
 export async function archiveEmployee(employeeId: string) {
