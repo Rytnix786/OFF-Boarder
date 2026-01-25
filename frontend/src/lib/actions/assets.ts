@@ -264,14 +264,14 @@ export async function assignAssetToEmployee(assetId: string, employeeId: string)
   const linkedUserId = employee.employeeUserLinks[0]?.userId;
   if (linkedUserId) {
     const { createNotification } = await import("@/lib/notifications");
-    await createNotification({
-      userId: linkedUserId,
-      organizationId: orgId,
-      type: "task_assigned",
-      title: "Asset Assigned to You",
-      message: `You have been assigned: ${asset.name} (${asset.type})`,
-      link: `/app/employee/assets`,
-    });
+      await createNotification({
+        userId: linkedUserId,
+        organizationId: orgId,
+        type: "task_assigned",
+        title: "Asset Assigned to You",
+        message: `You have been assigned: ${asset.name} (${asset.type})`,
+        link: `/app/employee/assets?id=${asset.id}`,
+      });
   }
 
   revalidatePath("/app/assets");
