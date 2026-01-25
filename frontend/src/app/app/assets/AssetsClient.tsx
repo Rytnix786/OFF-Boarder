@@ -445,126 +445,194 @@ export default function AssetsClient({
         fullWidth
         PaperProps={{ 
           sx: { 
-            borderRadius: 4,
+            borderRadius: 5,
             backgroundImage: "none",
             bgcolor: "background.paper",
-            boxShadow: "0 24px 48px rgba(0,0,0,0.4)"
+            boxShadow: "0 32px 64px -12px rgba(0,0,0,0.5)",
+            border: "1px solid",
+            borderColor: "divider",
+            overflow: "hidden"
           } 
         }}
       >
-        <Box sx={{ p: 3, borderBottom: "1px solid", borderColor: "divider", bgcolor: "rgba(0,0,0,0.2)" }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2.5 }}>
-            <Avatar sx={{ 
-              bgcolor: "primary.main", 
-              width: 56, 
-              height: 56,
-              boxShadow: "0 8px 16px rgba(0,0,0,0.2)"
+        <Box sx={{ 
+          p: 4, 
+          pb: 3, 
+          borderBottom: "1px solid", 
+          borderColor: "divider", 
+          bgcolor: alpha(theme.palette.background.default, 0.4),
+          backdropFilter: "blur(10px)"
+        }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+            <Box sx={{ 
+              width: 64, 
+              height: 64, 
+              borderRadius: "20px",
+              bgcolor: alpha(theme.palette.primary.main, 0.1),
+              color: "primary.main",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: `0 8px 20px -4px ${alpha(theme.palette.primary.main, 0.2)}`,
+              border: "1px solid",
+              borderColor: alpha(theme.palette.primary.main, 0.2)
             }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 32 }}>assignment_ind</span>
-            </Avatar>
+              <span className="material-symbols-outlined" style={{ fontSize: 36 }}>assignment_ind</span>
+            </Box>
             <Box>
-              <Typography variant="h5" fontWeight={800} letterSpacing="-0.02em">Assign Asset</Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ opacity: 0.8, fontWeight: 500 }}>
-                {assignDialogOpen?.name} • <span style={{ color: "var(--mui-palette-primary-main)" }}>{assignDialogOpen?.type}</span>
+              <Typography variant="h5" fontWeight={900} letterSpacing="-0.03em" sx={{ mb: 0.5 }}>
+                Assign Asset
               </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Typography variant="body2" color="text.secondary" fontWeight={600}>
+                  {assignDialogOpen?.name}
+                </Typography>
+                <Box sx={{ width: 4, height: 4, borderRadius: "50%", bgcolor: "text.disabled" }} />
+                <Typography variant="caption" sx={{ 
+                  color: "primary.main", 
+                  fontWeight: 700, 
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em"
+                }}>
+                  {assignDialogOpen?.type}
+                </Typography>
+              </Box>
             </Box>
           </Box>
         </Box>
 
         <DialogContent sx={{ p: 4 }}>
-          <Typography variant="overline" color="text.secondary" fontWeight={700} sx={{ mb: 2, display: "block" }}>
-            Assign to:
+          <Typography variant="caption" sx={{ 
+            color: "text.disabled", 
+            fontWeight: 800, 
+            textTransform: "uppercase", 
+            letterSpacing: "0.1em",
+            mb: 2.5, 
+            display: "block" 
+          }}>
+            Recipient Type
           </Typography>
           
-          <Grid container spacing={2} sx={{ mb: 4 }}>
-            <Grid size={{ xs: 6 }}>
-              <Paper
-                onClick={() => { setAssigneeType("EMPLOYEE"); setSelectedAssignee(null); }}
-                variant="outlined"
-                sx={{
-                  p: 2.5,
-                  cursor: "pointer",
-                  borderRadius: 3,
-                  transition: "all 0.2s",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 1,
-                  bgcolor: assigneeType === "EMPLOYEE" ? "primary.main" : "transparent",
-                  borderColor: assigneeType === "EMPLOYEE" ? "primary.main" : "divider",
-                  color: assigneeType === "EMPLOYEE" ? "white" : "text.primary",
-                  "&:hover": {
-                    borderColor: "primary.main",
-                    bgcolor: assigneeType === "EMPLOYEE" ? "primary.main" : "rgba(var(--mui-palette-primary-mainChannel), 0.04)"
-                  }
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 32 }}>badge</span>
-                <Typography fontWeight={700} variant="body2">Employee</Typography>
-              </Paper>
-            </Grid>
-            <Grid size={{ xs: 6 }}>
-              <Paper
-                onClick={() => { setAssigneeType("ORG_USER"); setSelectedAssignee(null); }}
-                variant="outlined"
-                sx={{
-                  p: 2.5,
-                  cursor: "pointer",
-                  borderRadius: 3,
-                  transition: "all 0.2s",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 1,
-                  bgcolor: assigneeType === "ORG_USER" ? "primary.main" : "transparent",
-                  borderColor: assigneeType === "ORG_USER" ? "primary.main" : "divider",
-                  color: assigneeType === "ORG_USER" ? "white" : "text.primary",
-                  "&:hover": {
-                    borderColor: "primary.main",
-                    bgcolor: assigneeType === "ORG_USER" ? "primary.main" : "rgba(var(--mui-palette-primary-mainChannel), 0.04)"
-                  }
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 32 }}>group</span>
-                <Typography fontWeight={700} variant="body2">Organization User</Typography>
-              </Paper>
-            </Grid>
+          <Grid container spacing={2.5} sx={{ mb: 5 }}>
+            {[
+              { id: "EMPLOYEE", label: "Employee", icon: "badge", desc: "Permanent staff" },
+              { id: "ORG_USER", label: "Admin User", icon: "admin_panel_settings", desc: "Organization admins" }
+            ].map((type) => (
+              <Grid size={{ xs: 6 }} key={type.id}>
+                <Paper
+                  onClick={() => { setAssigneeType(type.id as any); setSelectedAssignee(null); }}
+                  variant="outlined"
+                  sx={{
+                    p: 3,
+                    cursor: "pointer",
+                    borderRadius: 4,
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 1.5,
+                    bgcolor: assigneeType === type.id ? alpha(theme.palette.primary.main, 0.08) : "background.default",
+                    borderColor: assigneeType === type.id ? "primary.main" : "divider",
+                    borderWidth: assigneeType === type.id ? 2 : 1,
+                    position: "relative",
+                    overflow: "hidden",
+                    "&::after": assigneeType === type.id ? {
+                      content: '""',
+                      position: "absolute",
+                      top: 10,
+                      right: 10,
+                      width: 12,
+                      height: 12,
+                      borderRadius: "50%",
+                      bgcolor: "primary.main",
+                      boxShadow: `0 0 0 4px ${alpha(theme.palette.primary.main, 0.2)}`
+                    } : {},
+                    "&:hover": {
+                      borderColor: "primary.main",
+                      transform: "translateY(-4px)",
+                      boxShadow: "0 12px 24px -8px rgba(0,0,0,0.2)"
+                    }
+                  }}
+                >
+                  <Box sx={{ 
+                    width: 48, 
+                    height: 48, 
+                    borderRadius: "14px",
+                    bgcolor: assigneeType === type.id ? "primary.main" : alpha(theme.palette.text.primary, 0.04),
+                    color: assigneeType === type.id ? "white" : "text.secondary",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "all 0.3s"
+                  }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 28 }}>{type.icon}</span>
+                  </Box>
+                  <Box sx={{ textAlign: "center" }}>
+                    <Typography fontWeight={800} variant="body2">{type.label}</Typography>
+                    <Typography variant="caption" sx={{ opacity: 0.6 }}>{type.desc}</Typography>
+                  </Box>
+                </Paper>
+              </Grid>
+            ))}
           </Grid>
 
-          <Box>
+          <Box sx={{ 
+            p: 1, 
+            borderRadius: 4, 
+            bgcolor: alpha(theme.palette.text.primary, 0.03),
+            border: "1px solid",
+            borderColor: "divider"
+          }}>
             {assigneeType === "EMPLOYEE" ? (
               <Autocomplete
                 options={employees}
-                getOptionLabel={(option) => `${option.firstName} ${option.lastName} (${option.email})`}
+                getOptionLabel={(option) => `${option.firstName} ${option.lastName}`}
                 value={selectedAssignee as Employee | null}
                 onChange={(_, value) => setSelectedAssignee(value)}
                 renderInput={(params) => (
                   <TextField 
                     {...params} 
-                    label="Select Employee" 
+                    variant="standard"
                     placeholder="Search by name or email..."
+                    label="Recipient"
                     fullWidth 
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: 3,
-                        bgcolor: "background.default"
+                    InputProps={{
+                      ...params.InputProps,
+                      disableUnderline: true,
+                      sx: { 
+                        px: 2, 
+                        py: 1,
+                        fontSize: "0.95rem",
+                        fontWeight: 500
                       }
+                    }}
+                    InputLabelProps={{
+                      shrink: true,
+                      sx: { px: 2, pt: 1, fontWeight: 700, color: "text.secondary" }
                     }}
                   />
                 )}
                 renderOption={(props, option) => {
                    const { key, ...restProps } = props as any;
                    return (
-                    <li key={option.id} {...restProps}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, py: 0.5 }}>
-                        <Avatar sx={{ width: 36, height: 36, bgcolor: "primary.light", fontSize: 14, fontWeight: 700 }}>
+                    <li key={option.id} {...restProps} style={{ padding: "8px 16px" }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 0.5, width: "100%" }}>
+                        <Avatar sx={{ 
+                          width: 40, 
+                          height: 40, 
+                          bgcolor: alpha(theme.palette.primary.main, 0.15), 
+                          color: "primary.main",
+                          fontSize: 14, 
+                          fontWeight: 800,
+                          borderRadius: "12px"
+                        }}>
                           {option.firstName[0]}{option.lastName[0]}
                         </Avatar>
-                        <Box>
-                          <Typography variant="body2" fontWeight={700}>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="body2" fontWeight={800}>
                             {option.firstName} {option.lastName}
                           </Typography>
-                          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                             {option.email}
                           </Typography>
                         </Box>
@@ -577,36 +645,53 @@ export default function AssetsClient({
             ) : (
               <Autocomplete
                 options={orgUsers}
-                getOptionLabel={(option) => `${option.name || "Unnamed"} (${option.email})`}
+                getOptionLabel={(option) => option.name || option.email}
                 value={selectedAssignee as OrgUser | null}
                 onChange={(_, value) => setSelectedAssignee(value)}
                 renderInput={(params) => (
                   <TextField 
                     {...params} 
-                    label="Select Organization User" 
+                    variant="standard"
                     placeholder="Search by name or email..."
+                    label="Recipient"
                     fullWidth 
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: 3,
-                        bgcolor: "background.default"
+                    InputProps={{
+                      ...params.InputProps,
+                      disableUnderline: true,
+                      sx: { 
+                        px: 2, 
+                        py: 1,
+                        fontSize: "0.95rem",
+                        fontWeight: 500
                       }
+                    }}
+                    InputLabelProps={{
+                      shrink: true,
+                      sx: { px: 2, pt: 1, fontWeight: 700, color: "text.secondary" }
                     }}
                   />
                 )}
                 renderOption={(props, option) => {
                   const { key, ...restProps } = props as any;
                   return (
-                    <li key={option.id} {...restProps}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, py: 0.5 }}>
-                        <Avatar sx={{ width: 36, height: 36, bgcolor: "secondary.light", fontSize: 14, fontWeight: 700 }}>
+                    <li key={option.id} {...restProps} style={{ padding: "8px 16px" }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 0.5, width: "100%" }}>
+                        <Avatar sx={{ 
+                          width: 40, 
+                          height: 40, 
+                          bgcolor: alpha(theme.palette.secondary.main, 0.15), 
+                          color: "secondary.main",
+                          fontSize: 14, 
+                          fontWeight: 800,
+                          borderRadius: "12px"
+                        }}>
                           {(option.name || option.email)[0].toUpperCase()}
                         </Avatar>
-                        <Box>
-                          <Typography variant="body2" fontWeight={700}>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="body2" fontWeight={800}>
                             {option.name || "Unnamed User"}
                           </Typography>
-                          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                             {option.email}
                           </Typography>
                         </Box>
@@ -619,44 +704,65 @@ export default function AssetsClient({
             )}
           </Box>
 
-          {selectedAssignee && (
-            <Alert 
-              severity="info" 
-              sx={{ 
-                mt: 3, 
-                borderRadius: 2, 
-                border: "1px solid", 
-                borderColor: "info.light",
-                "& .MuiAlert-icon": { pt: 1 }
-              }}
-            >
-              <Typography variant="body2" fontWeight={500}>
-                <b>Notification:</b> {selectedAssignee.email} will be notified immediately of this assignment.
-              </Typography>
-            </Alert>
-          )}
+          <Box sx={{ 
+            mt: 4, 
+            p: 2.5, 
+            borderRadius: 4, 
+            bgcolor: alpha(theme.palette.info.main, 0.05),
+            border: "1px dashed",
+            borderColor: alpha(theme.palette.info.main, 0.3),
+            display: "flex",
+            gap: 2,
+            alignItems: "flex-start"
+          }}>
+            <span className="material-symbols-outlined" style={{ color: theme.palette.info.main, fontSize: 20, marginTop: 2 }}>info</span>
+            <Typography variant="body2" color="info.main" fontWeight={600} sx={{ lineHeight: 1.5 }}>
+              The recipient will receive an automated notification with asset details and tracking link once assigned.
+            </Typography>
+          </Box>
         </DialogContent>
+
         <DialogActions sx={{ p: 4, pt: 0, gap: 2 }}>
           <Button 
+            fullWidth
             onClick={() => { setAssignDialogOpen(null); setSelectedAssignee(null); }}
-            sx={{ borderRadius: 3, px: 3, py: 1.5, fontWeight: 700, color: "text.secondary" }}
+            sx={{ 
+              borderRadius: 3, 
+              px: 3, 
+              py: 1.8, 
+              fontWeight: 800, 
+              color: "text.secondary",
+              "&:hover": { bgcolor: "action.hover" }
+            }}
           >
-            Cancel
+            Discard
           </Button>
           <Button
+            fullWidth
             variant="contained"
             onClick={handleAssign}
             disabled={loading || !selectedAssignee}
-            startIcon={<span className="material-symbols-outlined">check</span>}
+            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <span className="material-symbols-outlined" style={{ fontWeight: 800 }}>check_circle</span>}
             sx={{ 
-              borderRadius: 3, 
+              borderRadius: "16px", 
               px: 4, 
-              py: 1.5, 
-              fontWeight: 800,
-              boxShadow: "0 8px 24px rgba(var(--mui-palette-primary-mainChannel), 0.3)"
+              py: 1.8, 
+              fontWeight: 900,
+              fontSize: "0.95rem",
+              textTransform: "none",
+              boxShadow: `0 12px 32px -8px ${alpha(theme.palette.primary.main, 0.5)}`,
+              transition: "all 0.3s",
+              "&:hover": {
+                boxShadow: `0 16px 40px -10px ${alpha(theme.palette.primary.main, 0.6)}`,
+                transform: "translateY(-2px)"
+              },
+              "&.Mui-disabled": {
+                bgcolor: alpha(theme.palette.primary.main, 0.3),
+                color: "rgba(255,255,255,0.5)"
+              }
             }}
           >
-            {loading ? "Assigning..." : "Assign Asset"}
+            {loading ? "Processing..." : "Confirm Assignment"}
           </Button>
         </DialogActions>
       </Dialog>

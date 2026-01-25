@@ -301,6 +301,20 @@ export async function getEmployeeAssets() {
   return assetReturns;
 }
 
+export async function getEmployeeAssignedAssets() {
+  const session = await requireEmployeePortalAuth();
+
+  const assets = await prisma.asset.findMany({
+    where: {
+      employeeId: session.employee.id,
+      organizationId: session.organizationId,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return assets;
+}
+
 export async function getEmployeeAccessRevocations() {
   const session = await requireEmployeeOffboarding();
 

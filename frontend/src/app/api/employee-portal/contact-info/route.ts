@@ -12,8 +12,18 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Get the Prisma user using the Supabase ID
+    const dbUser = await prisma.user.findUnique({
+      where: { supabaseId: user.id },
+      select: { id: true }
+    });
+
+    if (!dbUser) {
+      return NextResponse.json({ error: "User record not found" }, { status: 404 });
+    }
+
     const employeeLink = await prisma.employeeUserLink.findFirst({
-      where: { userId: user.id, status: "VERIFIED" },
+      where: { userId: dbUser.id, status: "VERIFIED" },
       include: { employee: true },
     });
 
@@ -80,12 +90,12 @@ export async function PATCH(request: NextRequest) {
         },
       });
 
-      for (const change of changes) {
-        await tx.$executeRaw`
-          INSERT INTO "EmployeeContactChangeLog" ("employeeId", "fieldName", "oldValue", "newValue", "changedByUserId", "ipAddress")
-          VALUES (${employeeLink.employeeId}, ${change.fieldName}, ${change.oldValue}, ${change.newValue}, ${user.id}, ${ipAddress})
-        `;
-      }
+        for (const change of changes) {
+          await tx.$executeRaw`
+            INSERT INTO "EmployeeContactChangeLog" ("employeeId", "fieldName", "oldValue", "newValue", "changedByUserId", "ipAddress")
+            VALUES (${employeeLink.employeeId}, ${change.fieldName}, ${change.oldValue}, ${change.newValue}, ${dbUser.id}, ${ipAddress})
+          `;
+        }
     });
 
     return NextResponse.json({ 
@@ -108,8 +118,18 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Get the Prisma user using the Supabase ID
+    const dbUser = await prisma.user.findUnique({
+      where: { supabaseId: user.id },
+      select: { id: true }
+    });
+
+    if (!dbUser) {
+      return NextResponse.json({ error: "User record not found" }, { status: 404 });
+    }
+
     const employeeLink = await prisma.employeeUserLink.findFirst({
-      where: { userId: user.id, status: "VERIFIED" },
+      where: { userId: dbUser.id, status: "VERIFIED" },
       include: { employee: true },
     });
 
