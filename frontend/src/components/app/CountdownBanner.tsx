@@ -4,18 +4,27 @@ import React, { useState, useEffect } from "react";
 import { Box, Typography, alpha, useTheme } from "@mui/material";
 
 interface CountdownBannerProps {
-  revokedAt: string | Date;
+  revokedAt: string | Date | null;
+  accessExpiresAt?: string | Date | null;
   gracePeriodHours?: number;
 }
 
-export function CountdownBanner({ revokedAt, gracePeriodHours = 24 }: CountdownBannerProps) {
+export function CountdownBanner({ revokedAt, accessExpiresAt, gracePeriodHours = 24 }: CountdownBannerProps) {
   const theme = useTheme();
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [isExpired, setIsExpired] = useState(false);
 
   useEffect(() => {
-    const revokedDate = new Date(revokedAt);
-    const expiryDate = new Date(revokedDate.getTime() + gracePeriodHours * 60 * 60 * 1000);
+    let expiryDate: Date;
+
+    if (accessExpiresAt) {
+      expiryDate = new Date(accessExpiresAt);
+    } else if (revokedAt) {
+      const revokedDate = new Date(revokedAt);
+      expiryDate = new Date(revokedDate.getTime() + gracePeriodHours * 60 * 60 * 1000);
+    } else {
+      return;
+    }
 
     const updateTimer = () => {
       const now = new Date();

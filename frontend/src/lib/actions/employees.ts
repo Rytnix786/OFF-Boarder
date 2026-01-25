@@ -299,6 +299,65 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
   }
 }
 
+export async function grantTemporaryAccess(employeeId: string, hours: number) {
+  try {
+    const session = await requireActiveOrg();
+    await requirePermission(session, "employee:update");
+
+    const orgId = session.currentOrgId!;
+
+    const employee = await prisma.employee.findFirst({
+      where: { id: employeeId, organizationId: orgId },
+      include: {
+        employeeUserLinks: {
+          where: { organizationId: orgId },
+        },
+      },
+    });
+
+    if (!employee) {
+      return { error: "Employee not found" };
+    }
+
+    const link = employee.employeeUserLinks[0];
+    if (!link) {
+      return { error: "Employee does not have a linked user account" };
+    }
+
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + hours);
+
+    await prisma.employeeUserLink.update({
+      where: { id: link.id },
+      data: {
+        accessExpiresAt: expiresAt,
+        status: "REVOKED", // Ensure it's in revoked status but with an override
+      },
+    });
+
+    await createAuditLog(session, orgId, {
+      action: "employee.access_extended",
+      entityType: "EmployeeUserLink",
+      entityId: link.id,
+      metadata: { 
+        employeeId, 
+        employeeName: `${employee.firstName} ${employee.lastName}`,
+        extendedByHours: hours,
+        expiresAt: expiresAt.toISOString(),
+      },
+    });
+
+    revalidatePath(`/app/employees/${employeeId}`);
+    revalidatePath(`/app/employees/${employeeId}/security`);
+    return { success: true, expiresAt };
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return { error: err.message, authError: true };
+    }
+    throw err;
+  }
+}
+
 export async function archiveEmployee(employeeId: string) {
   try {
     const session = await requireActiveOrg();

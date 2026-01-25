@@ -281,8 +281,11 @@ export default function EmployeePortalShell({ session, children }: EmployeePorta
         </Menu>
 
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
-        {isRevoked && session.employeeLink.revokedAt && (
-          <CountdownBanner revokedAt={session.employeeLink.revokedAt} />
+        {isRevoked && (session.employeeLink.revokedAt || session.employeeLink.accessExpiresAt) && (
+          <CountdownBanner 
+            revokedAt={session.employeeLink.revokedAt} 
+            accessExpiresAt={session.employeeLink.accessExpiresAt}
+          />
         )}
         <AppBar
           position="sticky"
