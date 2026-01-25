@@ -663,6 +663,88 @@ export async function blockEmployeeIP(
   return blockedIP;
 }
 
+    revalidatePath("/app/employees");
+    return { success: true };
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return { error: err.message, authError: true };
+    }
+    throw err;
+  }
+}
+
+export async function grantTemporaryAccess(
+  session: AuthSession,
+  employeeId: string,
+  organizationId: string,
+  hours: number,
+  reason: string
+) {
+  const ipAddress = await getClientIP();
+
+  const employee = await prisma.employee.findFirst({
+    where: { id: employeeId, organizationId },
+    include: {
+      employeeUserLinks: {
+        where: { organizationId },
+      },
+    },
+  });
+
+  if (!employee) {
+    throw new Error("Employee not found");
+  }
+
+  const link = employee.employeeUserLinks[0];
+  if (!link) {
+    throw new Error("Employee does not have a linked user account");
+  }
+
+  const expiresAt = new Date();
+  expiresAt.setHours(expiresAt.getHours() + hours);
+
+  const updatedLink = await prisma.employeeUserLink.update({
+    where: { id: link.id },
+    data: {
+      accessExpiresAt: expiresAt,
+      status: "REVOKED", // Keep it revoked but with override
+    },
+  });
+
+  await prisma.securityEvent.create({
+    data: {
+      id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      organizationId,
+      employeeId,
+      eventType: "ACCESS_REVOKED", // We'll use this event type but update description
+      description: `Temporary access granted for ${hours}h: ${reason}`,
+      ipAddress,
+      metadata: {
+        grantedBy: session.user.id,
+        reason,
+        expiresAt: expiresAt.toISOString(),
+        hours,
+      },
+    },
+  });
+
+  await createAuditLog(session, organizationId, {
+    action: "employee.access_extended",
+    entityType: "EmployeeUserLink",
+    entityId: link.id,
+    metadata: {
+      employeeId,
+      employeeName: `${employee.firstName} ${employee.lastName}`,
+      extendedByHours: hours,
+      expiresAt: expiresAt.toISOString(),
+      reason,
+    },
+    ipAddress,
+  });
+
+  return updatedLink;
+}
+
 export async function getEmployeeBlockedIPs(employeeId: string, organizationId: string) {
   return prisma.blockedIP.findMany({
     where: {

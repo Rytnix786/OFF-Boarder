@@ -29,6 +29,15 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import {
+  suspendEmployee,
+  lockEmployee,
+  toggleHighRisk,
+  forceLogoutAll,
+  blockIpAddress,
+  grantTemporaryAccess,
+} from "@/lib/actions/employees";
+
 type Employee = {
   id: string;
   employeeId: string;
@@ -60,6 +69,9 @@ type SecurityProfile = {
   lastLoginMethod: string | null;
   employee: {
     employeeUserLinks: {
+      id: string;
+      status: string;
+      accessExpiresAt: Date | null;
       user: {
         id: string;
         email: string;
@@ -133,11 +145,12 @@ export default function EmployeeSecurityClient({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [actionDialog, setActionDialog] = useState<{
-    type: "suspend" | "lock" | "highRisk" | "forceLogout" | "blockIP" | null;
+    type: "suspend" | "lock" | "highRisk" | "forceLogout" | "blockIP" | "grantAccess" | null;
     open: boolean;
   }>({ type: null, open: false });
   const [reason, setReason] = useState("");
   const [ipToBlock, setIpToBlock] = useState("");
+  const [extensionHours, setExtensionHours] = useState<number>(4);
   const [offboardingOnly, setOffboardingOnly] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -145,20 +158,38 @@ export default function EmployeeSecurityClient({
     (link) => link.user.sessions
   );
 
+  const portalLink = securityProfile.employee.employeeUserLinks[0];
+  const isComplianceWindowExpired = portalLink?.status === "REVOKED" && (
+    portalLink.accessExpiresAt 
+      ? new Date() > new Date(portalLink.accessExpiresAt)
+      : true // If revoked but no expiresAt, we assume expired if no grace period logic is visible here
+  );
+
   const activeOffboarding = securityProfile.employee.offboardings[0];
   const pendingAssets = securityProfile.employee.assets.filter(
     (a) => a.status === "ASSIGNED" || a.status === "PENDING_RETURN"
   );
 
-  const handleAction = async () => {
-    if (!reason.trim()) {
-      setError("Reason is required");
-      return;
-    }
+    const handleAction = async () => {
+      if (actionDialog.type !== "grantAccess" && !reason.trim()) {
+        setError("Reason is required");
+        return;
+      }
+
 
     setError(null);
 
     try {
+      if (actionDialog.type === "grantAccess") {
+        const res = await grantTemporaryAccess(employee.id, extensionHours);
+        if (res.error) throw new Error(res.error);
+        
+        setActionDialog({ type: null, open: false });
+        setReason("");
+        startTransition(() => router.refresh());
+        return;
+      }
+
       const endpoint = `/api/employees/${employee.id}/security`;
       let body: Record<string, unknown> = { reason };
 
@@ -313,10 +344,34 @@ export default function EmployeeSecurityClient({
               : securityProfile.suspendedReason}
             {securityProfile.suspendedUntil && ` • Until ${formatDate(securityProfile.suspendedUntil)}`}
           </Typography>
-        </Alert>
-      )}
+          </Alert>
+        )}
 
-      <Grid container spacing={3}>
+        {isComplianceWindowExpired && (
+          <Alert
+            severity="info"
+            variant="outlined"
+            icon={<span className="material-symbols-outlined">more_time</span>}
+            sx={{
+              mb: 3,
+              borderRadius: 3,
+              bgcolor: alpha("#0288d1", 0.05),
+              borderColor: alpha("#0288d1", 0.3),
+              "& .MuiAlert-icon": { color: "#0288d1" },
+            }}
+          >
+            <Typography variant="subtitle2" fontWeight={700} color="#01579b">
+              Compliance Window Expired
+            </Typography>
+            <Typography variant="body2" color="#01579b">
+              The standard 24-hour access window for this employee has closed. 
+              {canManage && " You can grant temporary access below to allow them to complete their tasks."}
+            </Typography>
+          </Alert>
+        )}
+
+        <Grid container spacing={3}>
+
         <Grid size={{ xs: 12, lg: 8 }}>
           <Card variant="outlined" sx={{ borderRadius: 3, mb: 3 }}>
             <CardContent>
@@ -658,11 +713,30 @@ export default function EmployeeSecurityClient({
                     variant="outlined"
                     startIcon={<span className="material-symbols-outlined" style={{ fontSize: 18 }}>do_not_disturb_on</span>}
                     onClick={() => setActionDialog({ type: "blockIP", open: true })}
-                    sx={{ justifyContent: "flex-start", py: 1.5 }}
-                  >
-                    Block IP Address
-                  </Button>
-                </Box>
+        sx={{ justifyContent: "flex-start", py: 1.5 }}
+                    >
+                      Block IP Address
+                    </Button>
+
+                    {portalLink?.status === "REVOKED" && (
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        color="info"
+                        startIcon={<span className="material-symbols-outlined" style={{ fontSize: 18 }}>more_time</span>}
+                        onClick={() => setActionDialog({ type: "grantAccess", open: true })}
+                        sx={{
+                          justifyContent: "flex-start",
+                          py: 1.5,
+                          boxShadow: `0 4px 12px ${alpha("#0288d1", 0.3)}`,
+                          fontWeight: 700,
+                        }}
+                      >
+                        Grant Temporary Access
+                      </Button>
+                    )}
+                  </Box>
+
               </CardContent>
             </Card>
           )}
@@ -745,11 +819,39 @@ export default function EmployeeSecurityClient({
             {actionDialog.type === "suspend" && "This will immediately revoke all active sessions and prevent the employee from logging in."}
             {actionDialog.type === "lock" && "This will lock the account pending review. The employee will not be able to access the system."}
             {actionDialog.type === "highRisk" && "This will flag the employee for additional monitoring during offboarding."}
-            {actionDialog.type === "forceLogout" && "This will immediately terminate all active sessions for this employee."}
-            {actionDialog.type === "blockIP" && "This will block the specified IP address from accessing the system."}
-          </Typography>
+          {actionDialog.type === "forceLogout" && "This will immediately terminate all active sessions for this employee."}
+          {actionDialog.type === "blockIP" && "This will block the specified IP address from accessing the system."}
+          {actionDialog.type === "grantAccess" && (
+            <>
+              This will grant the employee temporary access to the portal to complete their offboarding tasks. 
+              The access will automatically expire after the selected duration.
+            </>
+          )}
+        </Typography>
 
-          {actionDialog.type === "blockIP" && (
+        {actionDialog.type === "grantAccess" && (
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" gutterBottom fontWeight={600}>
+              Extension Duration
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1 }}>
+              {[2, 4, 8, 24].map((h) => (
+                <Button
+                  key={h}
+                  variant={extensionHours === h ? "contained" : "outlined"}
+                  onClick={() => setExtensionHours(h)}
+                  size="small"
+                  sx={{ flex: 1, borderRadius: 2 }}
+                >
+                  {h}h
+                </Button>
+              ))}
+            </Box>
+          </Box>
+        )}
+
+        {actionDialog.type === "blockIP" && (
+
             <TextField
               fullWidth
               label="IP Address"
