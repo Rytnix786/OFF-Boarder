@@ -3,6 +3,7 @@ import { getSupabaseUser } from "@/lib/auth.server";
 import { prisma } from "@/lib/prisma.server";
 import { redirect } from "next/navigation";
 import InviteAcceptClient from "./InviteAcceptClient";
+import LogoutButton from "./LogoutButton";
 import { Box, Paper, Typography, Alert, Button } from "@mui/material";
 import Link from "next/link";
 
@@ -104,15 +105,12 @@ export default async function EmployeeInvitePage({
             You are currently signed in as <strong>{currentUser.email}</strong>, but this invitation
             is for <strong>{result.invite.email}</strong>.
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Please sign out and sign in with the correct email address, or contact your administrator.
-          </Typography>
-          <Link href="/login" passHref style={{ textDecoration: "none" }}>
-            <Button variant="contained" color="primary">
-              Sign Out & Try Again
-            </Button>
-          </Link>
-        </Paper>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Please sign out and sign in with the correct email address, or contact your administrator.
+            </Typography>
+            <LogoutButton token={token} currentEmail={currentUser.email} />
+          </Paper>
+
       </Box>
     );
   }
