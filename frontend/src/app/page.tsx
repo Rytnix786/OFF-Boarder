@@ -81,91 +81,190 @@ export default function LandingPage() {
           backdropFilter: "blur(24px) saturate(160%)",
           borderRadius: 2,
           border: "1px solid",
-          borderColor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
-          boxShadow: isDark 
-            ? `0 16px 40px -8px rgba(0, 0, 0, 0.7), inset 0 1px 1px ${alpha("#fff", 0.04)}`
-            : `0 16px 40px -8px rgba(0, 0, 0, 0.06), inset 0 1px 1px ${alpha("#fff", 0.8)}`,
-          transition: "all 400ms cubic-bezier(0.22, 1, 0.36, 1)",
-        }}
-      >
-        <Container maxWidth="lg">
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              py: 1.5,
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              <Box
-                sx={{
-                  bgcolor: "primary.main",
-                  borderRadius: 1.5,
-                  p: 0.8,
-                  display: "flex",
-                  boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.4)}`,
-                }}
+            borderColor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
+            boxShadow: isDark 
+              ? `0 16px 40px -8px rgba(0, 0, 0, 0.7), inset 0 1px 1px ${alpha("#fff", 0.04)}`
+              : `0 16px 40px -8px rgba(0, 0, 0, 0.06), inset 0 1px 1px ${alpha("#fff", 0.8)}`,
+            transition: "all 400ms cubic-bezier(0.22, 1, 0.36, 1)",
+          }}
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+        >
+          <Container maxWidth="lg">
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                py: 1.5,
+              }}
+            >
+              <Box 
+                component={motion.div}
+                initial="initial"
+                whileHover="hover"
+                sx={{ display: "flex", alignItems: "center", gap: 1.5, cursor: "pointer" }}
               >
-                <span
-                  className="material-symbols-outlined"
-                  style={{ color: "white", fontSize: 22 }}
-                >
-                  shield_person
-                </span>
-              </Box>
-              <Typography variant="h6" sx={{ fontWeight: 900, letterSpacing: -0.8, fontSize: "1.35rem" }}>
-                OffboardHQ
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 4.5 }}>
-              {["Platform", "Security", "Compliance", "Pricing"].map((item) => (
-                <Typography
-                  key={item}
-                  component="a"
-                  href={`#${item.toLowerCase()}`}
-                  sx={{
-                    color: "text.secondary",
-                    textDecoration: "none",
-                    fontWeight: 600,
-                    fontSize: "0.875rem",
-                    transition: "all 250ms ease",
-                    letterSpacing: 0.2,
-                    "&:hover": { 
-                      color: "text.primary",
-                    },
+                <Box
+                  component={motion.div}
+                  variants={{
+                    initial: { scale: 1 },
+                    hover: { 
+                      scale: 1.1,
+                      rotate: [0, -10, 10, 0],
+                      transition: { duration: 0.5 }
+                    }
                   }}
-                >
-                  {item}
-                </Typography>
-              ))}
-            </Box>
-
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2.5 }}>
-              <ThemeToggle size="small" />
-              <Link href="/login" passHref style={{ textDecoration: "none" }}>
-                <Button sx={{ fontWeight: 700, color: "text.primary", fontSize: "0.875rem" }}>Sign In</Button>
-              </Link>
-              <Link href="/register" passHref style={{ textDecoration: "none" }}>
-                <Button
-                  variant="contained"
                   sx={{
-                    fontWeight: 800,
-                    px: 3,
+                    bgcolor: "primary.main",
                     borderRadius: 1.5,
-                    fontSize: "0.875rem",
-                    textTransform: "none",
-                    boxShadow: `0 8px 20px ${alpha(theme.palette.primary.main, 0.3)}`,
+                    p: 0.8,
+                    display: "flex",
+                    boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.4)}`,
                   }}
                 >
-                  Start Free Trial
-                </Button>
-              </Link>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ color: "white", fontSize: 22 }}
+                  >
+                    shield_person
+                  </span>
+                </Box>
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    fontWeight: 900, 
+                    letterSpacing: -0.8, 
+                    fontSize: "1.35rem",
+                    background: isDark 
+                      ? "linear-gradient(to right, #fff, rgba(255,255,255,0.7))"
+                      : "linear-gradient(to right, #000, rgba(0,0,0,0.6))",
+                    backgroundClip: "text",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                  }}
+                >
+                  OffboardHQ
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 4.5 }}>
+                {["Platform", "Security", "Compliance", "Pricing"].map((item, index) => (
+                  <Box
+                    key={item}
+                    component={motion.div}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 + index * 0.1, duration: 0.5 }}
+                    sx={{ position: "relative" }}
+                  >
+                    <Typography
+                      component="a"
+                      href={`#${item.toLowerCase()}`}
+                      sx={{
+                        color: "text.secondary",
+                        textDecoration: "none",
+                        fontWeight: 600,
+                        fontSize: "0.875rem",
+                        transition: "all 250ms ease",
+                        letterSpacing: 0.2,
+                        display: "block",
+                        "&:hover": { 
+                          color: "text.primary",
+                          "& + .nav-underline": {
+                            width: "100%",
+                            opacity: 1,
+                          }
+                        },
+                      }}
+                    >
+                      {item}
+                    </Typography>
+                    <Box 
+                      className="nav-underline"
+                      sx={{
+                        position: "absolute",
+                        bottom: -4,
+                        left: "50%",
+                        width: "0%",
+                        height: "2px",
+                        bgcolor: "primary.main",
+                        borderRadius: "2px",
+                        opacity: 0,
+                        transform: "translateX(-50%)",
+                        transition: "all 300ms cubic-bezier(0.22, 1, 0.36, 1)",
+                        pointerEvents: "none",
+                      }}
+                    />
+                  </Box>
+                ))}
+              </Box>
+
+              <Box 
+                component={motion.div}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.8, duration: 0.5 }}
+                sx={{ display: "flex", alignItems: "center", gap: 2.5 }}
+              >
+                <ThemeToggle size="small" />
+                <Link href="/login" passHref style={{ textDecoration: "none" }}>
+                  <Button 
+                    component={motion.button}
+                    whileHover={{ scale: 1.05, y: -1 }}
+                    whileTap={{ scale: 0.95 }}
+                    sx={{ 
+                      fontWeight: 700, 
+                      color: "text.primary", 
+                      fontSize: "0.875rem",
+                      textTransform: "none",
+                    }}
+                  >
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/register" passHref style={{ textDecoration: "none" }}>
+                  <Button
+                    variant="contained"
+                    component={motion.button}
+                    whileHover={{ 
+                      scale: 1.05, 
+                      y: -2,
+                      boxShadow: `0 12px 24px ${alpha(theme.palette.primary.main, 0.4)}`,
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                    sx={{
+                      fontWeight: 800,
+                      px: 3,
+                      borderRadius: 1.5,
+                      fontSize: "0.875rem",
+                      textTransform: "none",
+                      boxShadow: `0 8px 20px ${alpha(theme.palette.primary.main, 0.3)}`,
+                      position: "relative",
+                      overflow: "hidden",
+                      "&::after": {
+                        content: '""',
+                        position: "absolute",
+                        top: 0,
+                        left: "-100%",
+                        width: "100%",
+                        height: "100%",
+                        background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)",
+                        transition: "all 0.6s ease",
+                      },
+                      "&:hover::after": {
+                        left: "100%",
+                      }
+                    }}
+                  >
+                    Start Free Trial
+                  </Button>
+                </Link>
+              </Box>
             </Box>
-          </Box>
-        </Container>
-      </Box>
+          </Container>
+        </Box>
 
       <Box
         sx={{
