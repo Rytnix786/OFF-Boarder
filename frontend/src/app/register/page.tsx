@@ -26,6 +26,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ColorModeContext } from "@/theme/ThemeRegistry";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 type InvitationInfo = {
   id: string;
@@ -469,11 +470,7 @@ function RegisterContent() {
       }}
     >
       <Box sx={{ position: "absolute", top: 16, right: 16 }}>
-        <IconButton onClick={colorMode.toggleColorMode} size="small">
-          <span className="material-symbols-outlined">
-            {isDark ? "light_mode" : "dark_mode"}
-          </span>
-        </IconButton>
+        <ThemeToggle size="small" />
       </Box>
 
       <Card
