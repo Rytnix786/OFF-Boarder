@@ -82,7 +82,7 @@ export async function getEmployeePortalSession(): Promise<EmployeePortalSession 
     const employeeLink = await prisma.employeeUserLink.findFirst({
       where: {
         userId: user.id,
-        status: { in: ["VERIFIED", "REVOKED"] },
+        status: { in: ["VERIFIED", "REVOKED", "PENDING_VERIFICATION"] },
       },
       include: {
         organization: {
