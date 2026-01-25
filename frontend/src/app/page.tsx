@@ -1053,188 +1053,223 @@ export default function LandingPage() {
                         <CardContent sx={{ p: 5, flex: 1, display: "flex", flexDirection: "column", position: "relative" }}>
                           <Box sx={{ mb: 4 }}>
                                 <Box sx={{ display: "flex", flexDirection: "column", mb: 2.5 }}>
-                                  <Typography 
-                                    variant="overline" 
-                                    sx={{ 
-                                      fontWeight: 900, 
-                                      fontSize: "0.85rem",
-                                      letterSpacing: 2,
-                                      color: plan.popular || isFreeTrial ? "primary.main" : "text.secondary",
-                                      opacity: plan.popular || isFreeTrial ? 1 : 0.8,
-                                    }}
-                                  >
-                                    {plan.name}
-                                  </Typography>
-                                  
-                                    {plan.popular && (
-                                      <Box
-                                        sx={{
-                                          position: "absolute",
-                                          top: 20,
-                                          right: 20,
-                                          px: 1.8,
-                                          py: 0.6,
-                                          borderRadius: 1,
-                                          bgcolor: "primary.main",
-                                          color: "white",
-                                          fontWeight: 900,
-                                          fontSize: "0.7rem",
-                                          letterSpacing: 1,
-                                          textTransform: "uppercase",
-                                          boxShadow: `0 8px 16px ${alpha(theme.palette.primary.main, 0.3)}`,
-                                        }}
-                                      >
-                                        RECOMMENDED
-                                      </Box>
-                                    )}
-                                  </Box>
-                            <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "1rem", lineHeight: 1.5, minHeight: "3rem", fontWeight: 500 }}>
-                              {plan.description}
-                            </Typography>
-                          </Box>
-  
-                          <Box sx={{ mb: 6, minHeight: "5rem", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                              <Box sx={{ display: "flex", alignItems: "baseline" }}>
-                                <Typography 
-                                  component={motion.span}
-                                  sx={{ 
-                                    fontSize: "3.5rem", 
-                                    fontWeight: 900, 
-                                    lineHeight: 1, 
-                                    letterSpacing: -3, 
-                                    color: "text.primary",
-                                    ...(isFreeTrial && {
-                                      background: isDark 
-                                        ? "linear-gradient(to right, #fff, rgba(255,255,255,0.6))"
-                                        : "linear-gradient(to right, #000, rgba(0,0,0,0.5))",
-                                      WebkitBackgroundClip: "text",
-                                      WebkitTextFillColor: "transparent",
-                                    })
-                                  }}
-                                >
-                                  {plan.price}
-                                </Typography>
-                              {plan.period && (
-                                <Typography sx={{ color: "text.secondary", ml: 1.5, fontSize: "1.1rem", fontWeight: 700 }}>
-                                  /{plan.period}
-                                </Typography>
-                              )}
+                                    <MotionTypography 
+                                      variant="overline" 
+                                      initial={{ opacity: 0, x: -20, filter: "blur(4px)" }}
+                                      whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                                      transition={{ duration: 0.6, delay: 0.2 }}
+                                      sx={{ 
+                                        fontWeight: 900, 
+                                        fontSize: "0.85rem",
+                                        letterSpacing: 2,
+                                        color: plan.popular || isFreeTrial ? "primary.main" : "text.secondary",
+                                        opacity: plan.popular || isFreeTrial ? 1 : 0.8,
+                                      }}
+                                    >
+                                      {plan.name}
+                                    </MotionTypography>
+                                    
+                                      {plan.popular && (
+                                        <Box
+                                          component={motion.div}
+                                          initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                                          whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                                          animate={{ y: [0, -6, 0] }}
+                                          transition={{ 
+                                            y: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+                                            opacity: { duration: 0.4, delay: 0.3 },
+                                            scale: { duration: 0.4, delay: 0.3 }
+                                          }}
+                                          sx={{
+                                            position: "absolute",
+                                            top: 20,
+                                            right: 20,
+                                            px: 1.8,
+                                            py: 0.6,
+                                            borderRadius: 1,
+                                            bgcolor: "primary.main",
+                                            color: "white",
+                                            fontWeight: 900,
+                                            fontSize: "0.7rem",
+                                            letterSpacing: 1,
+                                            textTransform: "uppercase",
+                                            boxShadow: `0 8px 16px ${alpha(theme.palette.primary.main, 0.3)}`,
+                                            zIndex: 2,
+                                          }}
+                                        >
+                                          RECOMMENDED
+                                        </Box>
+                                      )}
+                                    </Box>
+                              <MotionTypography 
+                                variant="body2" 
+                                initial={{ opacity: 0, x: -20, filter: "blur(4px)" }}
+                                whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                                transition={{ duration: 0.6, delay: 0.3 }}
+                                sx={{ color: "text.secondary", fontSize: "1rem", lineHeight: 1.5, minHeight: "3rem", fontWeight: 500 }}
+                              >
+                                {plan.description}
+                              </MotionTypography>
                             </Box>
-                            <Typography variant="caption" sx={{ color: "text.secondary", mt: 2, display: "flex", alignItems: "center", gap: 0.8, fontWeight: 700, fontSize: "0.8rem", opacity: 0.8 }}>
-                              {plan.isTrial ? (
-                                <>
-                                  <motion.span 
-                                    className="material-symbols-outlined" 
-                                    animate={isFreeTrial ? { rotate: [0, 360] } : {}}
-                                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                                    style={{ fontSize: 18, color: theme.palette.primary.main }}
-                                  >
-                                    verified
-                                  </motion.span>
-                                  No credit card required
-                                </>
-                              ) : (
-                                <>
-                                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>history_toggle_off</span>
-                                  Billed per month, cancel anytime
-                                </>
-                              )}
-                            </Typography>
-                          </Box>
-  
-                          <Box sx={{ mb: 5 }}>
-                            <Button
-                              fullWidth
-                              variant={plan.popular || isFreeTrial ? "contained" : "outlined"}
-                              onClick={() => {
-                                if (plan.name === "Enterprise") {
-                                  handleContactClick("I'm interested in the Enterprise plan.");
-                                } else {
-                                  const params = new URLSearchParams();
-                                  params.set("plan", plan.name.toLowerCase());
-                                  if (plan.isTrial) params.set("trial", "true");
-                                  window.location.href = `/register?${params.toString()}`;
-                                }
-                              }}
-                              sx={{
-                                fontWeight: 900,
-                                py: 2.2,
-                                borderRadius: 1.5,
-                                fontSize: "1rem",
-                                textTransform: "none",
-                                transition: "all 400ms cubic-bezier(0.22, 1, 0.36, 1)",
-                                position: "relative",
-                                overflow: "hidden",
-                                ...(plan.popular || isFreeTrial ? {
-                                  boxShadow: `0 12px 30px ${alpha(theme.palette.primary.main, 0.4)}`,
-                                  "&:hover": {
-                                    boxShadow: `0 20px 48px ${alpha(theme.palette.primary.main, 0.6)}`,
-                                    transform: "translateY(-3px)",
-                                  },
-                                  "&::after": isFreeTrial ? {
-                                    content: '""',
-                                    position: "absolute",
-                                    top: 0,
-                                    left: "-100%",
-                                    width: "100%",
-                                    height: "100%",
-                                    background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)",
-                                    animation: "shimmer 3s infinite",
-                                  } : {},
-                                  "@keyframes shimmer": {
-                                    "0%": { left: "-100%" },
-                                    "100%": { left: "100%" }
-                                  }
-                                } : {
-                                  borderColor: isDark ? alpha("#fff", 0.15) : alpha("#000", 0.15),
-                                  borderWidth: 2,
-                                  "&:hover": {
-                                    borderColor: theme.palette.primary.main,
-                                    bgcolor: isDark ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.primary.main, 0.05),
-                                    transform: "translateY(-2px)",
-                                  }
-                                }),
-                              }}
-                            >
-                              {plan.cta}
-                            </Button>
-                          </Box>
-  
-                          <Box sx={{ flex: 1 }}>
-                            <Typography 
-                              variant="caption" 
-                              sx={{ 
-                                display: "block", 
-                                mb: 2.5, 
-                                fontWeight: 900, 
-                                color: "text.primary",
-                                textTransform: "uppercase",
-                                letterSpacing: 1.5,
-                                fontSize: "0.75rem",
-                                opacity: 0.9,
-                              }}
-                            >
-                              Protocol Scope
-                            </Typography>
-                            {plan.features.map((feature, idx) => {
-                              const isObject = typeof feature === "object";
-                              const text = isObject ? feature.text : feature;
-                              const tooltip = isObject ? feature.tooltip : null;
-                              
-                              return (
-                                  <Box 
-                                    key={idx} 
-                                    component={motion.div}
-                                    initial={isFreeTrial ? { opacity: 0, x: -20, filter: "blur(4px)" } : {}}
-                                    whileInView={isFreeTrial ? { opacity: 1, x: 0, filter: "blur(0px)" } : {}}
-                                    transition={{ 
-                                      type: "spring",
-                                      damping: 20,
-                                      stiffness: 100,
-                                      delay: 0.6 + idx * 0.08 
+    
+                            <Box sx={{ mb: 6, minHeight: "5rem", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                                <Box sx={{ display: "flex", alignItems: "baseline" }}>
+                                  <MotionTypography 
+                                    sx={{ 
+                                      fontSize: "3.5rem", 
+                                      fontWeight: 900, 
+                                      lineHeight: 1, 
+                                      letterSpacing: -3, 
+                                      color: "text.primary",
+                                      ...(isFreeTrial && {
+                                        background: isDark 
+                                          ? "linear-gradient(to right, #fff, rgba(255,255,255,0.6))"
+                                          : "linear-gradient(to right, #000, rgba(0,0,0,0.5))",
+                                        WebkitBackgroundClip: "text",
+                                        WebkitTextFillColor: "transparent",
+                                      })
                                     }}
-                                    sx={{ display: "flex", alignItems: "flex-start", gap: 1.5, mb: 2 }}
+                                    initial={{ opacity: 0, x: -20, filter: "blur(4px)" }}
+                                    whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                                    transition={{ duration: 0.6, delay: 0.4 }}
                                   >
+                                    {plan.price}
+                                  </MotionTypography>
+                                {plan.period && (
+                                  <MotionTypography 
+                                    initial={{ opacity: 0, x: -10, filter: "blur(4px)" }}
+                                    whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                                    transition={{ duration: 0.6, delay: 0.5 }}
+                                    sx={{ color: "text.secondary", ml: 1.5, fontSize: "1.1rem", fontWeight: 700 }}
+                                  >
+                                    /{plan.period}
+                                  </MotionTypography>
+                                )}
+                              </Box>
+                              <MotionTypography 
+                                variant="caption" 
+                                initial={{ opacity: 0, x: -10, filter: "blur(4px)" }}
+                                whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                                transition={{ duration: 0.6, delay: 0.6 }}
+                                sx={{ color: "text.secondary", mt: 2, display: "flex", alignItems: "center", gap: 0.8, fontWeight: 700, fontSize: "0.8rem", opacity: 0.8 }}
+                              >
+                                {plan.isTrial ? (
+                                  <>
+                                    <motion.span 
+                                      className="material-symbols-outlined" 
+                                      animate={isFreeTrial ? { rotate: [0, 360] } : {}}
+                                      transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                                      style={{ fontSize: 18, color: theme.palette.primary.main }}
+                                    >
+                                      verified
+                                    </motion.span>
+                                    No credit card required
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>history_toggle_off</span>
+                                    Billed per month, cancel anytime
+                                  </>
+                                )}
+                              </MotionTypography>
+                            </Box>
+    
+                            <Box sx={{ mb: 5 }}>
+                              <Button
+                                fullWidth
+                                variant={plan.popular || isFreeTrial ? "contained" : "outlined"}
+                                onClick={() => {
+                                  if (plan.name === "Enterprise") {
+                                    handleContactClick("I'm interested in the Enterprise plan.");
+                                  } else {
+                                    const params = new URLSearchParams();
+                                    params.set("plan", plan.name.toLowerCase());
+                                    if (plan.isTrial) params.set("trial", "true");
+                                    window.location.href = `/register?${params.toString()}`;
+                                  }
+                                }}
+                                sx={{
+                                  fontWeight: 900,
+                                  py: 2.2,
+                                  borderRadius: 1.5,
+                                  fontSize: "1rem",
+                                  textTransform: "none",
+                                  transition: "all 400ms cubic-bezier(0.22, 1, 0.36, 1)",
+                                  position: "relative",
+                                  overflow: "hidden",
+                                  ...(plan.popular || isFreeTrial ? {
+                                    boxShadow: `0 12px 30px ${alpha(theme.palette.primary.main, 0.4)}`,
+                                    "&:hover": {
+                                      boxShadow: `0 20px 48px ${alpha(theme.palette.primary.main, 0.6)}`,
+                                      transform: "translateY(-3px)",
+                                    },
+                                    "&::after": isFreeTrial ? {
+                                      content: '""',
+                                      position: "absolute",
+                                      top: 0,
+                                      left: "-100%",
+                                      width: "100%",
+                                      height: "100%",
+                                      background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)",
+                                      animation: "shimmer 3s infinite",
+                                    } : {},
+                                    "@keyframes shimmer": {
+                                      "0%": { left: "-100%" },
+                                      "100%": { left: "100%" }
+                                    }
+                                  } : {
+                                    borderColor: isDark ? alpha("#fff", 0.15) : alpha("#000", 0.15),
+                                    borderWidth: 2,
+                                    "&:hover": {
+                                      borderColor: theme.palette.primary.main,
+                                      bgcolor: isDark ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.primary.main, 0.05),
+                                      transform: "translateY(-2px)",
+                                    }
+                                  }),
+                                }}
+                              >
+                                {plan.cta}
+                              </Button>
+                            </Box>
+    
+                            <Box sx={{ flex: 1 }}>
+                              <MotionTypography 
+                                variant="caption" 
+                                initial={{ opacity: 0, x: -20, filter: "blur(4px)" }}
+                                whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                                transition={{ duration: 0.6, delay: 0.7 }}
+                                sx={{ 
+                                  display: "block", 
+                                  mb: 2.5, 
+                                  fontWeight: 900, 
+                                  color: "text.primary",
+                                  textTransform: "uppercase",
+                                  letterSpacing: 1.5,
+                                  fontSize: "0.75rem",
+                                  opacity: 0.9,
+                                }}
+                              >
+                                Protocol Scope
+                              </MotionTypography>
+                              {plan.features.map((feature, idx) => {
+                                const isObject = typeof feature === "object";
+                                const text = isObject ? feature.text : feature;
+                                const tooltip = isObject ? feature.tooltip : null;
+                                
+                                return (
+                                    <Box 
+                                      key={idx} 
+                                      component={motion.div}
+                                      initial={{ opacity: 0, x: -20, filter: "blur(4px)" }}
+                                      whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                                      transition={{ 
+                                        type: "spring",
+                                        damping: 20,
+                                        stiffness: 100,
+                                        delay: 0.8 + idx * 0.08 
+                                      }}
+                                      sx={{ display: "flex", alignItems: "flex-start", gap: 1.5, mb: 2 }}
+                                    >
                                   <span
                                     className="material-symbols-outlined"
                                     style={{ fontSize: 18, color: theme.palette.primary.main, marginTop: 1, fontWeight: "bold" }}
