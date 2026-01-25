@@ -1000,201 +1000,302 @@ export default function LandingPage() {
             </Typography>
           </Box>
 
-          <Grid container spacing={3.5} justifyContent="center">
-            {PRICING.map((plan, index) => (
-              <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={index}>
-                <MotionBox
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                  viewport={{ once: true }}
-                  sx={{ height: "100%" }}
-                >
-                  <Card
-                    variant="outlined"
-                    sx={{
-                      ...cardStyle,
-                      borderRadius: 3,
-                      borderColor: plan.popular ? alpha(theme.palette.primary.main, 0.4) : alpha(isDark ? "#fff" : "#000", 0.08),
-                      "&:hover": {
-                        ...cardStyle["&:hover"],
-                        borderColor: plan.popular ? theme.palette.primary.main : alpha(theme.palette.primary.main, 0.3),
-                        ...(plan.name === "Free Trial" && {
-                          background: isDark
-                            ? `linear-gradient(165deg, ${alpha(theme.palette.primary.main, 0.2)} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`
-                            : `linear-gradient(165deg, ${alpha(theme.palette.primary.main, 0.08)} 0%, ${alpha(theme.palette.primary.main, 0.02)} 100%)`,
-                        }),
-                      }
-                    }}
-                  >
-                    {plan.popular && (
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          height: 6,
-                          background: `linear-gradient(90deg, transparent, ${theme.palette.primary.main}, transparent)`,
-                        }}
-                      />
-                    )}
-                    <CardContent sx={{ p: 5, flex: 1, display: "flex", flexDirection: "column" }}>
-                      <Box sx={{ mb: 4 }}>
-                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2.5 }}>
-                          <Typography 
-                            variant="overline" 
-                            sx={{ 
-                              fontWeight: 900, 
-                              fontSize: "0.85rem",
-                              letterSpacing: 2,
-                              color: plan.popular ? "primary.main" : "text.secondary",
-                              opacity: plan.popular ? 1 : 0.8,
-                            }}
-                          >
-                            {plan.name}
-                          </Typography>
-                          {plan.popular && (
-                            <Box
-                              sx={{
-                                px: 1.8,
-                                py: 0.6,
-                                borderRadius: 1,
-                                bgcolor: "primary.main",
-                                color: "white",
-                                fontWeight: 900,
-                                fontSize: "0.7rem",
-                                letterSpacing: 1,
-                                textTransform: "uppercase",
-                                boxShadow: `0 8px 16px ${alpha(theme.palette.primary.main, 0.3)}`,
-                              }}
-                            >
-                              RECOMMENDED
-                            </Box>
-                          )}
-                        </Box>
-                        <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "1rem", lineHeight: 1.5, minHeight: "3rem", fontWeight: 500 }}>
-                          {plan.description}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ mb: 6, minHeight: "5rem", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                        <Box sx={{ display: "flex", alignItems: "baseline" }}>
-                          <Typography sx={{ fontSize: "3.5rem", fontWeight: 900, lineHeight: 1, letterSpacing: -3, color: "text.primary" }}>
-                            {plan.price}
-                          </Typography>
-                          {plan.period && (
-                            <Typography sx={{ color: "text.secondary", ml: 1.5, fontSize: "1.1rem", fontWeight: 700 }}>
-                              /{plan.period}
-                            </Typography>
-                          )}
-                        </Box>
-                        <Typography variant="caption" sx={{ color: "text.secondary", mt: 2, display: "flex", alignItems: "center", gap: 0.8, fontWeight: 700, fontSize: "0.8rem", opacity: 0.8 }}>
-                          {plan.isTrial ? (
-                            <>
-                              <span className="material-symbols-outlined" style={{ fontSize: 18, color: theme.palette.primary.main }}>verified</span>
-                              No credit card required
-                            </>
-                          ) : (
-                            <>
-                              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>history_toggle_off</span>
-                              Billed per month, cancel anytime
-                            </>
-                          )}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ mb: 5 }}>
-                        <Button
-                          fullWidth
-                          variant={plan.popular ? "contained" : "outlined"}
-                          onClick={() => {
-                            if (plan.name === "Enterprise") {
-                              handleContactClick("I'm interested in the Enterprise plan.");
-                            } else {
-                              const params = new URLSearchParams();
-                              params.set("plan", plan.name.toLowerCase());
-                              if (plan.isTrial) params.set("trial", "true");
-                              window.location.href = `/register?${params.toString()}`;
-                            }
+            <Grid container spacing={3.5} justifyContent="center">
+              {PRICING.map((plan, index) => {
+                const isFreeTrial = plan.name === "Free Trial";
+                
+                return (
+                  <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={index}>
+                    <MotionBox
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                      viewport={{ once: true }}
+                      sx={{ height: "100%", position: "relative" }}
+                    >
+                      {isFreeTrial && (
+                        <Box
+                          component={motion.div}
+                          animate={{
+                            opacity: [0.3, 0.6, 0.3],
+                          }}
+                          transition={{
+                            duration: 4,
+                            repeat: Infinity,
+                            ease: "easeInOut",
                           }}
                           sx={{
-                            fontWeight: 900,
-                            py: 2.2,
-                            borderRadius: 1.5,
-                            fontSize: "1rem",
-                            textTransform: "none",
-                            transition: "all 400ms cubic-bezier(0.22, 1, 0.36, 1)",
-                            ...(plan.popular ? {
-                              boxShadow: `0 12px 30px ${alpha(theme.palette.primary.main, 0.4)}`,
-                              "&:hover": {
-                                boxShadow: `0 20px 48px ${alpha(theme.palette.primary.main, 0.6)}`,
-                                transform: "translateY(-3px)",
-                              }
-                            } : {
-                              borderColor: isDark ? alpha("#fff", 0.15) : alpha("#000", 0.15),
-                              borderWidth: 2,
-                              "&:hover": {
-                                borderColor: theme.palette.primary.main,
-                                bgcolor: isDark ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.primary.main, 0.05),
-                                transform: "translateY(-2px)",
-                              }
+                            position: "absolute",
+                            inset: -2,
+                            borderRadius: 3.5,
+                            padding: "2px",
+                            background: `linear-gradient(45deg, ${alpha(theme.palette.primary.main, 0)}, ${alpha(theme.palette.primary.main, 0.5)}, ${alpha(theme.palette.primary.main, 0)})`,
+                            backgroundSize: "200% 200%",
+                            zIndex: 0,
+                            filter: "blur(8px)",
+                            pointerEvents: "none",
+                          }}
+                        />
+                      )}
+                      <Card
+                        variant="outlined"
+                        sx={{
+                          ...cardStyle,
+                          borderRadius: 3,
+                          zIndex: 1,
+                          borderColor: plan.popular 
+                            ? alpha(theme.palette.primary.main, 0.4) 
+                            : isFreeTrial
+                              ? alpha(theme.palette.primary.main, 0.2)
+                              : alpha(isDark ? "#fff" : "#000", 0.08),
+                          background: isFreeTrial && isDark
+                            ? `linear-gradient(165deg, ${alpha("#0B1224", 0.9)} 0%, ${alpha("#05070A", 0.95)} 100%)`
+                            : undefined,
+                          "&:hover": {
+                            ...cardStyle["&:hover"],
+                            borderColor: plan.popular || isFreeTrial ? theme.palette.primary.main : alpha(theme.palette.primary.main, 0.3),
+                            ...(isFreeTrial && {
+                              background: isDark
+                                ? `linear-gradient(165deg, ${alpha(theme.palette.primary.main, 0.12)} 0%, ${alpha(theme.palette.primary.main, 0.04)} 100%)`
+                                : `linear-gradient(165deg, ${alpha(theme.palette.primary.main, 0.06)} 0%, ${alpha(theme.palette.primary.main, 0.02)} 100%)`,
                             }),
-                          }}
-                        >
-                          {plan.cta}
-                        </Button>
-                      </Box>
-
-                      <Box sx={{ flex: 1 }}>
-                        <Typography 
-                          variant="caption" 
-                          sx={{ 
-                            display: "block", 
-                            mb: 2.5, 
-                            fontWeight: 900, 
-                            color: "text.primary",
-                            textTransform: "uppercase",
-                            letterSpacing: 1.5,
-                            fontSize: "0.75rem",
-                            opacity: 0.9,
-                          }}
-                        >
-                          Protocol Scope
-                        </Typography>
-                        {plan.features.map((feature, idx) => {
-                          const isObject = typeof feature === "object";
-                          const text = isObject ? feature.text : feature;
-                          const tooltip = isObject ? feature.tooltip : null;
-                          
-                          return (
-                            <Box key={idx} sx={{ display: "flex", alignItems: "flex-start", gap: 1.5, mb: 2 }}>
-                              <span
-                                className="material-symbols-outlined"
-                                style={{ fontSize: 18, color: theme.palette.primary.main, marginTop: 1, fontWeight: "bold" }}
+                          }
+                        }}
+                      >
+                        {plan.popular && (
+                          <Box
+                            sx={{
+                              position: "absolute",
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              height: 6,
+                              background: `linear-gradient(90deg, transparent, ${theme.palette.primary.main}, transparent)`,
+                            }}
+                          />
+                        )}
+                        <CardContent sx={{ p: 5, flex: 1, display: "flex", flexDirection: "column", position: "relative" }}>
+                          <Box sx={{ mb: 4 }}>
+                            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2.5 }}>
+                              <Typography 
+                                variant="overline" 
+                                sx={{ 
+                                  fontWeight: 900, 
+                                  fontSize: "0.85rem",
+                                  letterSpacing: 2,
+                                  color: plan.popular || isFreeTrial ? "primary.main" : "text.secondary",
+                                  opacity: plan.popular || isFreeTrial ? 1 : 0.8,
+                                }}
                               >
-                                check
-                              </span>
-                              <Typography variant="body2" sx={{ fontSize: "0.95rem", lineHeight: 1.4, display: "flex", alignItems: "center", gap: 0.8, fontWeight: 600, color: "text.secondary" }}>
-                                {text}
-                                {tooltip && (
-                                  <Tooltip title={tooltip} arrow placement="top">
-                                    <span className="material-symbols-outlined" style={{ fontSize: 16, opacity: 0.4, cursor: "help" }}>help</span>
-                                  </Tooltip>
-                                )}
+                                {plan.name}
                               </Typography>
+                              {plan.popular && (
+                                <Box
+                                  sx={{
+                                    px: 1.8,
+                                    py: 0.6,
+                                    borderRadius: 1,
+                                    bgcolor: "primary.main",
+                                    color: "white",
+                                    fontWeight: 900,
+                                    fontSize: "0.7rem",
+                                    letterSpacing: 1,
+                                    textTransform: "uppercase",
+                                    boxShadow: `0 8px 16px ${alpha(theme.palette.primary.main, 0.3)}`,
+                                  }}
+                                >
+                                  RECOMMENDED
+                                </Box>
+                              )}
+                              {isFreeTrial && (
+                                <Box
+                                  component={motion.div}
+                                  animate={{ scale: [1, 1.05, 1] }}
+                                  transition={{ duration: 2, repeat: Infinity }}
+                                  sx={{
+                                    px: 1.5,
+                                    py: 0.5,
+                                    borderRadius: 1,
+                                    border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                                    color: "primary.main",
+                                    fontWeight: 900,
+                                    fontSize: "0.65rem",
+                                    letterSpacing: 1,
+                                    textTransform: "uppercase",
+                                    bgcolor: alpha(theme.palette.primary.main, 0.05),
+                                  }}
+                                >
+                                  MOST POPULAR START
+                                </Box>
+                              )}
                             </Box>
-                          );
-                        })}
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </MotionBox>
-              </Grid>
-            ))}
-          </Grid>
-        </Container>
-      </Box>
+                            <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "1rem", lineHeight: 1.5, minHeight: "3rem", fontWeight: 500 }}>
+                              {plan.description}
+                            </Typography>
+                          </Box>
+  
+                          <Box sx={{ mb: 6, minHeight: "5rem", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                            <Box sx={{ display: "flex", alignItems: "baseline" }}>
+                              <Typography 
+                                component={motion.span}
+                                sx={{ 
+                                  fontSize: "3.5rem", 
+                                  fontWeight: 900, 
+                                  lineHeight: 1, 
+                                  letterSpacing: -3, 
+                                  color: "text.primary",
+                                  ...(isFreeTrial && {
+                                    background: `linear-gradient(135deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 100%)`,
+                                    WebkitBackgroundClip: "text",
+                                    WebkitTextFillColor: "transparent",
+                                  })
+                                }}
+                              >
+                                {plan.price}
+                              </Typography>
+                              {plan.period && (
+                                <Typography sx={{ color: "text.secondary", ml: 1.5, fontSize: "1.1rem", fontWeight: 700 }}>
+                                  /{plan.period}
+                                </Typography>
+                              )}
+                            </Box>
+                            <Typography variant="caption" sx={{ color: "text.secondary", mt: 2, display: "flex", alignItems: "center", gap: 0.8, fontWeight: 700, fontSize: "0.8rem", opacity: 0.8 }}>
+                              {plan.isTrial ? (
+                                <>
+                                  <motion.span 
+                                    className="material-symbols-outlined" 
+                                    animate={isFreeTrial ? { rotate: [0, 360] } : {}}
+                                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                                    style={{ fontSize: 18, color: theme.palette.primary.main }}
+                                  >
+                                    verified
+                                  </motion.span>
+                                  No credit card required
+                                </>
+                              ) : (
+                                <>
+                                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>history_toggle_off</span>
+                                  Billed per month, cancel anytime
+                                </>
+                              )}
+                            </Typography>
+                          </Box>
+  
+                          <Box sx={{ mb: 5 }}>
+                            <Button
+                              fullWidth
+                              variant={plan.popular || isFreeTrial ? "contained" : "outlined"}
+                              onClick={() => {
+                                if (plan.name === "Enterprise") {
+                                  handleContactClick("I'm interested in the Enterprise plan.");
+                                } else {
+                                  const params = new URLSearchParams();
+                                  params.set("plan", plan.name.toLowerCase());
+                                  if (plan.isTrial) params.set("trial", "true");
+                                  window.location.href = `/register?${params.toString()}`;
+                                }
+                              }}
+                              sx={{
+                                fontWeight: 900,
+                                py: 2.2,
+                                borderRadius: 1.5,
+                                fontSize: "1rem",
+                                textTransform: "none",
+                                transition: "all 400ms cubic-bezier(0.22, 1, 0.36, 1)",
+                                position: "relative",
+                                overflow: "hidden",
+                                ...(plan.popular || isFreeTrial ? {
+                                  boxShadow: `0 12px 30px ${alpha(theme.palette.primary.main, 0.4)}`,
+                                  "&:hover": {
+                                    boxShadow: `0 20px 48px ${alpha(theme.palette.primary.main, 0.6)}`,
+                                    transform: "translateY(-3px)",
+                                  },
+                                  "&::after": isFreeTrial ? {
+                                    content: '""',
+                                    position: "absolute",
+                                    top: 0,
+                                    left: "-100%",
+                                    width: "100%",
+                                    height: "100%",
+                                    background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)",
+                                    animation: "shimmer 3s infinite",
+                                  } : {},
+                                  "@keyframes shimmer": {
+                                    "0%": { left: "-100%" },
+                                    "100%": { left: "100%" }
+                                  }
+                                } : {
+                                  borderColor: isDark ? alpha("#fff", 0.15) : alpha("#000", 0.15),
+                                  borderWidth: 2,
+                                  "&:hover": {
+                                    borderColor: theme.palette.primary.main,
+                                    bgcolor: isDark ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.primary.main, 0.05),
+                                    transform: "translateY(-2px)",
+                                  }
+                                }),
+                              }}
+                            >
+                              {plan.cta}
+                            </Button>
+                          </Box>
+  
+                          <Box sx={{ flex: 1 }}>
+                            <Typography 
+                              variant="caption" 
+                              sx={{ 
+                                display: "block", 
+                                mb: 2.5, 
+                                fontWeight: 900, 
+                                color: "text.primary",
+                                textTransform: "uppercase",
+                                letterSpacing: 1.5,
+                                fontSize: "0.75rem",
+                                opacity: 0.9,
+                              }}
+                            >
+                              Protocol Scope
+                            </Typography>
+                            {plan.features.map((feature, idx) => {
+                              const isObject = typeof feature === "object";
+                              const text = isObject ? feature.text : feature;
+                              const tooltip = isObject ? feature.tooltip : null;
+                              
+                              return (
+                                <Box 
+                                  key={idx} 
+                                  component={motion.div}
+                                  initial={isFreeTrial ? { opacity: 0, x: -10 } : {}}
+                                  whileInView={isFreeTrial ? { opacity: 1, x: 0 } : {}}
+                                  transition={{ delay: 0.5 + idx * 0.1 }}
+                                  sx={{ display: "flex", alignItems: "flex-start", gap: 1.5, mb: 2 }}
+                                >
+                                  <span
+                                    className="material-symbols-outlined"
+                                    style={{ fontSize: 18, color: theme.palette.primary.main, marginTop: 1, fontWeight: "bold" }}
+                                  >
+                                    check
+                                  </span>
+                                  <Typography variant="body2" sx={{ fontSize: "0.95rem", lineHeight: 1.4, display: "flex", alignItems: "center", gap: 0.8, fontWeight: 600, color: "text.secondary" }}>
+                                    {text}
+                                    {tooltip && (
+                                      <Tooltip title={tooltip} arrow placement="top">
+                                        <span className="material-symbols-outlined" style={{ fontSize: 16, opacity: 0.4, cursor: "help" }}>help</span>
+                                      </Tooltip>
+                                    )}
+                                  </Typography>
+                                </Box>
+                              );
+                            })}
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </MotionBox>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          </Container>
+        </Box>
 
       <Box
         component="footer"
