@@ -78,15 +78,15 @@ export default async function OrgViewReportsPage({
         icon="analytics"
       />
 
-      <Box sx={{ px: { xs: 3, md: 6 }, pb: 6 }}>
-        <Grid container spacing={3}>
-          {reports.map((report) => (
-            <Grid item xs={12} sm={6} lg={4} key={report.id}>
-              <OrgViewReportCard report={report} orgId={orgId} />
-            </Grid>
-          ))}
-        </Grid>
-      </Box>
+        <Box sx={{ px: { xs: 3, md: 6 }, pb: 6 }}>
+          <Grid container spacing={3}>
+            {reports.map((report) => (
+              <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={report.id}>
+                <OrgViewReportCard report={report} orgId={orgId} />
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
     </Box>
   );
 }

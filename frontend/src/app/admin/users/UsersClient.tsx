@@ -72,7 +72,7 @@ export default function UsersClient({ users }: UsersClientProps) {
       </Box>
 
       <Grid container spacing={4} sx={{ mb: 6 }}>
-        <Grid item xs={12} md={7}>
+        <Grid size={{ xs: 12, md: 7 }}>
           <Card variant="outlined" sx={{ borderRadius: 3, height: "100%" }}>
             <Box sx={{ p: 2.5, borderBottom: "1px solid", borderColor: "divider", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <Typography sx={{ fontWeight: 700, fontSize: t.typography.fontSize.base }}>
@@ -138,26 +138,26 @@ export default function UsersClient({ users }: UsersClientProps) {
                 </TableBody>
               </Table>
             </TableContainer>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} md={5}>
-          <Card 
-            variant="outlined" 
-            sx={{ 
-              borderRadius: 3, 
-              p: 4, 
-              height: "100%", 
-              display: "flex", 
-              flexDirection: "column", 
-              justifyContent: "center",
-              bgcolor: isDark ? alpha("#6366f1", 0.03) : alpha("#6366f1", 0.02),
-              border: "1px solid",
-              borderColor: alpha("#6366f1", 0.2),
-              position: "relative",
-              overflow: "hidden"
-            }}
-          >
+            </Card>
+          </Grid>
+  
+          <Grid size={{ xs: 12, md: 5 }}>
+            <Card 
+              variant="outlined" 
+              sx={{ 
+                borderRadius: 3, 
+                p: 4, 
+                height: "100%", 
+                display: "flex", 
+                flexDirection: "column", 
+                justifyContent: "center",
+                bgcolor: isDark ? alpha("#6366f1", 0.03) : alpha("#6366f1", 0.02),
+                border: "1px solid",
+                borderColor: alpha("#6366f1", 0.2),
+                position: "relative",
+                overflow: "hidden"
+              }}
+            >
             <Box sx={{ position: "absolute", top: -20, right: -20, opacity: 0.05 }}>
               <span className="material-symbols-outlined" style={{ fontSize: 160, color: "#6366f1" }}>corporate_fare</span>
             </Box>

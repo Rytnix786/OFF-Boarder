@@ -197,7 +197,7 @@ export async function AuditorDashboard({ session, isOrgView }: AuditorDashboardP
 
       <Grid container spacing={3} sx={{ mb: 5 }}>
         {stats.map((stat) => (
-          <Grid key={stat.label} item xs={6} sm={3}>
+          <Grid key={stat.label} size={{ xs: 6, sm: 3 }}>
             <KPICard
               label={stat.label}
               value={stat.value}
@@ -210,7 +210,7 @@ export async function AuditorDashboard({ session, isOrgView }: AuditorDashboardP
       </Grid>
 
       <Grid container spacing={4}>
-        <Grid item xs={12} lg={8}>
+        <Grid size={{ xs: 12, lg: 8 }}>
           <SectionCard
             title="Audit Trail"
             icon="receipt_long"
@@ -390,7 +390,7 @@ export async function AuditorDashboard({ session, isOrgView }: AuditorDashboardP
           </Box>
         </Grid>
 
-        <Grid item xs={12} lg={4}>
+        <Grid size={{ xs: 12, lg: 4 }}>
           <Card 
             sx={{ 
               borderRadius: "20px", 

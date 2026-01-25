@@ -155,7 +155,7 @@ export default function OrganizationDetailsClient({ id }: { id: string }) {
       </Box>
 
       <Grid container spacing={4}>
-        <Grid item xs={12} lg={8}>
+        <Grid size={{ xs: 12, lg: 8 }}>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
             {/* Org Users Section */}
             <Card variant="outlined" sx={{ borderRadius: 3, overflow: "hidden" }}>
@@ -311,55 +311,55 @@ export default function OrganizationDetailsClient({ id }: { id: string }) {
               </TableContainer>
             </Card>
           </Box>
-        </Grid>
-
-        <Grid item xs={12} lg={4}>
-          <Card variant="outlined" sx={{ borderRadius: 3, p: 3 }}>
-            <Typography sx={{ fontWeight: 700, fontSize: t.typography.fontSize.base, mb: 3 }}>
-              Lifecycle Metrics
-            </Typography>
-            
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <Typography sx={{ fontSize: t.typography.fontSize.sm, color: "text.secondary", fontWeight: 500 }}>
-                  Total Managed Employees
-                </Typography>
-                <Typography sx={{ fontSize: t.typography.fontSize.lg, fontWeight: 800 }}>
-                  {org.employeeStats.total}
-                </Typography>
-              </Box>
-
-              <Box sx={{ pt: 2, borderTop: "1px solid", borderColor: "divider" }}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "#22c55e" }} />
-                        <Typography sx={{ fontSize: t.typography.fontSize.sm, fontWeight: 500 }}>Active</Typography>
+          </Grid>
+  
+          <Grid size={{ xs: 12, lg: 4 }}>
+            <Card variant="outlined" sx={{ borderRadius: 3, p: 3 }}>
+              <Typography sx={{ fontWeight: 700, fontSize: t.typography.fontSize.base, mb: 3 }}>
+                Lifecycle Metrics
+              </Typography>
+              
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <Typography sx={{ fontSize: t.typography.fontSize.sm, color: "text.secondary", fontWeight: 500 }}>
+                    Total Managed Employees
+                  </Typography>
+                  <Typography sx={{ fontSize: t.typography.fontSize.lg, fontWeight: 800 }}>
+                    {org.employeeStats.total}
+                  </Typography>
+                </Box>
+  
+                <Box sx={{ pt: 2, borderTop: "1px solid", borderColor: "divider" }}>
+                  <Grid container spacing={2}>
+                    <Grid size={12}>
+                      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "#22c55e" }} />
+                          <Typography sx={{ fontSize: t.typography.fontSize.sm, fontWeight: 500 }}>Active</Typography>
+                        </Box>
+                        <Typography sx={{ fontSize: t.typography.fontSize.sm, fontWeight: 600 }}>{org.employeeStats.active}</Typography>
                       </Box>
-                      <Typography sx={{ fontSize: t.typography.fontSize.sm, fontWeight: 600 }}>{org.employeeStats.active}</Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "#f59e0b" }} />
-                        <Typography sx={{ fontSize: t.typography.fontSize.sm, fontWeight: 500 }}>Offboarding</Typography>
+                    </Grid>
+                    <Grid size={12}>
+                      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "#f59e0b" }} />
+                          <Typography sx={{ fontSize: t.typography.fontSize.sm, fontWeight: 500 }}>Offboarding</Typography>
+                        </Box>
+                        <Typography sx={{ fontSize: t.typography.fontSize.sm, fontWeight: 600 }}>{org.employeeStats.offboarding}</Typography>
                       </Box>
-                      <Typography sx={{ fontSize: t.typography.fontSize.sm, fontWeight: 600 }}>{org.employeeStats.offboarding}</Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "#71717a" }} />
-                        <Typography sx={{ fontSize: t.typography.fontSize.sm, fontWeight: 500 }}>Offboarded</Typography>
+                    </Grid>
+                    <Grid size={12}>
+                      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "#71717a" }} />
+                          <Typography sx={{ fontSize: t.typography.fontSize.sm, fontWeight: 500 }}>Offboarded</Typography>
+                        </Box>
+                        <Typography sx={{ fontSize: t.typography.fontSize.sm, fontWeight: 600 }}>{org.employeeStats.offboarded}</Typography>
                       </Box>
-                      <Typography sx={{ fontSize: t.typography.fontSize.sm, fontWeight: 600 }}>{org.employeeStats.offboarded}</Typography>
-                    </Box>
+                    </Grid>
                   </Grid>
-                </Grid>
-              </Box>
+                </Box>
 
               <Box 
                 sx={{ 

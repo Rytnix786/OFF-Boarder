@@ -313,24 +313,24 @@ export function EnterpriseContactModal({
             )}
 
             <Box sx={{ display: "flex", flexDirection: "column", gap: 3.5 }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: "text.secondary", ml: 0.5 }}>
-                      Name
-                    </Typography>
-                    <TextField
-                      placeholder="Hasan"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      required
-                      fullWidth
-                      variant="outlined"
-                      sx={inputSx}
-                    />
-                  </Box>
-                </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid container spacing={3}>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: "text.secondary", ml: 0.5 }}>
+                        Name
+                      </Typography>
+                      <TextField
+                        placeholder="Hasan"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                        fullWidth
+                        variant="outlined"
+                        sx={inputSx}
+                      />
+                    </Box>
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <Typography variant="caption" sx={{ fontWeight: 700, color: "text.secondary", ml: 0.5 }}>
                       Work Email

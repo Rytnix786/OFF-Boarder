@@ -187,9 +187,9 @@ export default function AssetsClient({
             </Paper>
           ) : (
             <Grid container spacing={3}>
-              {assignedAssets.map((asset) => (
-                <Grid item xs={12} sm={6} md={4} key={asset.id}>
-                  <Card
+                {assignedAssets.map((asset) => (
+                  <Grid size={{ xs: 12, sm: 6, md: 4 }} key={asset.id}>
+                    <Card
                     variant="outlined"
                     onClick={() => {
                       setDetailAsset(asset);
@@ -363,75 +363,75 @@ export default function AssetsClient({
               </Box>
             </Box>
             
-            <DialogContent sx={{ p: 4, pt: 0 }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <Divider sx={{ mb: 2 }} />
-                </Grid>
-                
-                <Grid item xs={6}>
-                  <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}>
-                    Serial Number
-                  </Typography>
-                  <Typography variant="body1" fontWeight={600} sx={{ fontFamily: "monospace" }}>
-                    {detailAsset.serialNumber || "Not Recorded"}
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}>
-                    Asset Tag
-                  </Typography>
-                  <Typography variant="body1" fontWeight={600} sx={{ fontFamily: "monospace" }}>
-                    {detailAsset.assetTag || "Not Recorded"}
-                  </Typography>
-                </Grid>
-                
-                <Grid item xs={6}>
-                  <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}>
-                    Status
-                  </Typography>
-                  <Box sx={{ mt: 0.5 }}>
-                    <Chip 
-                      size="small" 
-                      label={detailAsset.status} 
-                      color="success" 
-                      sx={{ fontWeight: 700 }} 
-                    />
-                  </Box>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}>
-                    Assigned On
-                  </Typography>
-                  <Typography variant="body1" fontWeight={600}>
-                    {new Date(detailAsset.createdAt).toLocaleDateString("en-US", { 
-                      month: "long", day: "numeric", year: "numeric" 
-                    })}
-                  </Typography>
-                </Grid>
-
-                {detailAsset.description && (
-                  <Grid item xs={12}>
-                    <Box sx={{ p: 2, borderRadius: 3, bgcolor: alpha(theme.palette.action.hover, 0.5) }}>
-                      <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: "block", mb: 0.5 }}>
-                        Description
-                      </Typography>
-                      <Typography variant="body2">{detailAsset.description}</Typography>
+              <DialogContent sx={{ p: 4, pt: 0 }}>
+                <Grid container spacing={3}>
+                  <Grid size={12}>
+                    <Divider sx={{ mb: 2 }} />
+                  </Grid>
+                  
+                  <Grid size={6}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}>
+                      Serial Number
+                    </Typography>
+                    <Typography variant="body1" fontWeight={600} sx={{ fontFamily: "monospace" }}>
+                      {detailAsset.serialNumber || "Not Recorded"}
+                    </Typography>
+                  </Grid>
+                  <Grid size={6}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}>
+                      Asset Tag
+                    </Typography>
+                    <Typography variant="body1" fontWeight={600} sx={{ fontFamily: "monospace" }}>
+                      {detailAsset.assetTag || "Not Recorded"}
+                    </Typography>
+                  </Grid>
+                  
+                  <Grid size={6}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}>
+                      Status
+                    </Typography>
+                    <Box sx={{ mt: 0.5 }}>
+                      <Chip 
+                        size="small" 
+                        label={detailAsset.status} 
+                        color="success" 
+                        sx={{ fontWeight: 700 }} 
+                      />
                     </Box>
                   </Grid>
-                )}
-
-                {detailAsset.notes && (
-                  <Grid item xs={12}>
-                    <Box sx={{ p: 2, borderRadius: 3, border: "1px dashed", borderColor: "divider" }}>
-                      <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: "block", mb: 0.5 }}>
-                        Assignment Notes
-                      </Typography>
-                      <Typography variant="body2" fontStyle="italic">"{detailAsset.notes}"</Typography>
-                    </Box>
+                  <Grid size={6}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}>
+                      Assigned On
+                    </Typography>
+                    <Typography variant="body1" fontWeight={600}>
+                      {new Date(detailAsset.createdAt).toLocaleDateString("en-US", { 
+                        month: "long", day: "numeric", year: "numeric" 
+                      })}
+                    </Typography>
                   </Grid>
-                )}
-              </Grid>
+  
+                  {detailAsset.description && (
+                    <Grid size={12}>
+                      <Box sx={{ p: 2, borderRadius: 3, bgcolor: alpha(theme.palette.action.hover, 0.5) }}>
+                        <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: "block", mb: 0.5 }}>
+                          Description
+                        </Typography>
+                        <Typography variant="body2">{detailAsset.description}</Typography>
+                      </Box>
+                    </Grid>
+                  )}
+  
+                  {detailAsset.notes && (
+                    <Grid size={12}>
+                      <Box sx={{ p: 2, borderRadius: 3, border: "1px dashed", borderColor: "divider" }}>
+                        <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: "block", mb: 0.5 }}>
+                          Assignment Notes
+                        </Typography>
+                        <Typography variant="body2" fontStyle="italic">"{detailAsset.notes}"</Typography>
+                      </Box>
+                    </Grid>
+                  )}
+                </Grid>
             </DialogContent>
             
             <DialogActions sx={{ p: 3, pt: 1 }}>
