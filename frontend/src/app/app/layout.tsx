@@ -15,18 +15,40 @@ export default async function AppLayout({
   const headersList = await headers();
   const pathname = headersList.get("x-pathname") || "";
 
+  // 1. Get the standard Auth session first to understand the user's primary identity
+  const session = await getAuthSession();
+
+  // 2. Handle Employee Portal paths with awareness of both sessions
   const isEmployeePortalPath = pathname.startsWith("/app/employee");
 
   if (isEmployeePortalPath) {
     const employeeSession = await getEmployeePortalSession();
-    if (!employeeSession) {
+    
+    // If no employee session and no admin session, force login
+    if (!employeeSession && !session) {
       redirect("/login?redirect=/app/employee");
     }
+    
+    // If no employee session but has admin session, allow viewing if they have a link
+    // Otherwise, they shouldn't be here
+    if (!employeeSession && session) {
+      const employeeLink = await prisma.employeeUserLink.findFirst({
+        where: { userId: session.user.id },
+      });
+      
+      if (!employeeLink) {
+        redirect("/app"); // Back to main dashboard
+      }
+      
+      // If they have a link but it's not verified yet, or they are just an admin
+      // we might want to let them see the portal if we have a "preview" mode
+      // but for now, if requireEmployeePortalAuth would fail, we should protect it
+    }
+    
     return <>{children}</>;
   }
 
-  const session = await getAuthSession();
-
+  // 3. Protect all other /app routes
   if (!session) {
     redirect("/login");
   }

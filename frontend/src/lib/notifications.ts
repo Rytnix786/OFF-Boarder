@@ -109,7 +109,7 @@ export async function createEmployeeNotification(
     .select("userId")
     .eq("organizationId", organizationId)
     .eq("employeeId", employeeId)
-    .eq("status", "VERIFIED")
+    .in("status", ["VERIFIED", "PENDING_VERIFICATION"])
     .single();
 
   if (!employeeLink?.userId) {
