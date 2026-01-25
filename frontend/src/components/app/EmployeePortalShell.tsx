@@ -42,7 +42,7 @@ interface EmployeePortalShellProps {
 const navItems = [
   { label: "Dashboard", icon: "dashboard", href: "/app/employee" },
   { label: "My Tasks", icon: "task_alt", href: "/app/employee/tasks" },
-  { label: "Assets to Return", icon: "devices", href: "/app/employee/assets" },
+  { label: "My Assets", icon: "devices", href: "/app/employee/assets", alwaysEnabled: true },
   { label: "Attestation", icon: "verified_user", href: "/app/employee/attestation" },
   { label: "Notifications", icon: "notifications", href: "/app/employee/notifications", alwaysEnabled: true },
   { label: "My Profile", icon: "person", href: "/app/employee/profile", alwaysEnabled: true },
