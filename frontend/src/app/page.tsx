@@ -347,17 +347,25 @@ export default function LandingPage() {
                   </Typography>
                 </MotionBox>
 
-                <MotionBox variants={fadeInUp}>
-                  <Box
+                  <MotionBox 
+                    variants={stagger}
                     sx={{
                       display: "flex",
                       flexWrap: "wrap",
                       gap: 2,
                     }}
                   >
-                    {TRUST_BADGES.map((badge) => (
-                      <Box
+                    {TRUST_BADGES.map((badge, index) => (
+                      <MotionBox
                         key={badge.label}
+                        variants={fadeInUp}
+                        whileHover={{ 
+                          y: -4,
+                          borderColor: alpha(theme.palette.primary.main, 0.3),
+                          bgcolor: isDark ? alpha(theme.palette.primary.main, 0.08) : alpha(theme.palette.primary.main, 0.04),
+                          boxShadow: `0 12px 24px -8px ${alpha(theme.palette.primary.main, 0.15)}`,
+                        }}
+                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                         sx={{
                           display: "flex",
                           alignItems: "center",
@@ -368,15 +376,25 @@ export default function LandingPage() {
                           bgcolor: isDark ? alpha("#fff", 0.03) : alpha("#000", 0.02),
                           border: "1px solid",
                           borderColor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
-                          transition: "all 300ms cubic-bezier(0.22, 1, 0.36, 1)",
+                          cursor: "default",
                         }}
                       >
-                        <span
+                        <motion.span
                           className="material-symbols-outlined"
-                          style={{ fontSize: 20, color: theme.palette.primary.main, opacity: 0.9 }}
+                          animate={{ 
+                            opacity: [0.7, 1, 0.7],
+                            scale: [0.98, 1, 0.98]
+                          }}
+                          transition={{ 
+                            duration: 4, 
+                            repeat: Infinity, 
+                            ease: "linear",
+                            delay: index * 0.5 
+                          }}
+                          style={{ fontSize: 20, color: theme.palette.primary.main }}
                         >
                           {badge.icon}
-                        </span>
+                        </motion.span>
                         <Typography 
                           variant="caption" 
                           sx={{ 
@@ -389,10 +407,9 @@ export default function LandingPage() {
                         >
                           {badge.label}
                         </Typography>
-                      </Box>
+                      </MotionBox>
                     ))}
-                  </Box>
-                </MotionBox>
+                  </MotionBox>
               </MotionBox>
             </Grid>
 
