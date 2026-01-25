@@ -109,9 +109,20 @@ export default async function AppLayout({
     
     if (employeeLink && session.memberships.length === 0) {
       if (employeeLink.status === "REVOKED") {
-        redirect("/app/access-suspended");
+        // Allow grace routes for compliance even if revoked
+        const complianceGraceRoutes = [
+          "/app/employee/attestation",
+          "/app/employee/assets",
+          "/app/access-suspended",
+        ];
+        const isComplianceGraceRoute = complianceGraceRoutes.some(route => pathname.startsWith(route));
+
+        if (!isComplianceGraceRoute) {
+          redirect("/app/access-suspended");
+        }
+      } else {
+        redirect("/app/employee");
       }
-      redirect("/app/employee");
     }
     
     const pendingOrgs = await getUserPendingOrgs(session.user.id);

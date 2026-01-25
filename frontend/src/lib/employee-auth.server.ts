@@ -215,7 +215,20 @@ export async function requireEmployeePortalAuth(): Promise<EmployeePortalSession
     if (inServerAction) {
       throw new Error("Your access to the employee portal has been revoked.");
     }
-    redirect("/app/access-suspended");
+
+    // Allow grace routes for compliance even if revoked
+    const headersList = await headers();
+    const pathname = headersList.get("x-pathname") || "";
+    const complianceGraceRoutes = [
+      "/app/employee/attestation",
+      "/app/employee/assets",
+      "/app/access-suspended",
+    ];
+    const isComplianceGraceRoute = complianceGraceRoutes.some(route => pathname.startsWith(route));
+
+    if (!isComplianceGraceRoute) {
+      redirect("/app/access-suspended");
+    }
   }
   
   return session;
