@@ -176,92 +176,97 @@ export default function EmployeeSecurityClient({
         return;
       }
 
+      setError(null);
 
-    setError(null);
+      try {
+        if (actionDialog.type === "grantAccess") {
+          const res = await grantTemporaryAccess(employee.id, extensionHours);
+          if (res.error) throw new Error(res.error);
+          
+          setActionDialog({ type: null, open: false });
+          setReason("");
+          startTransition(() => {
+            router.refresh();
+          });
+          return;
+        }
 
-    try {
-      if (actionDialog.type === "grantAccess") {
-        const res = await grantTemporaryAccess(employee.id, extensionHours);
-        if (res.error) throw new Error(res.error);
-        
+        const endpoint = `/api/employees/${employee.id}/security`;
+        let body: Record<string, unknown> = { reason };
+
+        switch (actionDialog.type) {
+          case "suspend":
+            body.action = "suspend";
+            break;
+          case "lock":
+            body.action = "lock";
+            break;
+          case "highRisk":
+            body.action = securityProfile.isHighRisk ? "removeHighRisk" : "markHighRisk";
+            break;
+          case "forceLogout":
+            body.action = "forceLogout";
+            break;
+          case "blockIP":
+            if (!ipToBlock.trim()) {
+              setError("IP address is required");
+              return;
+            }
+            body.action = "blockIP";
+            body.ipAddress = ipToBlock;
+            body.offboardingOnly = offboardingOnly;
+            break;
+        }
+
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Action failed");
+        }
+
         setActionDialog({ type: null, open: false });
         setReason("");
+        setIpToBlock("");
+        startTransition(() => {
+          router.refresh();
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      }
+    };
+
+    const handleUnsuspend = async () => {
+      try {
+        const res = await fetch(`/api/employees/${employee.id}/security`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "unsuspend", reason: "Suspension lifted" }),
+        });
+        if (!res.ok) throw new Error("Failed to unsuspend");
         startTransition(() => router.refresh());
-        return;
+      } catch (err) {
+        console.error(err);
       }
+    };
 
-      const endpoint = `/api/employees/${employee.id}/security`;
-      let body: Record<string, unknown> = { reason };
-
-      switch (actionDialog.type) {
-        case "suspend":
-          body.action = "suspend";
-          break;
-        case "lock":
-          body.action = "lock";
-          break;
-        case "highRisk":
-          body.action = securityProfile.isHighRisk ? "removeHighRisk" : "markHighRisk";
-          break;
-        case "forceLogout":
-          body.action = "forceLogout";
-          break;
-        case "blockIP":
-          if (!ipToBlock.trim()) {
-            setError("IP address is required");
-            return;
-          }
-          body.action = "blockIP";
-          body.ipAddress = ipToBlock;
-          body.offboardingOnly = offboardingOnly;
-          break;
+    const handleUnlock = async () => {
+      try {
+        const res = await fetch(`/api/employees/${employee.id}/security`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "unlock", reason: "Account unlocked" }),
+        });
+        if (!res.ok) throw new Error("Failed to unlock");
+        startTransition(() => router.refresh());
+      } catch (err) {
+        console.error(err);
       }
-
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Action failed");
-      }
-
-      setActionDialog({ type: null, open: false });
-      setReason("");
-      setIpToBlock("");
-      startTransition(() => router.refresh());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    }
-  };
-
-  const handleUnsuspend = async () => {
-    try {
-      await fetch(`/api/employees/${employee.id}/security`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "unsuspend", reason: "Suspension lifted" }),
-      });
-      startTransition(() => router.refresh());
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleUnlock = async () => {
-    try {
-      await fetch(`/api/employees/${employee.id}/security`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "unlock", reason: "Account unlocked" }),
-      });
-      startTransition(() => router.refresh());
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    };
 
   const formatDate = (date: Date | null) => {
     if (!date) return "—";

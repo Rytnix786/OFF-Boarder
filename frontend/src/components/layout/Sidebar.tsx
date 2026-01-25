@@ -18,13 +18,13 @@ import {
 } from "@mui/material";
 
 const NAV_ITEMS = [
-    { label: "Dashboard", href: "/dashboard", icon: "grid_view" },
-    { label: "Offboardings", href: "/dashboard", icon: "group" }, // Placeholder for now
-    { label: "Workflows", href: "/dashboard", icon: "account_tree" }, // Placeholder for now
-    { label: "Integrations", href: "/integrations", icon: "extension" },
-    { label: "Audit Logs", href: "/audit-logs", icon: "receipt_long" },
+    { label: "Dashboard", href: "/app", icon: "grid_view" },
+    { label: "Offboardings", href: "/app/offboardings", icon: "group" },
+    { label: "Workflows", href: "/app/workflows", icon: "account_tree" },
+    { label: "Integrations", href: "/app/integrations", icon: "extension" },
+    { label: "Audit Logs", href: "/app/audit-logs", icon: "receipt_long" },
     { label: "Security Support", href: "/app/settings/security-support", icon: "shield_lock" },
-    { label: "Settings", href: "/integrations", icon: "settings" }, // Placeholder
+    { label: "Settings", href: "/app/settings/organization", icon: "settings" },
 ];
 
 
