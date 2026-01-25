@@ -111,32 +111,34 @@ export default async function AccessSuspendedPage() {
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                   You have {complianceTasks.totalPendingTasks} pending task(s) to complete before your offboarding can be finalized.
                 </Typography>
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                  {complianceTasks.hasAttestationTask && (
-                    <Button
-                      component={Link}
-                      href="/app/employee/attestation"
-                      variant="contained"
-                      color="warning"
-                      size="small"
-                      startIcon={<span className="material-symbols-outlined" style={{ fontSize: 18 }}>signature</span>}
-                    >
-                      Complete Attestation
-                    </Button>
-                  )}
-                  {complianceTasks.hasAssetReturnTask && (
-                    <Button
-                      component={Link}
-                      href="/app/employee/assets"
-                      variant="outlined"
-                      color="warning"
-                      size="small"
-                      startIcon={<span className="material-symbols-outlined" style={{ fontSize: 18 }}>inventory_2</span>}
-                    >
-                      Return Assets
-                    </Button>
-                  )}
-                </Box>
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                    {complianceTasks.hasAttestationTask && (
+                      <Link href="/app/employee/attestation" style={{ textDecoration: 'none' }}>
+                        <Button
+                          variant="contained"
+                          color="warning"
+                          size="small"
+                          fullWidth
+                          startIcon={<span className="material-symbols-outlined" style={{ fontSize: 18 }}>signature</span>}
+                        >
+                          Complete Attestation
+                        </Button>
+                      </Link>
+                    )}
+                    {complianceTasks.hasAssetReturnTask && (
+                      <Link href="/app/employee/assets" style={{ textDecoration: 'none' }}>
+                        <Button
+                          variant="outlined"
+                          color="warning"
+                          size="small"
+                          fullWidth
+                          startIcon={<span className="material-symbols-outlined" style={{ fontSize: 18 }}>inventory_2</span>}
+                        >
+                          Return Assets
+                        </Button>
+                      </Link>
+                    )}
+                  </Box>
               </Box>
             </>
           )}
