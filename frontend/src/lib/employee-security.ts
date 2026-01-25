@@ -18,7 +18,10 @@ export async function getEmployeeSecurityProfile(employeeId: string, organizatio
           email: true,
           status: true,
           employeeUserLinks: {
-            where: { status: "VERIFIED" },
+            where: { 
+              organizationId,
+              status: { in: ["VERIFIED", "REVOKED"] } 
+            },
             include: {
               user: {
                 select: {
@@ -91,7 +94,10 @@ export async function getEmployeeSecurityProfile(employeeId: string, organizatio
             email: true,
             status: true,
             employeeUserLinks: {
-              where: { status: "VERIFIED" },
+              where: { 
+                organizationId,
+                status: { in: ["VERIFIED", "REVOKED"] } 
+              },
               include: {
                 user: {
                   select: {
@@ -161,7 +167,7 @@ export async function getEmployeeSecurityEvents(
     where: { id: employeeId },
     select: {
       employeeUserLinks: {
-        where: { status: "VERIFIED" },
+        where: { status: { in: ["VERIFIED", "REVOKED"] } },
         select: { userId: true },
       },
       offboardings: {
@@ -344,7 +350,7 @@ export async function suspendEmployeeAccess(
     where: { id: employeeId },
     select: {
       employeeUserLinks: {
-        where: { status: "VERIFIED" },
+        where: { status: { in: ["VERIFIED", "REVOKED"] } },
         select: { userId: true },
       },
     },
@@ -455,7 +461,7 @@ export async function lockEmployeeAccount(
     where: { id: employeeId },
     select: {
       employeeUserLinks: {
-        where: { status: "VERIFIED" },
+        where: { status: { in: ["VERIFIED", "REVOKED"] } },
         select: { userId: true },
       },
     },
@@ -560,7 +566,7 @@ export async function forceLogoutEmployee(
     where: { id: employeeId },
     select: {
       employeeUserLinks: {
-        where: { status: "VERIFIED" },
+        where: { status: { in: ["VERIFIED", "REVOKED"] } },
         select: { userId: true },
       },
     },
@@ -706,7 +712,7 @@ export async function grantTemporaryAccess(
       id: `se_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       organizationId,
       employeeId,
-      eventType: "ACCESS_REVOKED", // We'll use this event type but update description
+      eventType: "ACCESS_REVOKED",
       description: `Temporary access granted for ${hours}h: ${reason}`,
       ipAddress,
       metadata: {
@@ -742,6 +748,7 @@ export async function getEmployeeBlockedIPs(employeeId: string, organizationId: 
         { employeeId, isActive: true },
         { organizationId, scope: "ORGANIZATION", isActive: true },
         { scope: "GLOBAL", isActive: true },
+        { employeeId, isActive: false, createdAt: { gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } } // Show recently expired blocks
       ],
     },
     include: {
