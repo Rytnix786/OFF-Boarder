@@ -520,72 +520,113 @@ export default function LandingPage() {
             viewport={{ once: true, margin: "-100px" }}
             sx={{ textAlign: "center", mb: 10 }}
           >
-            <Typography
-              variant="overline"
-              sx={{
-                color: "primary.main",
-                fontWeight: 700,
-                letterSpacing: 1.5,
-                mb: 2,
-                display: "block",
-                fontSize: "0.75rem",
-              }}
-            >
-              THE RISK
-            </Typography>
-            <Typography
-              variant="h2"
-              sx={{
-                fontWeight: 800,
-                letterSpacing: -1.5,
-                mb: 3,
-                fontSize: { xs: "2rem", md: "2.75rem" },
-              }}
-            >
-              Employee exits are your biggest
-              <br />
-              hidden security risk
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                color: "text.secondary",
-                maxWidth: 600,
-                mx: "auto",
-                lineHeight: 1.8,
-                fontSize: "1.05rem",
-                mb: 4,
-              }}
-            >
-              Most companies assume offboarding is handled.
-            </Typography>
+      <Typography
+        variant="overline"
+        sx={{
+          color: "primary.main",
+          fontWeight: 800,
+          letterSpacing: 2.5,
+          mb: 2.5,
+          display: "block",
+          fontSize: "0.85rem",
+          opacity: 0.9,
+        }}
+      >
+        THE RISK
+      </Typography>
+      <Typography
+        variant="h2"
+        sx={{
+          fontWeight: 900,
+          letterSpacing: -2,
+          mb: 3.5,
+          fontSize: { xs: "2.5rem", md: "4rem" },
+          lineHeight: 1.1,
+        }}
+      >
+        Employee exits are your biggest
+        <br />
+        hidden security risk
+      </Typography>
+      <Typography
+        variant="body1"
+        sx={{
+          color: "text.secondary",
+          maxWidth: 720,
+          mx: "auto",
+          lineHeight: 1.8,
+          fontSize: "1.25rem",
+          fontWeight: 500,
+          mb: 6,
+        }}
+      >
+        Most companies assume offboarding is handled.
+      </Typography>
+      <Box 
+        sx={{ 
+          textAlign: "left", 
+          maxWidth: 520, 
+          mx: "auto",
+          bgcolor: isDark ? alpha("#fff", 0.04) : alpha("#000", 0.02),
+          p: { xs: 5, md: 7 },
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08),
+          boxShadow: isDark 
+            ? `0 32px 64px -16px rgba(0, 0, 0, 0.6), inset 0 1px 1px ${alpha("#fff", 0.05)}`
+            : `0 32px 64px -16px rgba(0, 0, 0, 0.1), inset 0 1px 1px ${alpha("#fff", 0.8)}`,
+        }}
+      >
+        <Typography 
+          variant="subtitle1" 
+          fontWeight={800} 
+          sx={{ 
+            mb: 4, 
+            fontSize: "1.1rem",
+            textTransform: "uppercase",
+            letterSpacing: 0.5,
+            color: "text.primary" 
+          }}
+        >
+          In reality:
+        </Typography>
+        {[
+          "Access removal is manual and inconsistent",
+          "Ownership is unclear between HR and IT",
+          "There’s no proof when audits happen"
+        ].map((item, i) => (
+          <Box key={i} sx={{ display: "flex", gap: 3, mb: 3 }}>
             <Box 
               sx={{ 
-                textAlign: "left", 
-                maxWidth: 400, 
-                mx: "auto",
-                bgcolor: isDark ? alpha("#fff", 0.03) : alpha("#000", 0.02),
-                p: 4,
-                borderRadius: 1.5,
-                border: "1px solid",
-                borderColor: isDark ? alpha("#fff", 0.06) : alpha("#000", 0.06),
-              }}
-            >
-              <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>In reality:</Typography>
-              {[
-                "Access removal is manual and inconsistent",
-                "Ownership is unclear between HR and IT",
-                "There’s no proof when audits happen"
-              ].map((item, i) => (
-                <Box key={i} sx={{ display: "flex", gap: 1.5, mb: 1.5 }}>
-                  <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: "primary.main", mt: 1.2, flexShrink: 0 }} />
-                  <Typography variant="body2" color="text.secondary" fontWeight={500}>{item}</Typography>
-                </Box>
-              ))}
-              <Typography variant="body2" color="text.primary" fontWeight={700} sx={{ mt: 3, textAlign: "center" }}>
-                All it takes is one missed account.
-              </Typography>
-            </Box>
+                width: 10, 
+                height: 10, 
+                borderRadius: "50%", 
+                bgcolor: "primary.main", 
+                mt: 1, 
+                flexShrink: 0,
+                boxShadow: `0 0 12px ${alpha(theme.palette.primary.main, 0.6)}` 
+              }} 
+            />
+            <Typography variant="body1" color="text.secondary" fontWeight={600} sx={{ fontSize: "1.05rem" }}>
+              {item}
+            </Typography>
+          </Box>
+        ))}
+        <Box sx={{ mt: 5, pt: 4, borderTop: `1px solid ${isDark ? alpha("#fff", 0.08) : alpha("#000", 0.08)}` }}>
+          <Typography 
+            variant="body1" 
+            color="text.primary" 
+            fontWeight={800} 
+            sx={{ 
+              textAlign: "center",
+              fontSize: "1.15rem",
+              letterSpacing: -0.2
+            }}
+          >
+            All it takes is one missed account.
+          </Typography>
+        </Box>
+      </Box>
           </MotionBox>
         </Container>
       </Box>

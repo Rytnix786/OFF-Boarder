@@ -54,15 +54,15 @@ export function OrgViewDashboardClient({
       </Box>
 
       {/* Stats Overview Grid */}
-      <Grid container spacing={3} sx={{ mb: 6 }}>
-        {[
-          { label: "Active Employees", value: "24", icon: "badge", color: "#6366f1" },
-          { label: "Pending Offboardings", value: "3", icon: "timer", color: "#f59e0b" },
-          { label: "Risk Signals", value: "High", icon: "warning", color: "#ef4444" },
-          { label: "Last Sync", value: "2m ago", icon: "sync", color: "#10b981" },
-        ].map((stat, i) => (
-          <Grid item xs={12} sm={6} md={3} key={i}>
-            <Card
+        <Grid container spacing={3} sx={{ mb: 6 }}>
+          {[
+            { label: "Active Employees", value: "24", icon: "badge", color: "#6366f1" },
+            { label: "Pending Offboardings", value: "3", icon: "timer", color: "#f59e0b" },
+            { label: "Risk Signals", value: "High", icon: "warning", color: "#ef4444" },
+            { label: "Last Sync", value: "2m ago", icon: "sync", color: "#10b981" },
+          ].map((stat, i) => (
+            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={i}>
+              <Card
               sx={{
                 borderRadius: "20px",
                 border: "1px solid",

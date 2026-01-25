@@ -403,9 +403,9 @@ export default function AssetDetailClient({ asset, history, employees, canManage
                   )}
                 </Box>
               </Box>
-            </Grid>
-            <Grid size={{ xs: 12, md: 4 }} sx={{ textAlign: { md: "right" } }}>
-              {activeOffboarding && (
+              </Grid>
+              <Grid size={{ xs: 12, md: 4 }} sx={{ textAlign: { md: "right" } }}>
+                {activeOffboarding && (
                 <Chip
                   label="Linked to Active Offboarding"
                   color="error"
@@ -470,47 +470,47 @@ export default function AssetDetailClient({ asset, history, employees, canManage
 
               <Divider sx={{ my: 3 }} />
 
-              <Grid container spacing={4}>
-                <Grid item xs={12}>
-                  <Typography variant="overline" color="text.secondary" fontWeight={800} sx={{ letterSpacing: 1.2 }}>
-                    Asset Identity
-                  </Typography>
-                  <Grid container spacing={2} sx={{ mt: 0.5 }}>
-                    <Grid item xs={12} sm={4}>
-                      <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase" }}>Serial Number</Typography>
-                      <Typography fontWeight={600} variant="body1" sx={{ fontFamily: "monospace" }}>{asset.serialNumber || "—"}</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase" }}>Asset Tag</Typography>
-                      <Typography fontWeight={600} variant="body1" sx={{ fontFamily: "monospace" }}>{asset.assetTag || "—"}</Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase" }}>Type</Typography>
-                      <Typography fontWeight={600} variant="body1">{asset.type}</Typography>
+                <Grid container spacing={4}>
+                  <Grid size={12}>
+                    <Typography variant="overline" color="text.secondary" fontWeight={800} sx={{ letterSpacing: 1.2 }}>
+                      Asset Identity
+                    </Typography>
+                    <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase" }}>Serial Number</Typography>
+                        <Typography fontWeight={600} variant="body1" sx={{ fontFamily: "monospace" }}>{asset.serialNumber || "—"}</Typography>
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase" }}>Asset Tag</Typography>
+                        <Typography fontWeight={600} variant="body1" sx={{ fontFamily: "monospace" }}>{asset.assetTag || "—"}</Typography>
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase" }}>Type</Typography>
+                        <Typography fontWeight={600} variant="body1">{asset.type}</Typography>
+                      </Grid>
                     </Grid>
                   </Grid>
-                </Grid>
 
-                <Grid item xs={12}>
-                  <Typography variant="overline" color="text.secondary" fontWeight={800} sx={{ letterSpacing: 1.2 }}>
-                    Financials & History
-                  </Typography>
-                  <Grid container spacing={2} sx={{ mt: 0.5 }}>
-                    <Grid item xs={12} sm={4}>
-                      <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase" }}>Purchase Value</Typography>
-                      <Typography fontWeight={600} variant="body1">
-                        {asset.value ? `$${asset.value.toLocaleString()}` : "—"}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase" }}>Purchase Date</Typography>
-                      <Typography fontWeight={600} variant="body1">
-                        {asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : "—"}
-                      </Typography>
+                  <Grid size={12}>
+                    <Typography variant="overline" color="text.secondary" fontWeight={800} sx={{ letterSpacing: 1.2 }}>
+                      Financials & History
+                    </Typography>
+                    <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase" }}>Purchase Value</Typography>
+                        <Typography fontWeight={600} variant="body1">
+                          {asset.value ? `$${asset.value.toLocaleString()}` : "—"}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase" }}>Purchase Date</Typography>
+                        <Typography fontWeight={600} variant="body1">
+                          {asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : "—"}
+                        </Typography>
+                      </Grid>
                     </Grid>
                   </Grid>
                 </Grid>
-              </Grid>
             </CardContent>
           </Card>
 
@@ -611,8 +611,8 @@ export default function AssetDetailClient({ asset, history, employees, canManage
             </CardContent>
           </Card>
         </Grid>
-
-        <Grid item xs={12} md={4}>
+  
+        <Grid size={{ xs: 12, md: 4 }}>
           {/* Assignment Control */}
           <Card variant="outlined" sx={{ borderRadius: 3, mb: 3, overflow: "hidden" }}>
             <Box sx={{ p: 2, bgcolor: alpha(theme.palette.primary.main, 0.05), borderBottom: "1px solid", borderColor: "divider" }}>
@@ -746,61 +746,61 @@ export default function AssetDetailClient({ asset, history, employees, canManage
           <Stack spacing={3}>
             {/* Assignee Type Selector */}
             <Box>
-              <Typography variant="caption" fontWeight={900} color="text.secondary" sx={{ textTransform: "uppercase", ml: 1, mb: 1, display: "block" }}>
-                Select Assignee Type
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Paper
-                    variant="outlined"
-                    onClick={() => setAssigneeType("EMPLOYEE")}
-                    sx={{
-                      p: 2,
-                      cursor: "pointer",
-                      borderRadius: 4,
-                      transition: "all 0.2s",
-                      borderWidth: 2,
-                      borderColor: assigneeType === "EMPLOYEE" ? "primary.main" : "divider",
-                      bgcolor: assigneeType === "EMPLOYEE" ? alpha(theme.palette.primary.main, 0.05) : "transparent",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: 1,
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ 
-                      fontSize: 32, 
-                      color: assigneeType === "EMPLOYEE" ? theme.palette.primary.main : theme.palette.text.disabled 
-                    }}>person</span>
-                    <Typography variant="subtitle2" fontWeight={800}>Employee</Typography>
-                  </Paper>
+                <Typography variant="caption" fontWeight={900} color="text.secondary" sx={{ textTransform: "uppercase", ml: 1, mb: 1, display: "block" }}>
+                  Select Assignee Type
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid size={6}>
+                    <Paper
+                      variant="outlined"
+                      onClick={() => setAssigneeType("EMPLOYEE")}
+                      sx={{
+                        p: 2,
+                        cursor: "pointer",
+                        borderRadius: 4,
+                        transition: "all 0.2s",
+                        borderWidth: 2,
+                        borderColor: assigneeType === "EMPLOYEE" ? "primary.main" : "divider",
+                        bgcolor: assigneeType === "EMPLOYEE" ? alpha(theme.palette.primary.main, 0.05) : "transparent",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 1,
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ 
+                        fontSize: 32, 
+                        color: assigneeType === "EMPLOYEE" ? theme.palette.primary.main : theme.palette.text.disabled 
+                      }}>person</span>
+                      <Typography variant="subtitle2" fontWeight={800}>Employee</Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid size={6}>
+                    <Paper
+                      variant="outlined"
+                      onClick={() => setAssigneeType("ADMIN")}
+                      sx={{
+                        p: 2,
+                        cursor: "pointer",
+                        borderRadius: 4,
+                        transition: "all 0.2s",
+                        borderWidth: 2,
+                        borderColor: assigneeType === "ADMIN" ? "primary.main" : "divider",
+                        bgcolor: assigneeType === "ADMIN" ? alpha(theme.palette.primary.main, 0.05) : "transparent",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 1,
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ 
+                        fontSize: 32, 
+                        color: assigneeType === "ADMIN" ? theme.palette.primary.main : theme.palette.text.disabled 
+                      }}>admin_panel_settings</span>
+                      <Typography variant="subtitle2" fontWeight={800}>Admin User</Typography>
+                    </Paper>
+                  </Grid>
                 </Grid>
-                <Grid item xs={6}>
-                  <Paper
-                    variant="outlined"
-                    onClick={() => setAssigneeType("ADMIN")}
-                    sx={{
-                      p: 2,
-                      cursor: "pointer",
-                      borderRadius: 4,
-                      transition: "all 0.2s",
-                      borderWidth: 2,
-                      borderColor: assigneeType === "ADMIN" ? "primary.main" : "divider",
-                      bgcolor: assigneeType === "ADMIN" ? alpha(theme.palette.primary.main, 0.05) : "transparent",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: 1,
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ 
-                      fontSize: 32, 
-                      color: assigneeType === "ADMIN" ? theme.palette.primary.main : theme.palette.text.disabled 
-                    }}>admin_panel_settings</span>
-                    <Typography variant="subtitle2" fontWeight={800}>Admin User</Typography>
-                  </Paper>
-                </Grid>
-              </Grid>
             </Box>
 
             {/* Employee Search */}
