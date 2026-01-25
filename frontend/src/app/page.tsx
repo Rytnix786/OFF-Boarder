@@ -207,7 +207,7 @@ export default function LandingPage() {
       >
         <Container maxWidth="lg">
           <Grid container spacing={8} alignItems="center">
-            <Grid xs={12} lg={6}>
+            <Grid size={{ xs: 12, lg: 6 }}>
               <MotionBox initial="initial" animate="animate" variants={stagger}>
                 <MotionBox variants={fadeInUp}>
                   <Typography
@@ -426,7 +426,7 @@ export default function LandingPage() {
               </MotionBox>
             </Grid>
 
-            <Grid xs={12} lg={6}>
+            <Grid size={{ xs: 12, lg: 6 }}>
               <MotionBox
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -640,7 +640,7 @@ export default function LandingPage() {
 
           <Grid container spacing={4}>
             {CONTROL_FEATURES.map((feature, index) => (
-              <Grid xs={12} sm={6} md={3} key={index}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
                 <MotionBox
                   initial={{ opacity: 0, y: 24 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -742,7 +742,7 @@ export default function LandingPage() {
                   color: "#3B82F6" // theme.palette.info.main
                 }
               ].map((item, i) => (
-                <Grid xs={item.xs} md={item.md} key={i}>
+                <Grid size={{ xs: item.xs, md: item.md }} key={i}>
                   <MotionBox
                     initial={{ opacity: 0, scale: 0.95 }}
                     whileInView={{ opacity: 1, scale: 1 }}
@@ -854,7 +854,7 @@ export default function LandingPage() {
 
           <Grid container spacing={2.5} justifyContent="center">
             {PRICING.map((plan, index) => (
-              <Grid xs={12} sm={6} lg={3} key={index}>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={index}>
                 <MotionBox
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -1075,7 +1075,7 @@ export default function LandingPage() {
       >
         <Container maxWidth="lg">
           <Grid container spacing={6}>
-            <Grid xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
                 <Box
                   sx={{
@@ -1101,13 +1101,13 @@ export default function LandingPage() {
                 Built for security and compliance teams.
               </Typography>
             </Grid>
-            <Grid xs={6} sm={3} md={2}>
+            <Grid size={{ xs: 6, sm: 3, md: 2 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>Platform</Typography>
               {["Missed Access Detection", "Workflows", "Integrations", "API"].map((item) => (
                 <Typography key={item} variant="body2" sx={{ color: "text.secondary", mb: 1.5, cursor: "pointer" }}>{item}</Typography>
               ))}
             </Grid>
-            <Grid xs={6} sm={3} md={2}>
+            <Grid size={{ xs: 6, sm: 3, md: 2 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>Company</Typography>
               {["About", "Security", "Careers", "Contact"].map((item) => (
                 <Typography
@@ -1120,13 +1120,13 @@ export default function LandingPage() {
                 </Typography>
               ))}
             </Grid>
-            <Grid xs={6} sm={3} md={2}>
+            <Grid size={{ xs: 6, sm: 3, md: 2 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>Resources</Typography>
               {["Documentation", "Compliance", "Status", "Support"].map((item) => (
                 <Typography key={item} variant="body2" sx={{ color: "text.secondary", mb: 1.5, cursor: "pointer" }}>{item}</Typography>
               ))}
             </Grid>
-            <Grid xs={6} sm={3} md={2}>
+            <Grid size={{ xs: 6, sm: 3, md: 2 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>Legal</Typography>
               {["Privacy", "Terms", "Security", "DPA"].map((item) => (
                 <Typography key={item} variant="body2" sx={{ color: "text.secondary", mb: 1.5, cursor: "pointer" }}>{item}</Typography>

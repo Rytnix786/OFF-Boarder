@@ -369,7 +369,7 @@ export default function AssetDetailClient({ asset, history, employees, canManage
       >
         <CardContent sx={{ p: 3 }}>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={8}>
+            <Grid size={{ xs: 12, md: 8 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <Avatar sx={{ 
                   width: 48, 
@@ -404,7 +404,7 @@ export default function AssetDetailClient({ asset, history, employees, canManage
                 </Box>
               </Box>
             </Grid>
-            <Grid item xs={12} md={4} sx={{ textAlign: { md: "right" } }}>
+            <Grid size={{ xs: 12, md: 4 }} sx={{ textAlign: { md: "right" } }}>
               {activeOffboarding && (
                 <Chip
                   label="Linked to Active Offboarding"
@@ -422,7 +422,7 @@ export default function AssetDetailClient({ asset, history, employees, canManage
       </Card>
 
       <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
+        <Grid size={{ xs: 12, md: 8 }}>
           <Card variant="outlined" sx={{ borderRadius: 3, mb: 3 }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 3 }}>
