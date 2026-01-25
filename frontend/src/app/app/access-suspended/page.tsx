@@ -45,12 +45,20 @@ async function getPendingComplianceTasks(userId: string) {
   };
 }
 
-export default async function AccessSuspendedPage() {
+export default async function AccessSuspendedPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ success?: string; error?: string }>;
+}) {
+  const params = await searchParams;
+  const isExpired = params.error === "expired";
+  const isSuccess = params.success === "attestation";
+  
   const session = await getAuthSession();
   const complianceTasks = session?.user?.id 
     ? await getPendingComplianceTasks(session.user.id) 
     : null;
-  
+    
   return (
     <Box
       sx={{
@@ -62,14 +70,14 @@ export default async function AccessSuspendedPage() {
         p: 3
       }}
     >
-      <Card variant="outlined" sx={{ maxWidth: 500, borderRadius: 3, border: "1px solid", borderColor: "error.light" }}>
+      <Card variant="outlined" sx={{ maxWidth: 500, borderRadius: 3, border: "1px solid", borderColor: isSuccess ? "success.light" : "error.light" }}>
         <CardContent sx={{ p: 5, textAlign: "center" }}>
           <Box
             sx={{
               width: 80,
               height: 80,
               borderRadius: "50%",
-              bgcolor: alpha("#ef4444", 0.1),
+              bgcolor: alpha(isSuccess ? "#10b981" : "#ef4444", 0.1),
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -77,24 +85,32 @@ export default async function AccessSuspendedPage() {
               mb: 3,
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 40, color: "#ef4444" }}>
-              block
+            <span className="material-symbols-outlined" style={{ fontSize: 40, color: isSuccess ? "#10b981" : "#ef4444" }}>
+              {isSuccess ? "verified" : isExpired ? "timer_off" : "block"}
             </span>
           </Box>
           
-          <Typography variant="h5" fontWeight={800} gutterBottom color="error.main">
-            Access Suspended
+          <Typography variant="h5" fontWeight={800} gutterBottom color={isSuccess ? "success.main" : "error.main"}>
+            {isSuccess ? "Offboarding Finalized" : isExpired ? "Compliance Window Expired" : "Access Suspended"}
           </Typography>
           
           <Typography color="text.secondary" sx={{ mb: 3 }}>
-            Your account or membership access has been suspended or revoked by an administrator.
+            {isSuccess 
+              ? "Thank you for completing your compliance attestation. Your offboarding tasks are now being finalized."
+              : isExpired
+              ? "Your 24-hour compliance window has closed. You no longer have access to the offboarding portal."
+              : "Your account or membership access has been suspended or revoked by an administrator."}
           </Typography>
           
           <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
-            This action may be part of an offboarding process or a security measure. If you believe this is an error, please contact your organization administrator or IT support department.
+            {isSuccess
+              ? "A copy of your signed attestation has been sent to HR. You may now securely log out of this session."
+              : isExpired
+              ? "If you still need to complete pending tasks or return assets, please contact your HR representative or manager directly."
+              : "This action may be part of an offboarding process or a security measure. If you believe this is an error, please contact your organization administrator or IT support department."}
           </Typography>
 
-          {complianceTasks && complianceTasks.totalPendingTasks > 0 && (
+          {!isExpired && !isSuccess && complianceTasks && complianceTasks.totalPendingTasks > 0 && (
             <>
               <Divider sx={{ my: 3 }} />
               <Box sx={{ 
