@@ -21,6 +21,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient, setRememberMe, clearRememberMe } from "@/lib/supabase/client";
 import { ColorModeContext } from "@/theme/ThemeRegistry";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 export default function LoginPage() {
   return (
@@ -36,7 +37,6 @@ export default function LoginPage() {
 
 function LoginContent() {
   const theme = useTheme();
-  const colorMode = useContext(ColorModeContext);
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get("redirect");
@@ -161,11 +161,7 @@ function LoginContent() {
       }}
     >
       <Box sx={{ position: "absolute", top: 16, right: 16 }}>
-        <IconButton onClick={colorMode.toggleColorMode} size="small">
-          <span className="material-symbols-outlined">
-            {isDark ? "light_mode" : "dark_mode"}
-          </span>
-        </IconButton>
+        <ThemeToggle size="small" />
       </Box>
 
       <Card
