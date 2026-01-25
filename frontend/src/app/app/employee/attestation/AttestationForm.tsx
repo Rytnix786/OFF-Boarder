@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Box,
   Typography,
@@ -17,6 +18,7 @@ interface AttestationFormProps {
 }
 
 export default function AttestationForm({ statement }: AttestationFormProps) {
+  const router = useRouter();
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,12 +29,15 @@ export default function AttestationForm({ statement }: AttestationFormProps) {
     setLoading(true);
     setError(null);
 
-    try {
-      const result = await signAttestation();
-      if (!result.success) {
-        setError(result.error || "Failed to sign attestation");
-      }
-    } catch {
+      try {
+        const result = await signAttestation();
+        if (result.success) {
+          router.push("/app/access-suspended?success=attestation");
+          router.refresh();
+        } else {
+          setError(result.error || "Failed to sign attestation");
+        }
+      } catch {
       setError("An unexpected error occurred");
     } finally {
       setLoading(false);

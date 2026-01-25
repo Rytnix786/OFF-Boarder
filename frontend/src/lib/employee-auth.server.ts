@@ -45,6 +45,7 @@ export type EmployeeLinkRecord = {
   employeeId: string;
   userId: string;
   status: EmployeeUserLinkStatus;
+  revokedAt: Date | null;
   organization: {
     id: string;
     name: string;
@@ -150,6 +151,7 @@ export async function getEmployeePortalSession(): Promise<EmployeePortalSession 
       employeeId: employeeLink.employeeId,
       userId: employeeLink.userId,
       status: employeeLink.status,
+      revokedAt: employeeLink.revokedAt,
       organization: {
         id: employeeLink.organization.id,
         name: employeeLink.organization.name,
@@ -211,6 +213,20 @@ export async function requireEmployeePortalAuth(options?: { allowRevoked?: boole
 
   // Handle revoked employee portal access
   if (session.employeeLink.status === "REVOKED") {
+    // Check if grace period (24h) has expired
+    if (session.employeeLink.revokedAt) {
+      const gracePeriodHours = 24;
+      const expiryTime = new Date(session.employeeLink.revokedAt.getTime() + gracePeriodHours * 60 * 60 * 1000);
+      
+      if (new Date() > expiryTime) {
+        const inServerAction = await isServerAction();
+        if (inServerAction) {
+          throw new Error("Your compliance window has expired. Please contact HR for assistance.");
+        }
+        redirect("/app/access-suspended?error=expired");
+      }
+    }
+
     if (options?.allowRevoked) {
       return session;
     }

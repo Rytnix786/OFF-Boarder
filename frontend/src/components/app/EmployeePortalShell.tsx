@@ -31,6 +31,7 @@ import { ThemeToggle } from "../layout/ThemeToggle";
 import { createClient, clearRememberMe } from "@/lib/supabase/client";
 import type { EmployeePortalSession } from "@/lib/employee-auth.server";
 import { getUnreadNotificationCount, getRecentNotifications, markNotificationAsRead, type EmployeeNotification } from "@/lib/actions/employee-notifications";
+import { CountdownBanner } from "./CountdownBanner";
 
 const SIDEBAR_WIDTH = 280;
 
@@ -280,6 +281,9 @@ export default function EmployeePortalShell({ session, children }: EmployeePorta
         </Menu>
 
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+        {isRevoked && session.employeeLink.revokedAt && (
+          <CountdownBanner revokedAt={session.employeeLink.revokedAt} />
+        )}
         <AppBar
           position="sticky"
           elevation={0}
