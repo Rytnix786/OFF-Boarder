@@ -347,75 +347,84 @@ export default function EmployeeSecurityClient({
           </Alert>
         )}
 
-        {isComplianceWindowExpired && (
-          <Box
-            sx={{
-              mb: 4,
-              p: 3,
-              borderRadius: 4,
-              background: `linear-gradient(135deg, ${alpha("#0288d1", 0.08)} 0%, ${alpha("#0288d1", 0.03)} 100%)`,
-              border: "1px solid",
-              borderColor: alpha("#0288d1", 0.2),
-              position: "relative",
-              overflow: "hidden",
-              "&::before": {
-                content: '""',
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "4px",
-                height: "100%",
-                background: "#0288d1",
-              }
-            }}
-          >
-            <Box sx={{ display: "flex", gap: 2.5, alignItems: "flex-start" }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 44,
-                  height: 44,
-                  borderRadius: 2.5,
-                  bgcolor: alpha("#0288d1", 0.1),
-                  color: "#0288d1",
-                  flexShrink: 0,
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 24 }}>history_toggle_off</span>
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="h6" sx={{ color: "#01579b", fontWeight: 800, fontSize: "1.1rem", mb: 0.5 }}>
-                  Compliance Window Expired
-                </Typography>
-                <Typography variant="body2" sx={{ color: alpha("#01579b", 0.8), lineHeight: 1.6, maxWidth: "600px" }}>
-                  The standard 24-hour access window for this employee has closed. 
-                  This is a security enforcement to prevent unauthorized post-employment access.
-                  {canManage && " Administrators can grant a temporary extension to allow task completion."}
-                </Typography>
-              </Box>
-              {canManage && (
-                <Button
-                  variant="contained"
-                  disableElevation
-                  startIcon={<span className="material-symbols-outlined">more_time</span>}
-                  onClick={() => setActionDialog({ type: "grantAccess", open: true })}
+          {isComplianceWindowExpired && (
+            <Box
+              sx={{
+                mb: 4,
+                p: 3,
+                borderRadius: 4,
+                background: `linear-gradient(135deg, ${alpha("#03a9f4", 0.15)} 0%, ${alpha("#03a9f4", 0.05)} 100%)`,
+                border: "1px solid",
+                borderColor: alpha("#03a9f4", 0.3),
+                boxShadow: `0 4px 20px ${alpha("#000", 0.2)}`,
+                position: "relative",
+                overflow: "hidden",
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "4px",
+                  height: "100%",
+                  background: "#03a9f4",
+                }
+              }}
+            >
+              <Box sx={{ display: "flex", gap: 2.5, alignItems: "center" }}>
+                <Box
                   sx={{
-                    bgcolor: "#0288d1",
-                    "&:hover": { bgcolor: "#01579b" },
-                    borderRadius: 2,
-                    textTransform: "none",
-                    fontWeight: 700,
-                    px: 3,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 48,
+                    height: 48,
+                    borderRadius: "50%",
+                    bgcolor: alpha("#03a9f4", 0.2),
+                    color: "#03a9f4",
+                    flexShrink: 0,
+                    boxShadow: `0 0 15px ${alpha("#03a9f4", 0.3)}`,
                   }}
                 >
-                  Extend Access
-                </Button>
-              )}
+                  <span className="material-symbols-outlined" style={{ fontSize: 28 }}>history_toggle_off</span>
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="h6" sx={{ color: "#e3f2fd", fontWeight: 800, fontSize: "1.15rem", mb: 0.5, letterSpacing: "-0.01em" }}>
+                    Compliance Window Expired
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: alpha("#e3f2fd", 0.7), lineHeight: 1.6, maxWidth: "650px", fontWeight: 500 }}>
+                    The standard 24-hour access window for this employee has closed. 
+                    This is a security enforcement to prevent unauthorized post-employment access.
+                    {canManage && " Administrators can grant a temporary extension to allow task completion."}
+                  </Typography>
+                </Box>
+                {canManage && (
+                  <Button
+                    variant="contained"
+                    disableElevation
+                    startIcon={<span className="material-symbols-outlined">more_time</span>}
+                    onClick={() => setActionDialog({ type: "grantAccess", open: true })}
+                    sx={{
+                      background: `linear-gradient(135deg, #03a9f4 0%, #0288d1 100%)`,
+                      boxShadow: `0 4px 12px ${alpha("#03a9f4", 0.4)}`,
+                      "&:hover": { 
+                        background: `linear-gradient(135deg, #03a9f4 20%, #0288d1 100%)`,
+                        boxShadow: `0 6px 16px ${alpha("#03a9f4", 0.5)}`,
+                        transform: "translateY(-1px)",
+                      },
+                      borderRadius: "12px",
+                      textTransform: "none",
+                      fontWeight: 800,
+                      px: 3,
+                      py: 1,
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    Extend Access
+                  </Button>
+                )}
+              </Box>
             </Box>
-          </Box>
-        )}
+          )}
 
         <Grid container spacing={3}>
 
@@ -765,34 +774,40 @@ export default function EmployeeSecurityClient({
                       Block IP Address
                     </Button>
 
-                    {portalLink?.status === "REVOKED" && (
-                      <Button
-                        fullWidth
-                        variant="contained"
-                        onClick={() => setActionDialog({ type: "grantAccess", open: true })}
-                        startIcon={<span className="material-symbols-outlined" style={{ fontSize: 20 }}>more_time</span>}
-                        sx={{
-                          justifyContent: "flex-start",
-                          py: 1.8,
-                          px: 2.5,
-                          borderRadius: 3,
-                          bgcolor: "#0288d1",
-                          background: `linear-gradient(135deg, #0288d1 0%, #01579b 100%)`,
-                          boxShadow: `0 8px 20px ${alpha("#0288d1", 0.3)}`,
-                          fontWeight: 700,
-                          textTransform: "none",
-                          fontSize: "0.95rem",
-                          "&:hover": {
-                            bgcolor: "#01579b",
-                            boxShadow: `0 10px 25px ${alpha("#0288d1", 0.4)}`,
-                            transform: "translateY(-1px)",
-                          },
-                          transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-                        }}
-                      >
-                        Grant Temporary Access
-                      </Button>
-                    )}
+                      {portalLink?.status === "REVOKED" && (
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          onClick={() => setActionDialog({ type: "grantAccess", open: true })}
+                          startIcon={<span className="material-symbols-outlined" style={{ fontSize: 22 }}>more_time</span>}
+                          sx={{
+                            justifyContent: "center",
+                            py: 2,
+                            px: 3,
+                            borderRadius: "16px",
+                            background: `linear-gradient(135deg, #03a9f4 0%, #0288d1 100%)`,
+                            boxShadow: `0 12px 24px -8px ${alpha("#03a9f4", 0.5)}`,
+                            fontWeight: 800,
+                            textTransform: "none",
+                            fontSize: "1rem",
+                            letterSpacing: "-0.01em",
+                            color: "#fff",
+                            border: "1px solid",
+                            borderColor: alpha("#fff", 0.1),
+                            "&:hover": {
+                              background: `linear-gradient(135deg, #03a9f4 20%, #0288d1 100%)`,
+                              boxShadow: `0 16px 32px -8px ${alpha("#03a9f4", 0.6)}`,
+                              transform: "translateY(-2px)",
+                            },
+                            "&:active": {
+                              transform: "translateY(0)",
+                            },
+                            transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                          }}
+                        >
+                          Grant Temporary Access
+                        </Button>
+                      )}
                   </Box>
 
               </CardContent>
