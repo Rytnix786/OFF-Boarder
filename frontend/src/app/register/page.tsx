@@ -27,6 +27,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ColorModeContext } from "@/theme/ThemeRegistry";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { RotatingProtocolIcon } from "@/components/ui/RotatingProtocolIcon";
 
 type InvitationInfo = {
   id: string;
@@ -563,11 +564,12 @@ function RegisterContent() {
                 border: "1px solid",
                 "& .MuiAlert-icon": { color: "primary.main" }
               }}
-              icon={<span className="material-symbols-outlined">auto_awesome</span>}
-            >
-              <Typography variant="body2" fontWeight={800} sx={{ letterSpacing: 0.5, textTransform: "uppercase", fontSize: "0.75rem" }}>
-                14-Day Free Trial Activated
-              </Typography>
+                icon={<RotatingProtocolIcon size={18} />}
+              >
+                <Typography variant="body2" fontWeight={800} sx={{ letterSpacing: 0.5, textTransform: "uppercase", fontSize: "0.75rem" }}>
+                  14-Day Free Trial Activated
+                </Typography>
+
               <Typography variant="caption" sx={{ opacity: 0.9 }}>
                 You are signing up for the <strong>{plan}</strong> plan. No credit card required.
               </Typography>
