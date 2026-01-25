@@ -242,74 +242,80 @@ export async function updateSession(request: NextRequest) {
                 const memberships = (userData.memberships || []) as any[];
                 const employeeLinks = (userData.employeeUserLinks || []) as any[];
 
-                  // Check for revoked access globally
-                  const hasRevokedEmployeeLink = employeeLinks.some((l: any) => l.status === "REVOKED");
-                  const hasRevokedMembership = memberships.some((m) => m.status === "REVOKED");
-                  
-                  // Compliance routes allowed even for revoked users (grace period for attestation/asset return)
-                  const complianceGraceRoutes = [
-                    "/app/employee/attestation",
-                    "/app/employee/assets",
-                    "/app/access-suspended",
-                  ];
-                  const isComplianceGraceRoute = complianceGraceRoutes.some(route => pathname.startsWith(route));
-                  
-                  if ((hasRevokedEmployeeLink || hasRevokedMembership) && !isComplianceGraceRoute) {
-                    const url = request.nextUrl.clone();
-                    url.pathname = "/app/access-suspended";
-                    return NextResponse.redirect(url);
-                  }
-
-                const isEmployeePortal = pathname.startsWith("/app/employee");
-
-                if (isEmployeePortal) {
-                    // Compliance routes allowed even for revoked employees (handled above)
-                    // No additional blocking needed here since global check already handles it
-                } else {
-                  // For admin dashboard, check if their membership is revoked
-                  // Only block if ALL memberships are revoked or if we can identify the current one
-                  // For now, if they have at least one ACTIVE membership, let them through to the app
-                  const hasActiveMembership = memberships.some((m) => m.status === "ACTIVE" && m.organization?.status === "ACTIVE");
-                  const hasSuspendedMembership = memberships.some((m) => m.status === "SUSPENDED" || m.status === "REVOKED");
-                  
-                  // If they have NO active memberships but have suspended ones, block them (revoked already handled globally)
-                  if (!hasActiveMembership && hasSuspendedMembership && pathname !== "/app/access-suspended") {
-                    const url = request.nextUrl.clone();
-                    url.pathname = "/app/access-suspended";
-                    return NextResponse.redirect(url);
-                  }
-
-                const hasSuspendedOrg = memberships.some((m) => m.organization?.status === "SUSPENDED");
-                if (hasSuspendedOrg && !hasActiveMembership) {
-                  if (pathname !== "/org-blocked") {
-                    const url = request.nextUrl.clone();
-                    url.pathname = "/org-blocked";
-                    return NextResponse.redirect(url);
-                  }
-                }
-
-                  if (!hasActiveMembership) {
-                    if (pathname !== "/app/pending" && pathname !== "/app/setup" && pathname !== "/app/access-suspended") {
-                      const url = request.nextUrl.clone();
-                      url.pathname = "/app/pending";
-                      return NextResponse.redirect(url);
-                    }
-                  } else {
-                    // Check if setup is complete for owners
-                    const activeMembership = memberships.find(m => m.status === "ACTIVE" && m.organization?.status === "ACTIVE");
-                    if (activeMembership && !activeMembership.organization?.isSetupComplete && activeMembership.systemRole === "OWNER") {
-                      const isSetupRoute = pathname.startsWith("/app/setup");
-                      const isProfileRoute = pathname.startsWith("/app/settings/profile");
-                      
-                      if (!isSetupRoute && !isProfileRoute && pathname.startsWith("/app")) {
+                    // Check for revoked access
+                    // We only block if they have a revoked link AND they are trying to access the employee portal
+                    // or if they have a revoked membership and are trying to access the admin dashboard.
+                    // A user might be revoked in one org but active in another, so we must be careful.
+                    const isEmployeePortal = pathname.startsWith("/app/employee");
+                    const hasRevokedEmployeeLink = employeeLinks.some((l: any) => l.status === "REVOKED");
+                    const hasActiveEmployeeLink = employeeLinks.some((l: any) => l.status === "VERIFIED" || l.status === "PENDING_VERIFICATION");
+                    const hasRevokedMembership = memberships.some((m) => m.status === "REVOKED");
+                    const hasActiveMembership = memberships.some((m) => m.status === "ACTIVE" && m.organization?.status === "ACTIVE");
+                    
+                    // Compliance routes allowed even for revoked users (grace period for attestation/asset return)
+                    const complianceGraceRoutes = [
+                      "/app/employee/attestation",
+                      "/app/employee/assets",
+                      "/app/access-suspended",
+                    ];
+                    const isComplianceGraceRoute = complianceGraceRoutes.some(route => pathname.startsWith(route));
+                    
+                    // If they are on employee portal, check their employee link status
+                    if (isEmployeePortal && !isComplianceGraceRoute) {
+                      // Only block if they have NO active/verified link and have a revoked link
+                      if (hasRevokedEmployeeLink && !hasActiveEmployeeLink) {
                         const url = request.nextUrl.clone();
-                        url.pathname = "/app/setup";
+                        url.pathname = "/app/access-suspended";
                         return NextResponse.redirect(url);
                       }
                     }
-                  }
+                    
+                    // If they are on admin app (not employee portal), check membership status
+                    if (!isEmployeePortal && !pathname.startsWith("/admin") && !isComplianceGraceRoute && !isStatusPageRoute) {
+                      // Only block if they have NO active membership and have a revoked/suspended one
+                      if (!hasActiveMembership && (hasRevokedMembership || memberships.some(m => m.status === "SUSPENDED"))) {
+                        const url = request.nextUrl.clone();
+                        url.pathname = "/app/access-suspended";
+                        return NextResponse.redirect(url);
+                      }
+                    }
 
-              }
+                    // Original logic for organization status and pending state
+                    if (isEmployeePortal) {
+                        // Employee portal access is handled above
+                    } else {
+                      // Admin app specific checks
+                      const hasSuspendedOrg = memberships.some((m) => m.organization?.status === "SUSPENDED");
+                      if (hasSuspendedOrg && !hasActiveMembership) {
+                        if (pathname !== "/org-blocked") {
+                          const url = request.nextUrl.clone();
+                          url.pathname = "/org-blocked";
+                          return NextResponse.redirect(url);
+                        }
+                      }
+  
+                      if (!hasActiveMembership) {
+                        if (pathname !== "/app/pending" && pathname !== "/app/setup" && pathname !== "/app/access-suspended" && pathname !== "/app/access-denied") {
+                          const url = request.nextUrl.clone();
+                          url.pathname = "/app/pending";
+                          return NextResponse.redirect(url);
+                        }
+                      } else {
+                        // Check if setup is complete for owners
+                        const activeMembership = memberships.find(m => m.status === "ACTIVE" && m.organization?.status === "ACTIVE");
+                        if (activeMembership && !activeMembership.organization?.isSetupComplete && activeMembership.systemRole === "OWNER") {
+                          const isSetupRoute = pathname.startsWith("/app/setup");
+                          const isProfileRoute = pathname.startsWith("/app/settings/profile");
+                          
+                          if (!isSetupRoute && !isProfileRoute && pathname.startsWith("/app")) {
+                            const url = request.nextUrl.clone();
+                            url.pathname = "/app/setup";
+                            return NextResponse.redirect(url);
+                          }
+                        }
+                      }
+                    }
+
             }
       }
     }
