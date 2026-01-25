@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma.server";
 import { 
   requireEmployeeOffboarding,
+  requireEmployeePortalAuth,
   verifyEmployeeOwnership,
   getClientInfo,
   EmployeePortalSession

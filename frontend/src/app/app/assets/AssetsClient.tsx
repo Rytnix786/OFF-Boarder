@@ -35,7 +35,9 @@ import {
   Radio,
   Autocomplete,
   Paper,
+  CircularProgress,
 } from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
 import { createAsset, assignAssetToEmployee, assignAssetToUser, unassignAsset } from "@/lib/actions/assets";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -90,6 +92,7 @@ export default function AssetsClient({
   currentUserId,
   myAssignedAssets,
 }: AssetsClientProps) {
+  const theme = useTheme();
   const router = useRouter();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState<Asset | null>(null);
