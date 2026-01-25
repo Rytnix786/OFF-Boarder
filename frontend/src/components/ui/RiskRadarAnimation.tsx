@@ -67,6 +67,11 @@ export function RiskRadarAnimation({
     return () => observer.disconnect();
   }, []);
 
+  const loopRef = useRef(loop);
+  useEffect(() => {
+    loopRef.current = loop;
+  }, [loop]);
+
   useEffect(() => {
     if (scrollProgress !== undefined) {
       const frame = Math.min(Math.max(1, Math.ceil(scrollProgress * TOTAL_FRAMES)), TOTAL_FRAMES);
@@ -85,7 +90,7 @@ export function RiskRadarAnimation({
     animationRef.current = setInterval(() => {
       setCurrentFrame((prev) => {
         if (prev >= TOTAL_FRAMES) {
-          if (!loop) {
+          if (!loopRef.current) {
             if (animationRef.current) {
               clearInterval(animationRef.current);
               animationRef.current = null;
@@ -104,7 +109,7 @@ export function RiskRadarAnimation({
         animationRef.current = null;
       }
     };
-  }, [scrollProgress, autoplay, isVisible, prefersReducedMotion, loop]);
+  }, [scrollProgress, autoplay, isVisible, prefersReducedMotion]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
