@@ -491,32 +491,33 @@ export async function GET(
     }
 
     await prisma.evidencePack.upsert({
-      where: { offboardingId },
-      update: {
-        generatedAt: new Date(),
-        generatedBy: session.user.id,
-        checksum: packContentHash,
-        version: { increment: 1 },
-        accessLog: {
-          [new Date().toISOString()]: {
-            userId: session.user.id,
-            action: "pdf_exported",
+        where: { offboardingId },
+        update: {
+          generatedAt: new Date(),
+          generatedBy: session.user.id,
+          checksum: packContentHash,
+          version: { increment: 1 },
+          accessLog: {
+            [new Date().toISOString()]: {
+              userId: session.user.id,
+              action: "pdf_exported",
+            },
           },
         },
-      },
-      create: {
-        offboardingId,
-        generatedBy: session.user.id,
-        checksum: packContentHash,
-        data: {},
-        accessLog: {
-          [new Date().toISOString()]: {
-            userId: session.user.id,
-            action: "pdf_generated",
+        create: {
+          offboardingId,
+          organizationId: orgId,
+          generatedBy: session.user.id,
+          checksum: packContentHash,
+          data: {},
+          accessLog: {
+            [new Date().toISOString()]: {
+              userId: session.user.id,
+              action: "pdf_generated",
+            },
           },
         },
-      },
-    });
+      });
 
     await createAuditLog(session, orgId, {
       action: "evidence.pdf_exported",

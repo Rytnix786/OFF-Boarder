@@ -242,25 +242,29 @@ export async function updateSession(request: NextRequest) {
                 const memberships = (userData.memberships || []) as any[];
                 const employeeLinks = (userData.employeeUserLinks || []) as any[];
 
-                // Check for revoked access globally
-                const hasRevokedEmployeeLink = employeeLinks.some((l: any) => l.status === "REVOKED");
-                const hasRevokedMembership = memberships.some((m) => m.status === "REVOKED");
-                
-                if ((hasRevokedEmployeeLink || hasRevokedMembership) && pathname !== "/app/access-suspended") {
-                  const url = request.nextUrl.clone();
-                  url.pathname = "/app/access-suspended";
-                  return NextResponse.redirect(url);
-                }
-
-                const isEmployeePortal = pathname.startsWith("/app/employee");
-
-                if (isEmployeePortal) {
-                  // For employee portal, check if their employee link is revoked (already handled globally above, but keeping for safety)
-                  if (hasRevokedEmployeeLink && pathname !== "/app/access-suspended") {
+                  // Check for revoked access globally
+                  const hasRevokedEmployeeLink = employeeLinks.some((l: any) => l.status === "REVOKED");
+                  const hasRevokedMembership = memberships.some((m) => m.status === "REVOKED");
+                  
+                  // Compliance routes allowed even for revoked users (grace period for attestation/asset return)
+                  const complianceGraceRoutes = [
+                    "/app/employee/attestation",
+                    "/app/employee/assets",
+                    "/app/access-suspended",
+                  ];
+                  const isComplianceGraceRoute = complianceGraceRoutes.some(route => pathname.startsWith(route));
+                  
+                  if ((hasRevokedEmployeeLink || hasRevokedMembership) && !isComplianceGraceRoute) {
                     const url = request.nextUrl.clone();
                     url.pathname = "/app/access-suspended";
                     return NextResponse.redirect(url);
                   }
+
+                const isEmployeePortal = pathname.startsWith("/app/employee");
+
+                if (isEmployeePortal) {
+                    // Compliance routes allowed even for revoked employees (handled above)
+                    // No additional blocking needed here since global check already handles it
                 } else {
                   // For admin dashboard, check if their membership is revoked
                   // Only block if ALL memberships are revoked or if we can identify the current one
