@@ -1006,65 +1006,38 @@ export default function LandingPage() {
                 
                 return (
                   <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={index}>
-                    <MotionBox
-                      initial={{ opacity: 0, y: 30 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                      viewport={{ once: true }}
-                      sx={{ height: "100%", position: "relative" }}
-                    >
-                      {isFreeTrial && (
-                        <Box
-                          component={motion.div}
-                          animate={{
-                            opacity: [0.3, 0.6, 0.3],
-                          }}
-                          transition={{
-                            duration: 4,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                          }}
-                          sx={{
-                            position: "absolute",
-                            inset: -2,
-                            borderRadius: 3.5,
-                            padding: "2px",
-                            background: `linear-gradient(45deg, ${alpha(theme.palette.primary.main, 0)}, ${alpha(theme.palette.primary.main, 0.5)}, ${alpha(theme.palette.primary.main, 0)})`,
-                            backgroundSize: "200% 200%",
-                            zIndex: 0,
-                            filter: "blur(8px)",
-                            pointerEvents: "none",
-                          }}
-                        />
-                      )}
-                        <Card
-                          variant="outlined"
-                          sx={{
-                            ...cardStyle,
-                            borderRadius: 4,
-                            zIndex: 1,
-                            borderColor: plan.popular 
-                              ? alpha(theme.palette.primary.main, 0.4) 
-                              : isFreeTrial
-                                ? alpha(theme.palette.primary.main, 0.3)
-                                : alpha(isDark ? "#fff" : "#000", 0.08),
-                            background: isFreeTrial && isDark
-                              ? `linear-gradient(165deg, ${alpha("#0B1224", 0.95)} 0%, ${alpha("#05070A", 0.98)} 100%)`
-                              : undefined,
-                            "&:hover": {
-                              ...cardStyle["&:hover"],
-                              borderColor: plan.popular || isFreeTrial ? theme.palette.primary.main : alpha(theme.palette.primary.main, 0.3),
-                              boxShadow: isFreeTrial
-                                ? `0 40px 100px -20px ${alpha(theme.palette.primary.main, 0.25)}, 0 0 30px ${alpha(theme.palette.primary.main, 0.1)}`
-                                : cardStyle["&:hover"].boxShadow,
-                              ...(isFreeTrial && {
-                                background: isDark
-                                  ? `linear-gradient(165deg, ${alpha(theme.palette.primary.main, 0.08)} 0%, ${alpha(theme.palette.primary.main, 0.02)} 100%)`
-                                  : `linear-gradient(165deg, ${alpha(theme.palette.primary.main, 0.04)} 0%, ${alpha(theme.palette.primary.main, 0.01)} 100%)`,
-                              }),
-                            }
-                          }}
-                        >
+                      <MotionBox
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                        viewport={{ once: true }}
+                        sx={{ height: "100%", position: "relative" }}
+                      >
+                          <Card
+                            variant="outlined"
+                            sx={{
+                              ...cardStyle,
+                              borderRadius: 4,
+                              zIndex: 1,
+                              borderColor: plan.popular 
+                                ? alpha(theme.palette.primary.main, 0.4) 
+                                : isFreeTrial
+                                  ? alpha(isDark ? "#fff" : "#000", 0.15)
+                                  : alpha(isDark ? "#fff" : "#000", 0.08),
+                              background: isFreeTrial && isDark
+                                ? alpha("#0B0F1A", 0.4)
+                                : undefined,
+                              "&:hover": {
+                                ...cardStyle["&:hover"],
+                                borderColor: plan.popular ? theme.palette.primary.main : alpha(theme.palette.primary.main, 0.4),
+                                boxShadow: isDark
+                                  ? `0 40px 100px -20px rgba(0, 0, 0, 0.8), 0 0 40px ${alpha(theme.palette.primary.main, 0.1)}`
+                                  : `0 40px 100px -20px rgba(0, 0, 0, 0.12), 0 0 40px ${alpha(theme.palette.primary.main, 0.05)}`,
+                                transform: "translateY(-8px)",
+                                bgcolor: isDark ? alpha("#0B0F1A", 0.6) : "#fff",
+                              }
+                            }}
+                          >
                         {plan.popular && (
                           <Box
                             sx={{
@@ -1093,90 +1066,54 @@ export default function LandingPage() {
                                     {plan.name}
                                   </Typography>
                                   
-                                  {plan.popular && (
-                                    <Box
-                                      sx={{
-                                        position: "absolute",
-                                        top: 20,
-                                        right: 20,
-                                        px: 1.8,
-                                        py: 0.6,
-                                        borderRadius: 1,
-                                        bgcolor: "primary.main",
-                                        color: "white",
-                                        fontWeight: 900,
-                                        fontSize: "0.7rem",
-                                        letterSpacing: 1,
-                                        textTransform: "uppercase",
-                                        boxShadow: `0 8px 16px ${alpha(theme.palette.primary.main, 0.3)}`,
-                                      }}
-                                    >
-                                      RECOMMENDED
-                                    </Box>
-                                  )}
-                                  {isFreeTrial && (
-                                    <Box
-                                      component={motion.div}
-                                      animate={{ 
-                                        y: [0, -2, 0],
-                                        boxShadow: [
-                                          `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`,
-                                          `0 8px 24px ${alpha(theme.palette.primary.main, 0.25)}`,
-                                          `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`
-                                        ]
-                                      }}
-                                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                                      sx={{
-                                        position: "absolute",
-                                        top: 24,
-                                        right: 24,
-                                        px: 1.5,
-                                        py: 0.8,
-                                        borderRadius: "6px",
-                                        border: `1px solid ${alpha(theme.palette.primary.main, 0.5)}`,
-                                        color: "primary.main",
-                                        fontWeight: 900,
-                                        fontSize: "0.6rem",
-                                        lineHeight: 1.2,
-                                        letterSpacing: 1,
-                                        textTransform: "uppercase",
-                                        bgcolor: alpha(theme.palette.primary.main, 0.1),
-                                        backdropFilter: "blur(8px)",
-                                        textAlign: "center",
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        zIndex: 10,
-                                      }}
-                                    >
-                                      <Box component="span" sx={{ fontSize: "0.55rem", opacity: 0.8 }}>Most</Box>
-                                      Popular
-                                    </Box>
-                                  )}
-                                </Box>
+                                    {plan.popular && (
+                                      <Box
+                                        sx={{
+                                          position: "absolute",
+                                          top: 20,
+                                          right: 20,
+                                          px: 1.8,
+                                          py: 0.6,
+                                          borderRadius: 1,
+                                          bgcolor: "primary.main",
+                                          color: "white",
+                                          fontWeight: 900,
+                                          fontSize: "0.7rem",
+                                          letterSpacing: 1,
+                                          textTransform: "uppercase",
+                                          boxShadow: `0 8px 16px ${alpha(theme.palette.primary.main, 0.3)}`,
+                                        }}
+                                      >
+                                        RECOMMENDED
+                                      </Box>
+                                    )}
+                                  </Box>
                             <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "1rem", lineHeight: 1.5, minHeight: "3rem", fontWeight: 500 }}>
                               {plan.description}
                             </Typography>
                           </Box>
   
                           <Box sx={{ mb: 6, minHeight: "5rem", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                            <Box sx={{ display: "flex", alignItems: "baseline" }}>
-                              <Typography 
-                                component={motion.span}
-                                sx={{ 
-                                  fontSize: "3.5rem", 
-                                  fontWeight: 900, 
-                                  lineHeight: 1, 
-                                  letterSpacing: -3, 
-                                  color: "text.primary",
-                                  ...(isFreeTrial && {
-                                    background: `linear-gradient(135deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 100%)`,
-                                    WebkitBackgroundClip: "text",
-                                    WebkitTextFillColor: "transparent",
-                                  })
-                                }}
-                              >
-                                {plan.price}
-                              </Typography>
+                              <Box sx={{ display: "flex", alignItems: "baseline" }}>
+                                <Typography 
+                                  component={motion.span}
+                                  sx={{ 
+                                    fontSize: "3.5rem", 
+                                    fontWeight: 900, 
+                                    lineHeight: 1, 
+                                    letterSpacing: -3, 
+                                    color: "text.primary",
+                                    ...(isFreeTrial && {
+                                      background: isDark 
+                                        ? "linear-gradient(to right, #fff, rgba(255,255,255,0.6))"
+                                        : "linear-gradient(to right, #000, rgba(0,0,0,0.5))",
+                                      WebkitBackgroundClip: "text",
+                                      WebkitTextFillColor: "transparent",
+                                    })
+                                  }}
+                                >
+                                  {plan.price}
+                                </Typography>
                               {plan.period && (
                                 <Typography sx={{ color: "text.secondary", ml: 1.5, fontSize: "1.1rem", fontWeight: 700 }}>
                                   /{plan.period}
