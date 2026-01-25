@@ -21,6 +21,7 @@ import { motion } from "framer-motion";
 import { RiskRadarAnimation } from "@/components/ui/RiskRadarAnimation";
 import { EnterpriseContactModal } from "@/components/EnterpriseContactModal";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { RotatingProtocolIcon } from "@/components/ui/RotatingProtocolIcon";
 
 const MotionBox = motion.create(Box);
 const MotionTypography = motion.create(Typography);
@@ -1153,19 +1154,13 @@ export default function LandingPage() {
                                 transition={{ duration: 0.6, delay: 0.6 }}
                                 sx={{ color: "text.secondary", mt: 2, display: "flex", alignItems: "center", gap: 0.8, fontWeight: 700, fontSize: "0.8rem", opacity: 0.8 }}
                               >
-                                {plan.isTrial ? (
-                                  <>
-                                    <motion.span 
-                                      className="material-symbols-outlined" 
-                                      animate={isFreeTrial ? { rotate: [0, 360] } : {}}
-                                      transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                                      style={{ fontSize: 18, color: theme.palette.primary.main }}
-                                    >
-                                      verified
-                                    </motion.span>
-                                    No credit card required
-                                  </>
-                                ) : (
+                                  {plan.isTrial ? (
+                                    <>
+                                      <RotatingProtocolIcon size={18} />
+                                      No credit card required
+                                    </>
+                                  ) : (
+
                                   <>
                                     <span className="material-symbols-outlined" style={{ fontSize: 18 }}>history_toggle_off</span>
                                     Billed per month, cancel anytime
