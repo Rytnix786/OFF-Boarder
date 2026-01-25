@@ -46,6 +46,7 @@ export type EmployeeLinkRecord = {
   userId: string;
   status: EmployeeUserLinkStatus;
   revokedAt: Date | null;
+  accessExpiresAt: Date | null;
   organization: {
     id: string;
     name: string;
@@ -150,9 +151,10 @@ export async function getEmployeePortalSession(): Promise<EmployeePortalSession 
       organizationId: employeeLink.organizationId,
       employeeId: employeeLink.employeeId,
       userId: employeeLink.userId,
-      status: employeeLink.status,
-      revokedAt: employeeLink.revokedAt,
-      organization: {
+        status: employeeLink.status,
+        revokedAt: employeeLink.revokedAt,
+        accessExpiresAt: employeeLink.accessExpiresAt,
+        organization: {
         id: employeeLink.organization.id,
         name: employeeLink.organization.name,
         slug: employeeLink.organization.slug,
@@ -213,18 +215,24 @@ export async function requireEmployeePortalAuth(options?: { allowRevoked?: boole
 
   // Handle revoked employee portal access
   if (session.employeeLink.status === "REVOKED") {
-    // Check if grace period (24h) has expired
-    if (session.employeeLink.revokedAt) {
+    // Determine the absolute expiry time
+    let expiryTime: Date | null = null;
+
+    if (session.employeeLink.accessExpiresAt) {
+      // Manual override takes precedence
+      expiryTime = session.employeeLink.accessExpiresAt;
+    } else if (session.employeeLink.revokedAt) {
+      // Default grace period (24h)
       const gracePeriodHours = 24;
-      const expiryTime = new Date(session.employeeLink.revokedAt.getTime() + gracePeriodHours * 60 * 60 * 1000);
-      
-      if (new Date() > expiryTime) {
-        const inServerAction = await isServerAction();
-        if (inServerAction) {
-          throw new Error("Your compliance window has expired. Please contact HR for assistance.");
-        }
-        redirect("/app/access-suspended?error=expired");
+      expiryTime = new Date(session.employeeLink.revokedAt.getTime() + gracePeriodHours * 60 * 60 * 1000);
+    }
+
+    if (expiryTime && new Date() > expiryTime) {
+      const inServerAction = await isServerAction();
+      if (inServerAction) {
+        throw new Error("Your compliance window has expired. Please contact HR for assistance.");
       }
+      redirect("/app/access-suspended?error=expired");
     }
 
     if (options?.allowRevoked) {

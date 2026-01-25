@@ -713,6 +713,7 @@ model EmployeeUserLink {
   verifiedAt     DateTime?
   revokedAt      DateTime?
   revokedReason  String?
+  accessExpiresAt DateTime?
   createdAt      DateTime               @default(now())
   updatedAt      DateTime               @updatedAt
   employee       Employee               @relation(fields: [employeeId], references: [id], onDelete: Cascade)
