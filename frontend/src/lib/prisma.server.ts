@@ -1,5 +1,5 @@
 // Prisma Client singleton for Server Components and Server Actions
-// Force reload after schema update
+// Force reload after schema update - v2
 import "server-only";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
