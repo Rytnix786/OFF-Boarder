@@ -14,7 +14,8 @@ interface RiskRadarAnimationProps {
 
 export function RiskRadarAnimation({ 
   scrollProgress, 
-  autoplay = true
+  autoplay = true,
+  loop = true
 }: RiskRadarAnimationProps) {
   const theme = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -84,6 +85,13 @@ export function RiskRadarAnimation({
     animationRef.current = setInterval(() => {
       setCurrentFrame((prev) => {
         if (prev >= TOTAL_FRAMES) {
+          if (!loop) {
+            if (animationRef.current) {
+              clearInterval(animationRef.current);
+              animationRef.current = null;
+            }
+            return TOTAL_FRAMES;
+          }
           return 1;
         }
         return prev + 1;
@@ -96,7 +104,7 @@ export function RiskRadarAnimation({
         animationRef.current = null;
       }
     };
-  }, [scrollProgress, autoplay, isVisible, prefersReducedMotion]);
+  }, [scrollProgress, autoplay, isVisible, prefersReducedMotion, loop]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
