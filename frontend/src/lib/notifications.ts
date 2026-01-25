@@ -159,7 +159,7 @@ export async function createNotificationForOrgMembers(
       .select("userId")
       .eq("organizationId", organizationId)
       .eq("employeeId", excludeOffboardingSubjectId)
-      .eq("status", "VERIFIED")
+      .in("status", ["VERIFIED", "PENDING_VERIFICATION"])
       .single();
     
     if (employeeLink?.userId) {
