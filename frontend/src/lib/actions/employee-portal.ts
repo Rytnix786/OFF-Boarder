@@ -267,6 +267,61 @@ export async function signAttestation() {
     },
   });
 
+  // Find related tasks to auto-complete
+  const relatedTasks = await prisma.offboardingTask.findMany({
+    where: {
+      offboardingId: session.offboardingId,
+      assignedToEmployeeId: session.employee.id,
+      name: {
+        in: ["Complete final attestation", "Complete exit checklist"]
+      },
+      status: { not: "COMPLETED" }
+    }
+  });
+
+  if (relatedTasks.length > 0) {
+    const taskIds = relatedTasks.map(t => t.id);
+    
+    // Update tasks to COMPLETED
+    await prisma.offboardingTask.updateMany({
+      where: { id: { in: taskIds } },
+      data: {
+        status: "COMPLETED",
+        completedAt: new Date(),
+        completedBy: session.user.id,
+      }
+    });
+
+    // Create evidence for each task
+    await Promise.all(relatedTasks.map(task => 
+      prisma.taskEvidence.create({
+        data: {
+          taskId: task.id,
+          offboardingId: session.offboardingId,
+          organizationId: session.organizationId,
+          type: "LINK",
+          title: "Signed Attestation",
+          description: "Automatically linked upon attestation signature",
+          linkUrl: "/app/employee/attestation",
+          createdByUserId: session.user.id,
+          ipAddress: clientInfo.ipAddress,
+          userAgent: clientInfo.userAgent,
+          isImmutable: true,
+          immutableAt: new Date(),
+        }
+      })
+    ));
+
+    // Log the auto-completion for each task
+    for (const task of relatedTasks) {
+      await logEmployeeAction(session, "task_auto_completed", "offboarding_task", task.id, {
+        taskName: task.name,
+        offboardingId: session.offboardingId,
+        reason: "attestation_signed"
+      });
+    }
+  }
+
   await logEmployeeAction(session, "attestation_signed", "employee_attestation", attestation.id, {
     offboardingId: session.offboardingId,
     statement: ATTESTATION_STATEMENT,
@@ -284,6 +339,8 @@ export async function signAttestation() {
 
   revalidatePath("/app/employee");
   revalidatePath("/app/employee/attestation");
+  revalidatePath("/app/employee/tasks");
+  revalidatePath("/app/access-suspended");
 
   return { success: true, attestationId: attestation.id };
 }
