@@ -19,7 +19,7 @@ export default async function AppLayout({
   const session = await getAuthSession();
 
   // 2. Handle Employee Portal paths with awareness of both sessions
-  const isEmployeePortalPath = pathname.startsWith("/app/employee");
+  const isEmployeePortalPath = pathname === "/app/employee" || pathname.startsWith("/app/employee/");
 
   if (isEmployeePortalPath) {
     const employeeSession = await getEmployeePortalSession();
