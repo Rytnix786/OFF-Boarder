@@ -97,7 +97,10 @@ export default function OffboardingsClient({
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [riskFilter, setRiskFilter] = useState("all");
 
+  const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => {
+    setIsMounted(true);
     const startOffboardingId = searchParams.get("startOffboarding");
     if (startOffboardingId && employees.some(e => e.id === startOffboardingId)) {
       setSelectedEmployeeId(startOffboardingId);
@@ -321,102 +324,95 @@ export default function OffboardingsClient({
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredOffboardings.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} sx={{ py: 8, textAlign: "center" }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 48, opacity: 0.3 }}>
-                      group_remove
-                    </span>
-                    <Typography color="text.secondary" sx={{ mt: 1 }}>
-                      No offboardings in this category
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredOffboardings.map((o) => {
-                  const progress = getProgress(o.tasks);
-                  const pendingApprovals = o.approvals.filter(a => a.status === "PENDING").length;
-                  return (
-                      <TableRow
-                        key={o.id}
-                        hover
-                        sx={{ cursor: isOrgView ? "default" : "pointer" }}
-                        onClick={() => !isOrgView && router.push(`/app/offboardings/${o.id}`)}
-                      >
-                      <TableCell>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                          <Avatar sx={{ 
-                            bgcolor: o.riskLevel === "CRITICAL" ? "error.main" : 
-                                    o.riskLevel === "HIGH" ? "warning.main" : "primary.main" 
-                          }}>
-                            {o.employee.firstName.charAt(0)}{o.employee.lastName.charAt(0)}
-                          </Avatar>
-                          <Box>
-                            <Typography fontWeight={600}>
-                              {o.employee.firstName} {o.employee.lastName}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {o.employee.email}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">{o.employee.department?.name || "—"}</Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {o.employee.jobTitle?.title || "—"}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                          <Chip
-                            label={o.status.replace("_", " ")}
-                            size="small"
-                            color={getStatusColor(o.status) as any}
-                            sx={{ fontWeight: 600 }}
-                          />
-                          {pendingApprovals > 0 && (
-                            <Typography variant="caption" color="warning.main">
-                              {pendingApprovals} approval(s) pending
-                            </Typography>
-                          )}
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        {o.riskLevel !== "NORMAL" ? (
-                          <Chip
-                            icon={<span className="material-symbols-outlined" style={{ fontSize: 14 }}>warning</span>}
-                            label={o.riskLevel}
-                            size="small"
-                            color={getRiskColor(o.riskLevel) as any}
-                            sx={{ fontWeight: 600 }}
-                          />
-                        ) : (
-                          <Typography variant="body2" color="text.secondary">Normal</Typography>
-                        )}
-                      </TableCell>
-                      <TableCell sx={{ width: 150 }}>
-                        <Box>
-                          <Typography variant="caption" color="text.secondary">
-                            {progress}% ({o.tasks.filter(t => t.status === "COMPLETED").length}/{o.tasks.length})
-                          </Typography>
-                          <LinearProgress
-                            variant="determinate"
-                            value={progress}
-                            sx={{ height: 6, borderRadius: 3, mt: 0.5 }}
-                            color={progress === 100 ? "success" : "primary"}
-                          />
-                        </Box>
-                      </TableCell>
+                  filteredOffboardings.map((o) => {
+                    const progress = getProgress(o.tasks);
+                    const pendingApprovals = o.approvals.filter(a => a.status === "PENDING").length;
+                    
+                    // Logic to show COMPLETED if tasks are 100% but status is still IN_PROGRESS
+                    // (e.g. while assets are pending but user wants to see progress as done)
+                    const displayStatus = (o.status === "IN_PROGRESS" && progress === 100) ? "COMPLETED" : o.status;
+                    const displayColor = (o.status === "IN_PROGRESS" && progress === 100) ? "success" : getStatusColor(o.status);
+                    
+                    return (
+                        <TableRow
+                          key={o.id}
+                          hover
+                          sx={{ cursor: isOrgView ? "default" : "pointer" }}
+                          onClick={() => !isOrgView && router.push(`/app/offboardings/${o.id}`)}
+                        >
                         <TableCell>
-                          {o.scheduledDate
-                            ? new Date(o.scheduledDate).toLocaleDateString("en-US")
-                            : "—"}
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                            <Avatar sx={{ 
+                              bgcolor: o.riskLevel === "CRITICAL" ? "error.main" : 
+                                      o.riskLevel === "HIGH" ? "warning.main" : "primary.main" 
+                            }}>
+                              {o.employee.firstName.charAt(0)}{o.employee.lastName.charAt(0)}
+                            </Avatar>
+                            <Box>
+                              <Typography fontWeight={600}>
+                                {o.employee.firstName} {o.employee.lastName}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {o.employee.email}
+                              </Typography>
+                            </Box>
+                          </Box>
                         </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
+                        <TableCell>
+                          <Typography variant="body2">{o.employee.department?.name || "—"}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {o.employee.jobTitle?.title || "—"}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                            <Chip
+                              label={displayStatus.replace("_", " ")}
+                              size="small"
+                              color={displayColor as any}
+                              sx={{ fontWeight: 600 }}
+                            />
+                            {pendingApprovals > 0 && (
+                              <Typography variant="caption" color="warning.main">
+                                {pendingApprovals} approval(s) pending
+                              </Typography>
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          {o.riskLevel !== "NORMAL" ? (
+                            <Chip
+                              icon={<span className="material-symbols-outlined" style={{ fontSize: 14 }}>warning</span>}
+                              label={o.riskLevel}
+                              size="small"
+                              color={getRiskColor(o.riskLevel) as any}
+                              sx={{ fontWeight: 600 }}
+                            />
+                          ) : (
+                            <Typography variant="body2" color="text.secondary">Normal</Typography>
+                          )}
+                        </TableCell>
+                        <TableCell sx={{ width: 150 }}>
+                          <Box>
+                            <Typography variant="caption" color="text.secondary">
+                              {progress}% ({o.tasks.filter(t => t.status === "COMPLETED" || t.status === "SKIPPED").length}/{o.tasks.length})
+                            </Typography>
+                            <LinearProgress
+                              variant="determinate"
+                              value={progress}
+                              sx={{ height: 6, borderRadius: 3, mt: 0.5 }}
+                              color={progress === 100 ? "success" : "primary"}
+                            />
+                          </Box>
+                        </TableCell>
+                          <TableCell>
+                            {o.scheduledDate
+                              ? (isMounted ? new Date(o.scheduledDate).toLocaleDateString("en-US") : "...")
+                              : "—"}
+                          </TableCell>
+                      </TableRow>
+                    );
+                  })
             </TableBody>
           </Table>
         </TableContainer>

@@ -114,6 +114,11 @@ export default function EmployeeDetailClient({
   const [selectedManagerId, setSelectedManagerId] = useState(employee.managerMembership?.id || "");
   const [revokeLoading, setRevokeLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -348,16 +353,16 @@ export default function EmployeeDetailClient({
                       {portalStatus.status === "expired" && "Invitation Expired"}
                       {portalStatus.status === "not_invited" && "Not Invited"}
                     </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {portalStatus.status === "verified" && portalStatus.link && 
-                              `Verified ${new Date(portalStatus.link.verifiedAt!).toLocaleDateString("en-US")}`}
-                            {portalStatus.status === "pending" && portalStatus.invite && 
-                              `Sent ${new Date(portalStatus.invite.createdAt).toLocaleDateString("en-US")} • Expires ${new Date(portalStatus.invite.expiresAt).toLocaleDateString("en-US")}`}
-                            {portalStatus.status === "revoked" && portalStatus.link && 
-                              `Revoked ${new Date(portalStatus.link.revokedAt!).toLocaleDateString("en-US")}${portalStatus.link.revokedReason ? ` - ${portalStatus.link.revokedReason}` : ""}`}
-                            {portalStatus.status === "expired" && "Invitation has expired"}
-                            {portalStatus.status === "not_invited" && "Employee has not been invited to the portal"}
-                          </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {portalStatus.status === "verified" && portalStatus.link && 
+                                `Verified ${isMounted ? new Date(portalStatus.link.verifiedAt!).toLocaleDateString("en-US") : "..."}`}
+                              {portalStatus.status === "pending" && portalStatus.invite && 
+                                `Sent ${isMounted ? new Date(portalStatus.invite.createdAt).toLocaleDateString("en-US") : "..."} • Expires ${isMounted ? new Date(portalStatus.invite.expiresAt).toLocaleDateString("en-US") : "..."}`}
+                              {portalStatus.status === "revoked" && portalStatus.link && 
+                                `Revoked ${isMounted ? new Date(portalStatus.link.revokedAt!).toLocaleDateString("en-US") : "..."}${portalStatus.link.revokedReason ? ` - ${portalStatus.link.revokedReason}` : ""}`}
+                              {portalStatus.status === "expired" && "Invitation has expired"}
+                              {portalStatus.status === "not_invited" && "Employee has not been invited to the portal"}
+                            </Typography>
                   </Box>
                 </Box>
                 {canEdit && (

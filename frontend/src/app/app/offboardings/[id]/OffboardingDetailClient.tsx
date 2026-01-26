@@ -365,11 +365,11 @@ export default function OffboardingDetailClient({
           </Box>
           <Typography color="text.secondary">Offboarding Process</Typography>
         </Box>
-        <Chip
-          label={offboarding.status.replace("_", " ")}
-          color={getStatusColor(offboarding.status) as any}
-          sx={{ fontWeight: 700 }}
-        />
+          <Chip
+            label={((offboarding.status === "IN_PROGRESS" && progress === 100) ? "COMPLETED" : offboarding.status).replace("_", " ")}
+            color={((offboarding.status === "IN_PROGRESS" && progress === 100) ? "success" : getStatusColor(offboarding.status)) as any}
+            sx={{ fontWeight: 700 }}
+          />
         {canUpdate && offboarding.status !== "COMPLETED" && offboarding.status !== "CANCELLED" && (
           <>
             <Button variant="outlined" onClick={() => setRiskDialog(true)}>
