@@ -18,6 +18,9 @@ async function getPendingComplianceTasks(userId: string) {
                   status: { in: ["PENDING", "IN_PROGRESS"] },
                   isEmployeeRequired: true,
                 }
+              },
+              attestations: {
+                take: 1
               }
             }
           }
@@ -29,19 +32,31 @@ async function getPendingComplianceTasks(userId: string) {
   if (!employeeLink?.employee?.offboardings?.length) return null;
   
   const offboarding = employeeLink.employee.offboardings[0];
-  const pendingTasks = offboarding?.tasks || [];
+  const hasSignedAttestation = offboarding.attestations.length > 0;
   
   const attestationKeywords = ["attestation", "sign", "acknowledge", "confirm"];
   const assetKeywords = ["asset", "return", "equipment", "laptop", "device"];
   
+  // Filter out attestation-related tasks if the attestation is already signed
+  const filteredPendingTasks = offboarding.tasks.filter(t => {
+    if (hasSignedAttestation) {
+      const isAttestationRelated = attestationKeywords.some(kw => 
+        t.name.toLowerCase().includes(kw) || t.category?.toLowerCase().includes(kw)
+      );
+      if (isAttestationRelated) return false;
+    }
+    return true;
+  });
+  
   return {
-    hasAttestationTask: pendingTasks.some(t => 
+    hasAttestationTask: !hasSignedAttestation && filteredPendingTasks.some(t => 
       attestationKeywords.some(kw => t.name.toLowerCase().includes(kw) || t.category?.toLowerCase().includes(kw))
     ),
-    hasAssetReturnTask: pendingTasks.some(t => 
+    hasAssetReturnTask: filteredPendingTasks.some(t => 
       assetKeywords.some(kw => t.name.toLowerCase().includes(kw) || t.category?.toLowerCase().includes(kw))
     ),
-    totalPendingTasks: pendingTasks.length,
+    totalPendingTasks: filteredPendingTasks.length,
+    hasSignedAttestation,
   };
 }
 
