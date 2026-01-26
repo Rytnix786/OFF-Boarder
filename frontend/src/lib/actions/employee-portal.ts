@@ -11,6 +11,7 @@ import {
 import { createAuditLog } from "@/lib/audit.server";
 import { revalidatePath } from "next/cache";
 import { AssetProofType, EvidenceType } from "@prisma/client";
+import { createNotificationForOrgMembers } from "@/lib/notifications";
 import crypto from "crypto";
 
 const ATTESTATION_STATEMENT = "I confirm that I no longer retain access to company systems or data.";
@@ -128,6 +129,16 @@ export async function completeEmployeeTask(taskId: string) {
     offboardingId: task.offboardingId,
     evidenceCount: task.evidence.length,
   });
+
+  // Notify admins
+  await createNotificationForOrgMembers(
+    session.organizationId,
+    session.user.id,
+    "task_completed",
+    "Employee Task Completed",
+    `${session.employee.firstName} ${session.employee.lastName} has completed task: ${task.name}.`,
+    `/app/offboardings/${task.offboardingId}`
+  );
 
   revalidatePath("/app/employee");
   revalidatePath("/app/employee/tasks");
@@ -260,6 +271,16 @@ export async function signAttestation() {
     offboardingId: session.offboardingId,
     statement: ATTESTATION_STATEMENT,
   });
+
+  // Notify admins
+  await createNotificationForOrgMembers(
+    session.organizationId,
+    session.user.id,
+    "general",
+    "Final Attestation Signed",
+    `${session.employee.firstName} ${session.employee.lastName} has signed the final compliance attestation.`,
+    `/app/offboardings/${session.offboardingId}`
+  );
 
   revalidatePath("/app/employee");
   revalidatePath("/app/employee/attestation");
