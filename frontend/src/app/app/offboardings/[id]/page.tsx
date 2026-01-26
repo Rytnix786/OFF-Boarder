@@ -18,8 +18,8 @@ export default async function OffboardingDetailPage({
     redirect("/app/access-denied?reason=You%20cannot%20view%20your%20own%20offboarding%20case");
   }
 
-  const offboarding = await prisma.offboarding.findFirst({
-    where: { id, organizationId: session.currentOrgId! },
+  const offboarding = await prisma.offboarding.findUnique({
+    where: { id },
     include: {
       employee: {
         include: {
@@ -61,7 +61,7 @@ export default async function OffboardingDetailPage({
     },
   });
 
-  if (!offboarding) notFound();
+  if (!offboarding || offboarding.organizationId !== session.currentOrgId) notFound();
 
   const canUpdate = session.currentMembership?.systemRole === "OWNER" ||
                     session.currentMembership?.systemRole === "ADMIN";

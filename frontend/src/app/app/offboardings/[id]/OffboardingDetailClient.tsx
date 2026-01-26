@@ -413,14 +413,20 @@ export default function OffboardingDetailClient({
                 }}>
                   {offboarding.employee.firstName.charAt(0)}{offboarding.employee.lastName.charAt(0)}
                 </Avatar>
-                <Box>
-                  <Typography variant="h6" fontWeight={700}>
-                    {offboarding.employee.firstName} {offboarding.employee.lastName}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {offboarding.employee.jobTitle?.title || "No title"}
-                  </Typography>
-                </Box>
+                  <Box>
+                    <Typography variant="h6" fontWeight={700}>
+                      {offboarding.employee.firstName} {offboarding.employee.lastName}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      {offboarding.employee.jobTitle?.title || "No title"}
+                    </Typography>
+                    <Chip
+                      label={offboarding.status === "COMPLETED" ? "TERMINATED" : "OFFBOARDING"}
+                      size="small"
+                      color={offboarding.status === "COMPLETED" ? "error" : "warning"}
+                      sx={{ fontWeight: 700, height: 20, fontSize: "0.65rem" }}
+                    />
+                  </Box>
               </Box>
 
               <Divider sx={{ my: 2 }} />

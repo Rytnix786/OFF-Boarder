@@ -332,8 +332,8 @@ export default function EmployeesClient({
     // Check if employee has completed offboardings
     const hasCompletedOffboarding = emp.offboardings?.some(o => o.status === "COMPLETED");
     
-    if (hasCompletedOffboarding) {
-      return { label: "OFFBOARDED", color: "error" as const };
+    if (hasCompletedOffboarding || emp.status === "TERMINATED") {
+      return { label: "TERMINATED", color: "error" as const };
     }
     
     // Otherwise show current employee status
