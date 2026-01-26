@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -19,6 +19,9 @@ import {
   alpha,
   Popper,
   PopperProps,
+  useTheme,
+  Stack,
+  Fade,
 } from "@mui/material";
 import {
   Business as BusinessIcon,
@@ -26,6 +29,8 @@ import {
   AccessTime as TimezoneIcon,
   Category as TypeIcon,
   Lock as LockIcon,
+  Save as SaveIcon,
+  WarningAmber as WarningIcon,
 } from "@mui/icons-material";
 import { updateOrganizationProfile } from "@/lib/actions/organization";
 import { useRouter } from "next/navigation";
@@ -58,6 +63,7 @@ export default function OrganizationClient({
   canEdit,
   userRole,
 }: OrganizationClientProps) {
+  const theme = useTheme();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,6 +91,7 @@ export default function OrganizationClient({
         { name: "flip", enabled: false },
         { name: "preventOverflow", enabled: true, options: { boundary: "viewport" } },
       ]}
+      sx={{ zIndex: theme.zIndex.modal + 1 }}
     />
   );
 
@@ -147,467 +154,542 @@ export default function OrganizationClient({
     formData.timezone !== (organization.timezone || "") ||
     formData.organizationType !== normalizeOrgType(organization.organizationType);
 
+  // Styled components alternatives using sx for better control
+  const sectionTitleSx = {
+    color: "text.primary",
+    fontWeight: 600,
+    fontSize: "1.1rem",
+    letterSpacing: "-0.01em",
+    mb: 1,
+  };
+
+  const textFieldSx = {
+    '& .MuiInputLabel-root': {
+      fontSize: '0.9rem',
+      fontWeight: 500,
+      color: alpha(theme.palette.text.primary, 0.7),
+    },
+    '& .MuiOutlinedInput-root': {
+      backgroundColor: alpha(theme.palette.background.paper, 0.4),
+      transition: theme.transitions.create(['border-color', 'box-shadow', 'background-color']),
+      '&:hover': {
+        backgroundColor: alpha(theme.palette.background.paper, 0.6),
+      },
+      '&.Mui-focused': {
+        backgroundColor: alpha(theme.palette.background.paper, 0.8),
+        boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.1)}`,
+      }
+    }
+  };
+
   return (
-    <Box>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight={800}>
+    <Box sx={{ maxWidth: 1200, mx: "auto", py: 2 }}>
+      <Stack spacing={1} sx={{ mb: 5 }}>
+        <Typography variant="h4" fontWeight={800} sx={{ letterSpacing: "-0.02em" }}>
           Organization Settings
         </Typography>
-        <Typography color="text.secondary">
-          Manage your organization profile and preferences
+        <Typography color="text.secondary" variant="body1">
+          Configure your enterprise identity and regional operations
         </Typography>
-      </Box>
+      </Stack>
 
-      <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 8 }}>
-            <Card variant="outlined" sx={{ borderRadius: 4, overflow: "hidden" }}>
-              <Box sx={{ p: 3, borderBottom: "1px solid", borderColor: "divider", bgcolor: "rgba(255, 255, 255, 0.02)" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+      <Grid container spacing={4}>
+        <Grid item xs={12} md={8}>
+          <Stack spacing={4}>
+            <Card 
+              variant="outlined" 
+              sx={{ 
+                borderRadius: 4, 
+                border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                bgcolor: alpha(theme.palette.background.paper, 0.3),
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              <Box sx={{ p: 3, borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`, bgcolor: alpha(theme.palette.primary.main, 0.02) }}>
+                <Stack direction="row" spacing={2} alignItems="center">
                   <Box sx={{ 
-                    p: 1, 
-                    borderRadius: 2, 
-                    bgcolor: "primary.main", 
-                    color: "primary.contrastText",
+                    p: 1.25, 
+                    borderRadius: "12px", 
+                    bgcolor: alpha(theme.palette.primary.main, 0.1), 
+                    color: "primary.main",
                     display: "flex"
                   }}>
                     <BusinessIcon fontSize="small" />
                   </Box>
                   <Box>
-                    <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
-                      Organization Profile
+                    <Typography sx={sectionTitleSx}>
+                      Corporate Profile
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Update your company information and regional settings
+                    <Typography variant="body2" color="text.secondary">
+                      Core identity settings for {organization.name}
                     </Typography>
                   </Box>
-                </Box>
+                </Stack>
               </Box>
+
               <CardContent sx={{ p: 4 }}>
                 {!canEdit && (
-                  <Alert severity="info" variant="outlined" sx={{ mb: 4, borderRadius: 2 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <LockIcon fontSize="small" />
-                      <Typography variant="body2">
-                        Only organization Owners and Admins can edit these settings.
-                      </Typography>
-                    </Box>
-                  </Alert>
+                  <Fade in={true}>
+                    <Alert 
+                      severity="info" 
+                      icon={<LockIcon fontSize="small" />}
+                      sx={{ 
+                        mb: 4, 
+                        borderRadius: 3, 
+                        bgcolor: alpha(theme.palette.info.main, 0.05),
+                        border: `1px solid ${alpha(theme.palette.info.main, 0.1)}`,
+                        color: "info.main"
+                      }}
+                    >
+                      Administrative permissions are required to modify these enterprise settings.
+                    </Alert>
+                  </Fade>
                 )}
 
                 {error && (
-                  <Alert severity="error" variant="filled" sx={{ mb: 4, borderRadius: 2 }}>
+                  <Alert severity="error" sx={{ mb: 4, borderRadius: 3 }}>
                     {error}
                   </Alert>
                 )}
 
                 {success && (
-                  <Alert severity="success" variant="outlined" sx={{ mb: 4, borderRadius: 2 }}>
-                    Organization profile updated successfully!
+                  <Alert severity="success" sx={{ mb: 4, borderRadius: 3 }}>
+                    Organization profile updated successfully.
                   </Alert>
                 )}
 
                 <form onSubmit={handleSubmit}>
-                  <Grid container spacing={4}>
-                    <Grid size={{ xs: 12 }}>
-                      <TextField
-                        fullWidth
-                        label="Organization Name"
-                        value={formData.name}
-                        onChange={handleChange("name")}
-                        disabled={!canEdit}
-                        required
-                        placeholder="Acme Corp"
-                        slotProps={{
-                          input: {
-                            startAdornment: (
-                              <Box sx={{ mr: 1.5, color: "text.secondary", display: "flex" }}>
-                                <BusinessIcon fontSize="small" />
-                              </Box>
-                            )
-                          }
-                        }}
-                      />
-                    </Grid>
+                  <Stack spacing={4}>
+                    <Grid container spacing={3}>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Organization Name"
+                          value={formData.name}
+                          onChange={handleChange("name")}
+                          disabled={!canEdit}
+                          required
+                          placeholder="Acme Corp"
+                          sx={textFieldSx}
+                        />
+                      </Grid>
 
-                    <Grid size={{ xs: 12 }}>
-                      <TextField
-                        fullWidth
-                        label="Slug (URL Identifier)"
-                        value={organization.slug}
-                        disabled
-                        slotProps={{
-                          input: {
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Identifier (Slug)"
+                          value={organization.slug}
+                          disabled
+                          helperText="Used for your unique organization URL"
+                          sx={{
+                            ...textFieldSx,
+                            '& .MuiOutlinedInput-root': {
+                              ...textFieldSx['& .MuiOutlinedInput-root'],
+                              bgcolor: alpha(theme.palette.action.disabledBackground, 0.05),
+                            }
+                          }}
+                          InputProps={{
                             startAdornment: (
                               <Typography 
                                 variant="body2" 
-                                color="text.secondary" 
+                                color="text.disabled" 
                                 sx={{ 
                                   mr: 1, 
-                                  bgcolor: "action.hover", 
+                                  bgcolor: alpha(theme.palette.action.disabledBackground, 0.1), 
                                   px: 1, 
-                                  py: 0.5, 
+                                  py: 0.25, 
                                   borderRadius: 1,
                                   fontSize: "0.75rem",
-                                  fontWeight: 600
+                                  fontWeight: 700
                                 }}
                               >
                                 /org/
                               </Typography>
                             ),
-                          },
-                        }}
-                      />
+                          }}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Logo Asset URL"
+                          value={formData.logoUrl}
+                          onChange={handleChange("logoUrl")}
+                          disabled={!canEdit}
+                          placeholder="https://cdn.acme.com/logo.png"
+                          helperText="External link to your company logo"
+                          sx={textFieldSx}
+                        />
+                      </Grid>
                     </Grid>
 
-                    <Grid size={{ xs: 12 }}>
-                      <TextField
-                        fullWidth
-                        label="Logo URL"
-                        value={formData.logoUrl}
-                        onChange={handleChange("logoUrl")}
-                        disabled={!canEdit}
-                        placeholder="https://example.com/logo.png"
-                        helperText="Provide a URL to your company logo"
-                      />
-                    </Grid>
-
-                    <Grid size={{ xs: 12 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 2, my: 1 }}>
-                        <Typography variant="subtitle2" sx={{ whiteSpace: "nowrap", color: "text.secondary", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", fontSize: "0.7rem" }}>
-                          Regional & Industry
+                    <Box>
+                      <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
+                        <Typography variant="overline" sx={{ fontWeight: 800, color: "text.disabled", letterSpacing: "0.1em" }}>
+                          Regional & Industry Operations
                         </Typography>
-                        <Divider sx={{ flex: 1 }} />
-                      </Box>
-                    </Grid>
+                        <Divider sx={{ flex: 1, borderColor: alpha(theme.palette.divider, 0.05) }} />
+                      </Stack>
 
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <TextField
-                        fullWidth
-                        label="Primary Location"
-                        value={formData.primaryLocation}
-                        onChange={handleChange("primaryLocation")}
-                        disabled={!canEdit}
-                        required={organization.isSetupComplete}
-                        placeholder="e.g., San Francisco, CA"
-                        slotProps={{
-                          input: {
-                            startAdornment: (
-                              <Box sx={{ mr: 1, color: "text.secondary", display: "flex" }}>
-                                <LocationIcon fontSize="small" />
-                              </Box>
-                            ),
-                          },
-                        }}
-                      />
-                    </Grid>
-
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <Autocomplete
-                        value={selectedTimezone}
-                        onChange={(_, newValue) => handleTimezoneChange(newValue)}
-                        options={timezoneOptions}
-                        disabled={!canEdit}
-                        getOptionLabel={(option) => `${option.offset} — ${option.label}`}
-                        filterOptions={(options, { inputValue }) => {
-                          const search = inputValue.toLowerCase();
-                          return options.filter(opt => opt.searchTerms.includes(search));
-                        }}
-                        PopperComponent={CustomPopper}
-                        slotProps={{
-                          listbox: {
-                            sx: { maxHeight: 280 }
-                          }
-                        }}
-                        renderOption={(props, option) => {
-                          const { key: _key, ...rest } = props as React.HTMLAttributes<HTMLLIElement> & { key: string };
-                          return (
-                            <Box component="li" key={option.value} {...rest} sx={{ px: "12px !important", py: "8px !important" }}>
-                              <Box sx={{ display: "flex", alignItems: "center", gap: 2, width: "100%" }}>
-                                <Typography 
-                                  variant="caption" 
-                                  sx={{ 
-                                    fontFamily: "monospace", 
-                                    minWidth: 70,
-                                    px: 1,
-                                    py: 0.25,
-                                    borderRadius: 1,
-                                    bgcolor: "action.hover",
-                                    color: "text.secondary",
-                                    textAlign: "center",
-                                    border: "1px solid",
-                                    borderColor: "divider"
-                                  }}
-                                >
-                                  {option.offset}
-                                </Typography>
-                                <Typography variant="body2" sx={{ fontWeight: 500 }}>{option.label}</Typography>
-                              </Box>
-                            </Box>
-                          );
-                        }}
-                        renderInput={(params) => (
+                      <Grid container spacing={3}>
+                        <Grid item xs={12} sm={6}>
                           <TextField
-                            {...params}
-                            label="Timezone"
+                            fullWidth
+                            label="Operational Headquarters"
+                            value={formData.primaryLocation}
+                            onChange={handleChange("primaryLocation")}
+                            disabled={!canEdit}
                             required={organization.isSetupComplete}
-                            placeholder="Search timezone..."
-                            helperText="Primary timezone for scheduling"
-                            slotProps={{
-                              input: {
-                                ...params.InputProps,
-                                startAdornment: (
-                                  <Box sx={{ display: "flex", alignItems: "center", pl: 1, color: "text.secondary" }}>
-                                    <TimezoneIcon fontSize="small" />
-                                    {params.InputProps.startAdornment}
-                                  </Box>
-                                ),
-                              },
+                            placeholder="e.g., London, UK"
+                            sx={textFieldSx}
+                            InputProps={{
+                              startAdornment: (
+                                <LocationIcon fontSize="small" sx={{ mr: 1, color: alpha(theme.palette.text.secondary, 0.5) }} />
+                              ),
                             }}
                           />
-                        )}
-                        PaperComponent={(props) => (
-                          <Paper {...props} elevation={8} sx={{ mt: 0.5, borderRadius: 2, border: "1px solid", borderColor: "divider" }} />
-                        )}
-                        isOptionEqualToValue={(option, value) => option.value === value.value}
-                      />
-                    </Grid>
+                        </Grid>
 
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <Autocomplete
-                        value={selectedOrgType}
-                        onChange={(_, newValue) => handleOrgTypeChange(newValue)}
-                        options={ORGANIZATION_TYPES}
-                        disabled={!canEdit}
-                        groupBy={(option) => {
-                          const labels: Record<string, string> = {
-                            business: "Business",
-                            public: "Public Sector",
-                            specialized: "Specialized Industries",
-                          };
-                          return labels[option.category] || option.category;
-                        }}
-                        getOptionLabel={(option) => option.label}
-                        filterOptions={(options, { inputValue }) => {
-                          const search = inputValue.toLowerCase();
-                          return options.filter(opt =>
-                            opt.label.toLowerCase().includes(search) ||
-                            opt.value.toLowerCase().includes(search) ||
-                            opt.description?.toLowerCase().includes(search)
-                          );
-                        }}
-                        PopperComponent={CustomPopper}
-                        slotProps={{
-                          listbox: {
-                            sx: { maxHeight: 280 }
-                          }
-                        }}
-                        renderOption={(props, option) => {
-                          const { key: _key, ...rest } = props as React.HTMLAttributes<HTMLLIElement> & { key: string };
-                          return (
-                            <Box component="li" key={option.value} {...rest} sx={{ px: "12px !important", py: "8px !important" }}>
-                              <Box sx={{ display: "flex", flexDirection: "column" }}>
-                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                  {option.label}
-                                </Typography>
-                                {option.description && (
-                                  <Typography variant="caption" color="text.secondary">
-                                    {option.description}
-                                  </Typography>
-                                )}
-                              </Box>
-                            </Box>
-                          );
-                        }}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Organization Type"
-                            required={organization.isSetupComplete}
-                            placeholder="Search industry..."
-                            helperText="Industry or sector of your organization"
-                            slotProps={{
-                              input: {
-                                ...params.InputProps,
-                                startAdornment: (
-                                  <Box sx={{ display: "flex", alignItems: "center", pl: 1, color: "text.secondary" }}>
-                                    <TypeIcon fontSize="small" />
-                                    {params.InputProps.startAdornment}
-                                  </Box>
-                                ),
-                              },
+                        <Grid item xs={12} sm={6}>
+                          <Autocomplete
+                            value={selectedTimezone}
+                            onChange={(_, newValue) => handleTimezoneChange(newValue)}
+                            options={timezoneOptions}
+                            disabled={!canEdit}
+                            getOptionLabel={(option) => `${option.offset} — ${option.label}`}
+                            filterOptions={(options, { inputValue }) => {
+                              const search = inputValue.toLowerCase();
+                              return options.filter(opt => opt.searchTerms.includes(search));
                             }}
+                            PopperComponent={CustomPopper}
+                            renderOption={(props, option) => {
+                              const { key, ...rest } = props as any;
+                              return (
+                                <Box component="li" key={option.value} {...rest} sx={{ px: "16px !important", py: "12px !important" }}>
+                                  <Stack direction="row" spacing={2} alignItems="center" sx={{ width: "100%" }}>
+                                    <Typography 
+                                      variant="caption" 
+                                      sx={{ 
+                                        fontFamily: theme.typography.fontFamily, 
+                                        minWidth: 75,
+                                        px: 1,
+                                        py: 0.5,
+                                        borderRadius: 1.5,
+                                        bgcolor: alpha(theme.palette.primary.main, 0.05),
+                                        color: "primary.main",
+                                        fontWeight: 700,
+                                        textAlign: "center",
+                                        border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`
+                                      }}
+                                    >
+                                      {option.offset}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{option.label}</Typography>
+                                  </Stack>
+                                </Box>
+                              );
+                            }}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                label="Enterprise Timezone"
+                                required={organization.isSetupComplete}
+                                sx={textFieldSx}
+                                InputProps={{
+                                  ...params.InputProps,
+                                  startAdornment: (
+                                    <>
+                                      <TimezoneIcon fontSize="small" sx={{ ml: 1, mr: -0.5, color: alpha(theme.palette.text.secondary, 0.5) }} />
+                                      {params.InputProps.startAdornment}
+                                    </>
+                                  ),
+                                }}
+                              />
+                            )}
+                            PaperComponent={(props) => (
+                              <Paper {...props} elevation={0} sx={{ mt: 1, borderRadius: 3, border: `1px solid ${alpha(theme.palette.divider, 0.1)}`, overflow: "hidden", boxShadow: theme.shadows[10] }} />
+                            )}
+                            isOptionEqualToValue={(option, value) => option.value === value.value}
                           />
-                        )}
-                        PaperComponent={(props) => (
-                          <Paper {...props} elevation={8} sx={{ mt: 0.5, borderRadius: 2, border: "1px solid", borderColor: "divider" }} />
-                        )}
-                        isOptionEqualToValue={(option, value) => option.value === value.value}
-                      />
-                    </Grid>
-                </Grid>
+                        </Grid>
 
-                {canEdit && (
-                  <Box sx={{ mt: 4, display: "flex", gap: 2 }}>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      disabled={loading || !hasChanges}
-                      startIcon={loading ? <CircularProgress size={16} /> : null}
-                    >
-                      {loading ? "Saving..." : "Save Changes"}
-                    </Button>
-                    {hasChanges && (
-                      <Button
-                        type="button"
-                        variant="outlined"
-                        onClick={() =>
-                          setFormData({
-                            name: organization.name,
-                            logoUrl: organization.logoUrl || "",
-                            primaryLocation: organization.primaryLocation || "",
-                            timezone: organization.timezone || "",
-                            organizationType: normalizeOrgType(organization.organizationType) || "",
-                          })
-                        }
-                      >
-                        Cancel
-                      </Button>
+                        <Grid item xs={12}>
+                          <Autocomplete
+                            value={selectedOrgType}
+                            onChange={(_, newValue) => handleOrgTypeChange(newValue)}
+                            options={ORGANIZATION_TYPES}
+                            disabled={!canEdit}
+                            groupBy={(option) => {
+                              const labels: Record<string, string> = {
+                                business: "Commercial Entities",
+                                public: "Government & Public Sector",
+                                specialized: "Regulated Industries",
+                              };
+                              return labels[option.category] || option.category;
+                            }}
+                            getOptionLabel={(option) => option.label}
+                            PopperComponent={CustomPopper}
+                            renderOption={(props, option) => {
+                              const { key, ...rest } = props as any;
+                              return (
+                                <Box component="li" key={option.value} {...rest} sx={{ px: "16px !important", py: "14px !important" }}>
+                                  <Stack spacing={0.5}>
+                                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                      {option.label}
+                                    </Typography>
+                                    {option.description && (
+                                      <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.8 }}>
+                                        {option.description}
+                                      </Typography>
+                                    )}
+                                  </Stack>
+                                </Box>
+                              );
+                            }}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                label="Organization Classification"
+                                required={organization.isSetupComplete}
+                                sx={textFieldSx}
+                                InputProps={{
+                                  ...params.InputProps,
+                                  startAdornment: (
+                                    <>
+                                      <TypeIcon fontSize="small" sx={{ ml: 1, mr: -0.5, color: alpha(theme.palette.text.secondary, 0.5) }} />
+                                      {params.InputProps.startAdornment}
+                                    </>
+                                  ),
+                                }}
+                              />
+                            )}
+                            PaperComponent={(props) => (
+                              <Paper {...props} elevation={0} sx={{ mt: 1, borderRadius: 3, border: `1px solid ${alpha(theme.palette.divider, 0.1)}`, overflow: "hidden", boxShadow: theme.shadows[10] }} />
+                            )}
+                            isOptionEqualToValue={(option, value) => option.value === value.value}
+                          />
+                        </Grid>
+                      </Grid>
+                    </Box>
+
+                    {canEdit && (
+                      <Stack direction="row" spacing={2} sx={{ pt: 2 }}>
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          disabled={loading || !hasChanges}
+                          startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
+                          sx={{ 
+                            px: 4, 
+                            py: 1.25, 
+                            borderRadius: 2.5, 
+                            fontWeight: 700, 
+                            boxShadow: theme.shadows[4],
+                            '&:not(:disabled):hover': {
+                              boxShadow: theme.shadows[8],
+                            }
+                          }}
+                        >
+                          {loading ? "Processing..." : "Commit Changes"}
+                        </Button>
+                        {hasChanges && (
+                          <Button
+                            type="button"
+                            variant="text"
+                            onClick={() =>
+                              setFormData({
+                                name: organization.name,
+                                logoUrl: organization.logoUrl || "",
+                                primaryLocation: organization.primaryLocation || "",
+                                timezone: organization.timezone || "",
+                                organizationType: normalizeOrgType(organization.organizationType) || "",
+                              })
+                            }
+                            sx={{ color: "text.secondary", fontWeight: 600 }}
+                          >
+                            Discard
+                          </Button>
+                        )}
+                      </Stack>
                     )}
-                  </Box>
-                )}
-              </form>
-            </CardContent>
-          </Card>
+                  </Stack>
+                </form>
+              </CardContent>
+            </Card>
 
-          {!isOwner && canEdit && (
-            <Alert severity="warning" sx={{ mt: 2 }}>
-              As an Admin, you can edit organization settings. Some actions may be
-              restricted to the Organization Owner.
-            </Alert>
-          )}
+            {!isOwner && canEdit && (
+              <Alert 
+                severity="warning" 
+                variant="outlined"
+                icon={<WarningIcon fontSize="small" />}
+                sx={{ borderRadius: 3, borderColor: alpha(theme.palette.warning.main, 0.2), bgcolor: alpha(theme.palette.warning.main, 0.02) }}
+              >
+                <Typography variant="body2">
+                  <strong>Administrative Notice:</strong> You are currently managing this organization as an Admin. Critical ownership transitions are restricted to the primary account holder.
+                </Typography>
+              </Alert>
+            )}
+          </Stack>
         </Grid>
 
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-              <Card variant="outlined" sx={{ borderRadius: 4, overflow: "hidden" }}>
-                <Box sx={{ p: 3, bgcolor: "rgba(255, 255, 255, 0.02)", borderBottom: "1px solid", borderColor: "divider" }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Avatar
-                      src={organization.logoUrl || undefined}
-                      variant="rounded"
+        <Grid item xs={12} md={4}>
+          <Stack spacing={3}>
+            <Card 
+              variant="outlined" 
+              sx={{ 
+                borderRadius: 4, 
+                border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                bgcolor: alpha(theme.palette.background.paper, 0.3),
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              <Box sx={{ p: 3, bgcolor: alpha(theme.palette.primary.main, 0.02), borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}` }}>
+                <Stack direction="row" spacing={2.5} alignItems="center">
+                  <Avatar
+                    src={organization.logoUrl || undefined}
+                    variant="rounded"
+                    sx={{ 
+                      width: 60, 
+                      height: 60, 
+                      bgcolor: alpha(theme.palette.primary.main, 0.1), 
+                      color: "primary.main",
+                      fontSize: 24,
+                      fontWeight: 900,
+                      borderRadius: 2.5,
+                      border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`
+                    }}
+                  >
+                    {organization.name.charAt(0)}
+                  </Avatar>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="subtitle1" fontWeight={800} noWrap sx={{ mb: 0.5 }}>
+                      {organization.name}
+                    </Typography>
+                    <Chip
+                      label={organization.status}
+                      size="small"
                       sx={{ 
-                        width: 56, 
-                        height: 56, 
-                        bgcolor: "primary.main", 
-                        fontSize: 24,
-                        fontWeight: 800,
-                        borderRadius: 2,
-                        boxShadow: (t) => t.shadows[4]
+                        height: 22, 
+                        fontSize: "0.6rem", 
+                        fontWeight: 800, 
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        bgcolor: organization.status === "ACTIVE" ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.warning.main, 0.1),
+                        color: organization.status === "ACTIVE" ? "success.main" : "warning.main",
+                        border: `1px solid ${alpha(organization.status === "ACTIVE" ? theme.palette.success.main : theme.palette.warning.main, 0.2)}`
                       }}
-                    >
-                      {organization.name.charAt(0)}
-                    </Avatar>
-                    <Box>
-                      <Typography variant="subtitle1" fontWeight={800} noWrap>
-                        {organization.name}
+                    />
+                  </Box>
+                </Stack>
+              </Box>
+              
+              <CardContent sx={{ p: 3 }}>
+                <Stack spacing={2.5}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography variant="body2" color="text.secondary">Current Authority</Typography>
+                    <Chip
+                      label={userRole}
+                      size="small"
+                      variant="outlined"
+                      sx={{ fontWeight: 700, fontSize: "0.65rem", borderRadius: 1.5, bgcolor: alpha(theme.palette.primary.main, 0.02) }}
+                    />
+                  </Stack>
+                  
+                  <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.05) }} />
+                  
+                  <Stack spacing={1.5}>
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography variant="body2" color="text.secondary">Organization Size</Typography>
+                      <Typography variant="body2" fontWeight={700}>{organization._count.memberships} Users</Typography>
+                    </Stack>
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography variant="body2" color="text.secondary">Security Scope</Typography>
+                      <Typography variant="body2" fontWeight={700}>{organization._count.employees} Records</Typography>
+                    </Stack>
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography variant="body2" color="text.secondary">Processed Flows</Typography>
+                      <Typography variant="body2" fontWeight={700}>{organization._count.offboardings} Cases</Typography>
+                    </Stack>
+                  </Stack>
+                  
+                  <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.05) }} />
+                  
+                  <Stack spacing={1}>
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography variant="caption" color="text.disabled">Onboarded</Typography>
+                      <Typography variant="caption" fontWeight={700} color="text.secondary">
+                        {mounted ? new Date(organization.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' }) : "—"}
                       </Typography>
-                      <Chip
-                        label={organization.status}
-                        size="small"
-                        color={organization.status === "ACTIVE" ? "success" : "warning"}
-                        sx={{ height: 20, fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase" }}
-                      />
-                    </Box>
-                  </Box>
-                </Box>
-                
-                <CardContent sx={{ p: 3 }}>
-                  <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <Typography variant="body2" color="text.secondary">Your Role</Typography>
-                      <Chip
-                        label={userRole}
-                        size="small"
-                        variant="outlined"
-                        sx={{ fontWeight: 600, fontSize: "0.7rem" }}
-                      />
-                    </Box>
-                    
-                    <Divider sx={{ borderStyle: "dashed" }} />
-                    
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <Typography variant="body2" color="text.secondary">Total Members</Typography>
-                      <Typography variant="body2" fontWeight={700}>{organization._count.memberships}</Typography>
-                    </Box>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <Typography variant="body2" color="text.secondary">Active Employees</Typography>
-                      <Typography variant="body2" fontWeight={700}>{organization._count.employees}</Typography>
-                    </Box>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <Typography variant="body2" color="text.secondary">Offboardings</Typography>
-                      <Typography variant="body2" fontWeight={700}>{organization._count.offboardings}</Typography>
-                    </Box>
-                    
-                    <Divider sx={{ borderStyle: "dashed" }} />
-                    
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <Typography variant="caption" color="text.secondary">Created</Typography>
-                          <Typography variant="caption" fontWeight={600}>
-                            {mounted ? new Date(organization.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' }) : "—"}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <Typography variant="caption" color="text.secondary">Last Updated</Typography>
-                          <Typography variant="caption" fontWeight={600}>
-                            {mounted ? new Date(organization.updatedAt).toLocaleDateString(undefined, { dateStyle: 'medium' }) : "—"}
-                          </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
+                    </Stack>
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography variant="caption" color="text.disabled">Last Synchronization</Typography>
+                      <Typography variant="caption" fontWeight={700} color="text.secondary">
+                        {mounted ? new Date(organization.updatedAt).toLocaleDateString(undefined, { dateStyle: 'medium' }) : "—"}
+                      </Typography>
+                    </Stack>
+                  </Stack>
+                </Stack>
+              </CardContent>
+            </Card>
 
-              {isOwner && (
-                  <Card variant="outlined" sx={{ 
-                    borderRadius: 4, 
-                    border: "1px solid", 
-                    borderColor: alpha("#EF4444", 0.2),
-                    bgcolor: alpha("#EF4444", 0.02),
-                    transition: "box-shadow 0.2s ease-in-out",
-                    "&:hover": {
-                      boxShadow: `0 0 20px ${alpha("#EF4444", 0.3)}`
-                    }
-                  }}>
-                  <CardContent sx={{ p: 3 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
+            {isOwner && (
+              <Card 
+                variant="outlined" 
+                sx={{ 
+                  borderRadius: 4, 
+                  border: `1px solid ${alpha(theme.palette.error.main, 0.15)}`,
+                  bgcolor: alpha(theme.palette.error.main, 0.02),
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  "&:hover": {
+                    bgcolor: alpha(theme.palette.error.main, 0.04),
+                    borderColor: alpha(theme.palette.error.main, 0.3),
+                    boxShadow: `0 8px 32px ${alpha(theme.palette.error.main, 0.1)}`,
+                  }
+                }}
+              >
+                <CardContent sx={{ p: 3 }}>
+                  <Stack spacing={2}>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <WarningIcon color="error" sx={{ fontSize: 18 }} />
                       <Typography
                         variant="subtitle2"
                         fontWeight={800}
                         color="error.main"
-                        sx={{ textTransform: "uppercase", letterSpacing: "0.05em", fontSize: "0.75rem" }}
+                        sx={{ textTransform: "uppercase", letterSpacing: "0.08em", fontSize: "0.7rem" }}
                       >
-                        Danger Zone
+                        Enterprise Termination
                       </Typography>
-                    </Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
-                      Deleting your organization will permanently remove all data, including employees, assets, and audit logs. This action cannot be undone.
+                    </Stack>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: "block", lineHeight: 1.6 }}>
+                      Permanently decommission this organization. This will immediately purge all memberships, employee records, and security audit logs.
                     </Typography>
                     <Button 
-                      variant="outlined" 
+                      variant="contained" 
                       color="error" 
-                      size="small" 
+                      size="medium" 
                       fullWidth
                       disabled 
-                      sx={{ borderRadius: 2, fontWeight: 700 }}
+                      sx={{ 
+                        borderRadius: 2.5, 
+                        fontWeight: 800, 
+                        py: 1,
+                        bgcolor: alpha(theme.palette.error.main, 0.1),
+                        color: theme.palette.error.main,
+                        boxShadow: "none",
+                        '&:hover': {
+                          bgcolor: alpha(theme.palette.error.main, 0.2),
+                        }
+                      }}
                     >
                       Delete Organization
                     </Button>
-                  </CardContent>
-                </Card>
-              )}
-            </Box>
-          </Grid>
+                  </Stack>
+                </CardContent>
+              </Card>
+            )}
+          </Stack>
+        </Grid>
       </Grid>
     </Box>
   );
