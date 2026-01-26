@@ -20,48 +20,70 @@ export default async function OffboardingDetailPage({
 
   const offboarding = await prisma.offboarding.findUnique({
     where: { id },
-    include: {
-      employee: {
-        include: {
-          department: true,
-          jobTitle: true,
-          location: true,
-          managerMembership: { 
-            select: { 
-              id: true, 
-              user: { select: { name: true, email: true } } 
-            } 
-          },
-        },
-      },
-      tasks: { 
-        orderBy: { order: "asc" },
-        include: {
-          evidence: true,
-        },
-      },
-      approvals: {
-        include: {
-          approver: { select: { id: true, name: true, email: true } },
-          task: { select: { name: true } },
-        },
-        orderBy: [{ approvalOrder: "asc" }, { createdAt: "asc" }],
-      },
-      assetReturns: {
-        include: {
-          asset: true,
-        },
-      },
-      evidencePack: true,
-      monitoringEvents: {
-        orderBy: { createdAt: "desc" },
-        take: 20,
-      },
-      workflowTemplate: { select: { name: true } },
-    },
   });
-
+  
   if (!offboarding || offboarding.organizationId !== session.currentOrgId) notFound();
+  
+  const [employee, tasks, approvals, assetReturns, evidencePack, monitoringEvents, workflowTemplate] = await Promise.all([
+    prisma.employee.findUnique({
+      where: { id: offboarding.employeeId },
+      include: {
+        department: true,
+        jobTitle: true,
+        location: true,
+        managerMembership: { 
+          select: { 
+            id: true, 
+            user: { select: { name: true, email: true } } 
+          } 
+        },
+      },
+    }),
+    prisma.offboardingTask.findMany({
+      where: { offboardingId: id },
+      orderBy: { order: "asc" },
+      include: {
+        evidence: true,
+      },
+    }),
+    prisma.approval.findMany({
+      where: { offboardingId: id },
+      include: {
+        approver: { select: { id: true, name: true, email: true } },
+        task: { select: { name: true } },
+      },
+      orderBy: [{ approvalOrder: "asc" }, { createdAt: "asc" }],
+    }),
+    prisma.assetReturn.findMany({
+      where: { offboardingId: id },
+      include: {
+        asset: true,
+      },
+    }),
+    prisma.evidencePack.findUnique({
+      where: { offboardingId: id },
+    }),
+    prisma.monitoringEvent.findMany({
+      where: { offboardingId: id },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+    offboarding.workflowTemplateId ? prisma.workflowTemplate.findUnique({
+      where: { id: offboarding.workflowTemplateId },
+      select: { name: true },
+    }) : null,
+  ]);
+  
+  const fullOffboarding = {
+    ...offboarding,
+    employee,
+    tasks,
+    approvals,
+    assetReturns,
+    evidencePack,
+    monitoringEvents,
+    workflowTemplate,
+  };
 
   const canUpdate = session.currentMembership?.systemRole === "OWNER" ||
                     session.currentMembership?.systemRole === "ADMIN";
@@ -70,7 +92,7 @@ export default async function OffboardingDetailPage({
 
   return (
     <OffboardingDetailClient 
-      offboarding={offboarding as any} 
+      offboarding={fullOffboarding as any} 
       canUpdate={canUpdate} 
       canApprove={canApprove}
     />
