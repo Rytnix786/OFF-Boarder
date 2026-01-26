@@ -58,6 +58,19 @@ interface OrganizationClientProps {
   userRole: string;
 }
 
+// Custom Popper component to ensure consistent placement
+const CustomPopper = (props: PopperProps) => (
+  <Popper
+    {...props}
+    placement="bottom-start"
+    modifiers={[
+      { name: "flip", enabled: false },
+      { name: "preventOverflow", enabled: true, options: { boundary: "viewport" } },
+    ]}
+    sx={{ zIndex: (theme) => theme.zIndex.modal + 1 }}
+  />
+);
+
 export default function OrganizationClient({
   organization,
   canEdit,
@@ -82,18 +95,6 @@ export default function OrganizationClient({
   }, []);
 
   const isOwner = userRole === "OWNER";
-
-  const CustomPopper = (props: PopperProps) => (
-    <Popper
-      {...props}
-      placement="bottom-start"
-      modifiers={[
-        { name: "flip", enabled: false },
-        { name: "preventOverflow", enabled: true, options: { boundary: "viewport" } },
-      ]}
-      sx={{ zIndex: theme.zIndex.modal + 1 }}
-    />
-  );
 
   const timezoneOptions = useMemo(() => getTimezoneOptions(), []);
   const selectedTimezone = useMemo(
@@ -260,69 +261,73 @@ export default function OrganizationClient({
 
                 <form onSubmit={handleSubmit}>
                   <Stack spacing={4}>
-                    <Grid container spacing={3}>
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Organization Name"
-                          value={formData.name}
-                          onChange={handleChange("name")}
-                          disabled={!canEdit}
-                          required
-                          placeholder="Acme Corp"
-                          sx={textFieldSx}
-                        />
+                      <Grid container spacing={3}>
+                        <Grid item xs={12}>
+                          <TextField
+                            id="org-name-field"
+                            fullWidth
+                            label="Organization Name"
+                            value={formData.name}
+                            onChange={handleChange("name")}
+                            disabled={!canEdit}
+                            required
+                            placeholder="Acme Corp"
+                            sx={textFieldSx}
+                          />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <TextField
+                            id="org-slug-field"
+                            fullWidth
+                            label="Identifier (Slug)"
+                            value={organization.slug}
+                            disabled
+                            helperText="Used for your unique organization URL"
+                            sx={{
+                              ...textFieldSx,
+                              '& .MuiOutlinedInput-root': {
+                                ...textFieldSx['& .MuiOutlinedInput-root'],
+                                bgcolor: alpha(theme.palette.action.disabledBackground, 0.05),
+                              }
+                            }}
+                            InputProps={{
+                              startAdornment: (
+                                <Typography 
+                                  variant="body2" 
+                                  color="text.disabled" 
+                                  sx={{ 
+                                    mr: 1, 
+                                    bgcolor: alpha(theme.palette.action.disabledBackground, 0.1), 
+                                    px: 1, 
+                                    py: 0.25, 
+                                    borderRadius: 1,
+                                    fontSize: "0.75rem",
+                                    fontWeight: 700
+                                  }}
+                                >
+                                  /org/
+                                </Typography>
+                              ),
+                            }}
+                          />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <TextField
+                            id="org-logo-field"
+                            fullWidth
+                            label="Logo Asset URL"
+                            value={formData.logoUrl}
+                            onChange={handleChange("logoUrl")}
+                            disabled={!canEdit}
+                            placeholder="https://cdn.acme.com/logo.png"
+                            helperText="External link to your company logo"
+                            sx={textFieldSx}
+                          />
+                        </Grid>
                       </Grid>
 
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Identifier (Slug)"
-                          value={organization.slug}
-                          disabled
-                          helperText="Used for your unique organization URL"
-                          sx={{
-                            ...textFieldSx,
-                            '& .MuiOutlinedInput-root': {
-                              ...textFieldSx['& .MuiOutlinedInput-root'],
-                              bgcolor: alpha(theme.palette.action.disabledBackground, 0.05),
-                            }
-                          }}
-                          InputProps={{
-                            startAdornment: (
-                              <Typography 
-                                variant="body2" 
-                                color="text.disabled" 
-                                sx={{ 
-                                  mr: 1, 
-                                  bgcolor: alpha(theme.palette.action.disabledBackground, 0.1), 
-                                  px: 1, 
-                                  py: 0.25, 
-                                  borderRadius: 1,
-                                  fontSize: "0.75rem",
-                                  fontWeight: 700
-                                }}
-                              >
-                                /org/
-                              </Typography>
-                            ),
-                          }}
-                        />
-                      </Grid>
-
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Logo Asset URL"
-                          value={formData.logoUrl}
-                          onChange={handleChange("logoUrl")}
-                          disabled={!canEdit}
-                          placeholder="https://cdn.acme.com/logo.png"
-                          helperText="External link to your company logo"
-                          sx={textFieldSx}
-                        />
-                      </Grid>
-                    </Grid>
 
                     <Box>
                       <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
@@ -332,145 +337,149 @@ export default function OrganizationClient({
                         <Divider sx={{ flex: 1, borderColor: alpha(theme.palette.divider, 0.05) }} />
                       </Stack>
 
-                      <Grid container spacing={3}>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label="Operational Headquarters"
-                            value={formData.primaryLocation}
-                            onChange={handleChange("primaryLocation")}
-                            disabled={!canEdit}
-                            required={organization.isSetupComplete}
-                            placeholder="e.g., London, UK"
-                            sx={textFieldSx}
-                            InputProps={{
-                              startAdornment: (
-                                <LocationIcon fontSize="small" sx={{ mr: 1, color: alpha(theme.palette.text.secondary, 0.5) }} />
-                              ),
-                            }}
-                          />
-                        </Grid>
+                        <Grid container spacing={3}>
+                          <Grid item xs={12} sm={6}>
+                            <TextField
+                              id="org-location-field"
+                              fullWidth
+                              label="Operational Headquarters"
+                              value={formData.primaryLocation}
+                              onChange={handleChange("primaryLocation")}
+                              disabled={!canEdit}
+                              required={organization.isSetupComplete}
+                              placeholder="e.g., London, UK"
+                              sx={textFieldSx}
+                              InputProps={{
+                                startAdornment: (
+                                  <LocationIcon fontSize="small" sx={{ mr: 1, color: alpha(theme.palette.text.secondary, 0.5) }} />
+                                ),
+                              }}
+                            />
+                          </Grid>
 
-                        <Grid item xs={12} sm={6}>
-                          <Autocomplete
-                            value={selectedTimezone}
-                            onChange={(_, newValue) => handleTimezoneChange(newValue)}
-                            options={timezoneOptions}
-                            disabled={!canEdit}
-                            getOptionLabel={(option) => `${option.offset} — ${option.label}`}
-                            filterOptions={(options, { inputValue }) => {
-                              const search = inputValue.toLowerCase();
-                              return options.filter(opt => opt.searchTerms.includes(search));
-                            }}
-                            PopperComponent={CustomPopper}
-                            renderOption={(props, option) => {
-                              const { key, ...rest } = props as any;
-                              return (
-                                <Box component="li" key={option.value} {...rest} sx={{ px: "16px !important", py: "12px !important" }}>
-                                  <Stack direction="row" spacing={2} alignItems="center" sx={{ width: "100%" }}>
-                                    <Typography 
-                                      variant="caption" 
-                                      sx={{ 
-                                        fontFamily: theme.typography.fontFamily, 
-                                        minWidth: 75,
-                                        px: 1,
-                                        py: 0.5,
-                                        borderRadius: 1.5,
-                                        bgcolor: alpha(theme.palette.primary.main, 0.05),
-                                        color: "primary.main",
-                                        fontWeight: 700,
-                                        textAlign: "center",
-                                        border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`
-                                      }}
-                                    >
-                                      {option.offset}
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{option.label}</Typography>
-                                  </Stack>
-                                </Box>
-                              );
-                            }}
-                            renderInput={(params) => (
-                              <TextField
-                                {...params}
-                                label="Enterprise Timezone"
-                                required={organization.isSetupComplete}
-                                sx={textFieldSx}
-                                InputProps={{
-                                  ...params.InputProps,
-                                  startAdornment: (
-                                    <>
-                                      <TimezoneIcon fontSize="small" sx={{ ml: 1, mr: -0.5, color: alpha(theme.palette.text.secondary, 0.5) }} />
-                                      {params.InputProps.startAdornment}
-                                    </>
-                                  ),
-                                }}
-                              />
-                            )}
-                            PaperComponent={(props) => (
-                              <Paper {...props} elevation={0} sx={{ mt: 1, borderRadius: 3, border: `1px solid ${alpha(theme.palette.divider, 0.1)}`, overflow: "hidden", boxShadow: theme.shadows[10] }} />
-                            )}
-                            isOptionEqualToValue={(option, value) => option.value === value.value}
-                          />
-                        </Grid>
-
-                        <Grid item xs={12}>
-                          <Autocomplete
-                            value={selectedOrgType}
-                            onChange={(_, newValue) => handleOrgTypeChange(newValue)}
-                            options={ORGANIZATION_TYPES}
-                            disabled={!canEdit}
-                            groupBy={(option) => {
-                              const labels: Record<string, string> = {
-                                business: "Commercial Entities",
-                                public: "Government & Public Sector",
-                                specialized: "Regulated Industries",
-                              };
-                              return labels[option.category] || option.category;
-                            }}
-                            getOptionLabel={(option) => option.label}
-                            PopperComponent={CustomPopper}
-                            renderOption={(props, option) => {
-                              const { key, ...rest } = props as any;
-                              return (
-                                <Box component="li" key={option.value} {...rest} sx={{ px: "16px !important", py: "14px !important" }}>
-                                  <Stack spacing={0.5}>
-                                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                                      {option.label}
-                                    </Typography>
-                                    {option.description && (
-                                      <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.8 }}>
-                                        {option.description}
+                          <Grid item xs={12} sm={6}>
+                            <Autocomplete
+                              id="org-timezone-autocomplete"
+                              value={selectedTimezone}
+                              onChange={(_, newValue) => handleTimezoneChange(newValue)}
+                              options={timezoneOptions}
+                              disabled={!canEdit}
+                              getOptionLabel={(option) => `${option.offset} — ${option.label}`}
+                              filterOptions={(options, { inputValue }) => {
+                                const search = inputValue.toLowerCase();
+                                return options.filter(opt => opt.searchTerms.includes(search));
+                              }}
+                              PopperComponent={CustomPopper}
+                              renderOption={(props, option) => {
+                                const { key, ...rest } = props as any;
+                                return (
+                                  <Box component="li" key={option.value} {...rest} sx={{ px: "16px !important", py: "12px !important" }}>
+                                    <Stack direction="row" spacing={2} alignItems="center" sx={{ width: "100%" }}>
+                                      <Typography 
+                                        variant="caption" 
+                                        sx={{ 
+                                          fontFamily: theme.typography.fontFamily, 
+                                          minWidth: 75,
+                                          px: 1,
+                                          py: 0.5,
+                                          borderRadius: 1.5,
+                                          bgcolor: alpha(theme.palette.primary.main, 0.05),
+                                          color: "primary.main",
+                                          fontWeight: 700,
+                                          textAlign: "center",
+                                          border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`
+                                        }}
+                                      >
+                                        {option.offset}
                                       </Typography>
-                                    )}
-                                  </Stack>
-                                </Box>
-                              );
-                            }}
-                            renderInput={(params) => (
-                              <TextField
-                                {...params}
-                                label="Organization Classification"
-                                required={organization.isSetupComplete}
-                                sx={textFieldSx}
-                                InputProps={{
-                                  ...params.InputProps,
-                                  startAdornment: (
-                                    <>
-                                      <TypeIcon fontSize="small" sx={{ ml: 1, mr: -0.5, color: alpha(theme.palette.text.secondary, 0.5) }} />
-                                      {params.InputProps.startAdornment}
-                                    </>
-                                  ),
-                                }}
-                              />
-                            )}
-                            PaperComponent={(props) => (
-                              <Paper {...props} elevation={0} sx={{ mt: 1, borderRadius: 3, border: `1px solid ${alpha(theme.palette.divider, 0.1)}`, overflow: "hidden", boxShadow: theme.shadows[10] }} />
-                            )}
-                            isOptionEqualToValue={(option, value) => option.value === value.value}
-                          />
+                                      <Typography variant="body2" sx={{ fontWeight: 500 }}>{option.label}</Typography>
+                                    </Stack>
+                                  </Box>
+                                );
+                              }}
+                              renderInput={(params) => (
+                                <TextField
+                                  {...params}
+                                  label="Enterprise Timezone"
+                                  required={organization.isSetupComplete}
+                                  sx={textFieldSx}
+                                  InputProps={{
+                                    ...params.InputProps,
+                                    startAdornment: (
+                                      <>
+                                        <TimezoneIcon fontSize="small" sx={{ ml: 1, mr: -0.5, color: alpha(theme.palette.text.secondary, 0.5) }} />
+                                        {params.InputProps.startAdornment}
+                                      </>
+                                    ),
+                                  }}
+                                />
+                              )}
+                              PaperComponent={(props) => (
+                                <Paper {...props} elevation={0} sx={{ mt: 1, borderRadius: 3, border: `1px solid ${alpha(theme.palette.divider, 0.1)}`, overflow: "hidden", boxShadow: theme.shadows[10] }} />
+                              )}
+                              isOptionEqualToValue={(option, value) => option.value === value.value}
+                            />
+                          </Grid>
+
+                          <Grid item xs={12}>
+                            <Autocomplete
+                              id="org-type-autocomplete"
+                              value={selectedOrgType}
+                              onChange={(_, newValue) => handleOrgTypeChange(newValue)}
+                              options={ORGANIZATION_TYPES}
+                              disabled={!canEdit}
+                              groupBy={(option) => {
+                                const labels: Record<string, string> = {
+                                  business: "Commercial Entities",
+                                  public: "Government & Public Sector",
+                                  specialized: "Regulated Industries",
+                                };
+                                return labels[option.category] || option.category;
+                              }}
+                              getOptionLabel={(option) => option.label}
+                              PopperComponent={CustomPopper}
+                              renderOption={(props, option) => {
+                                const { key, ...rest } = props as any;
+                                return (
+                                  <Box component="li" key={option.value} {...rest} sx={{ px: "16px !important", py: "14px !important" }}>
+                                    <Stack spacing={0.5}>
+                                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                        {option.label}
+                                      </Typography>
+                                      {option.description && (
+                                        <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.8 }}>
+                                          {option.description}
+                                        </Typography>
+                                      )}
+                                    </Stack>
+                                  </Box>
+                                );
+                              }}
+                              renderInput={(params) => (
+                                <TextField
+                                  {...params}
+                                  label="Organization Classification"
+                                  required={organization.isSetupComplete}
+                                  sx={textFieldSx}
+                                  InputProps={{
+                                    ...params.InputProps,
+                                    startAdornment: (
+                                      <>
+                                        <TypeIcon fontSize="small" sx={{ ml: 1, mr: -0.5, color: alpha(theme.palette.text.secondary, 0.5) }} />
+                                        {params.InputProps.startAdornment}
+                                      </>
+                                    ),
+                                  }}
+                                />
+                              )}
+                              PaperComponent={(props) => (
+                                <Paper {...props} elevation={0} sx={{ mt: 1, borderRadius: 3, border: `1px solid ${alpha(theme.palette.divider, 0.1)}`, overflow: "hidden", boxShadow: theme.shadows[10] }} />
+                              )}
+                              isOptionEqualToValue={(option, value) => option.value === value.value}
+                            />
+                          </Grid>
                         </Grid>
-                      </Grid>
+
                     </Box>
 
                     {canEdit && (
