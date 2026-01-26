@@ -66,16 +66,42 @@ type WorkflowTemplate = {
   isDefault: boolean;
 };
 
-interface OffboardingsClientProps {
-  offboardings: Offboarding[];
-  employees: { id: string; firstName: string; lastName: string; email: string }[];
-  workflowTemplates: WorkflowTemplate[];
-  departments: { id: string; name: string }[];
-  canCreate: boolean;
-  isOrgView?: boolean;
-}
+  interface OffboardingsClientProps {
+    offboardings: Offboarding[];
+    employees: { id: string; firstName: string; lastName: string; email: string }[];
+    workflowTemplates: WorkflowTemplate[];
+    departments: { id: string; name: string }[];
+    canCreate: boolean;
+    isOrgView?: boolean;
+  }
 
-export default function OffboardingsClient({ 
+  const getProgress = (tasks: { status: string }[]) => {
+    if (tasks.length === 0) return 0;
+    const completed = tasks.filter((t) => t.status === "COMPLETED" || t.status === "SKIPPED").length;
+    return Math.round((completed / tasks.length) * 100);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "PENDING": return "warning";
+      case "IN_PROGRESS": return "info";
+      case "PENDING_APPROVAL": return "secondary";
+      case "COMPLETED": return "success";
+      case "CANCELLED": return "default";
+      default: return "default";
+    }
+  };
+
+  const getRiskColor = (risk: string) => {
+    switch (risk) {
+      case "CRITICAL": return "error";
+      case "HIGH": return "warning";
+      default: return "default";
+    }
+  };
+
+  export default function OffboardingsClient({ 
+
   offboardings, 
   employees, 
   workflowTemplates,
@@ -109,29 +135,40 @@ export default function OffboardingsClient({
     }
   }, [searchParams, employees, router]);
 
-  const filteredOffboardings = offboardings.filter((o) => {
-    const matchesTab = (() => {
-      if (tab === 0) return o.status === "PENDING" || o.status === "IN_PROGRESS" || o.status === "PENDING_APPROVAL";
-      if (tab === 1) return o.status === "COMPLETED";
-      if (tab === 2) return o.status === "CANCELLED";
-      return true;
-    })();
+    const filteredOffboardings = offboardings.filter((o) => {
+      const progress = getProgress(o.tasks);
+      const isCancelled = o.status === "CANCELLED";
+      const isCompleted = !isCancelled && (o.status === "COMPLETED" || progress === 100);
+      const isActive = !isCancelled && !isCompleted;
 
-    const matchesSearch = 
-      o.employee.firstName.toLowerCase().includes(search.toLowerCase()) ||
-      o.employee.lastName.toLowerCase().includes(search.toLowerCase()) ||
-      o.employee.email.toLowerCase().includes(search.toLowerCase());
+      const matchesTab = (() => {
+        if (tab === 0) return isActive;
+        if (tab === 1) return isCompleted;
+        if (tab === 2) return isCancelled;
+        return true;
+      })();
 
-    const matchesDepartment = departmentFilter === "all" || o.employee.department?.id === departmentFilter;
-    const matchesRisk = riskFilter === "all" || o.riskLevel === riskFilter;
+      const matchesSearch = 
+        o.employee.firstName.toLowerCase().includes(search.toLowerCase()) ||
+        o.employee.lastName.toLowerCase().includes(search.toLowerCase()) ||
+        o.employee.email.toLowerCase().includes(search.toLowerCase());
 
-    return matchesTab && matchesSearch && matchesDepartment && matchesRisk;
-  });
+      const matchesDepartment = departmentFilter === "all" || o.employee.department?.id === departmentFilter;
+      const matchesRisk = riskFilter === "all" || o.riskLevel === riskFilter;
 
-  const activeCount = offboardings.filter((o) => 
-    o.status === "PENDING" || o.status === "IN_PROGRESS" || o.status === "PENDING_APPROVAL"
-  ).length;
-  const completedCount = offboardings.filter((o) => o.status === "COMPLETED").length;
+      return matchesTab && matchesSearch && matchesDepartment && matchesRisk;
+    });
+
+    const activeCount = offboardings.filter((o) => {
+      const progress = getProgress(o.tasks);
+      return o.status !== "CANCELLED" && o.status !== "COMPLETED" && progress < 100;
+    }).length;
+
+    const completedCount = offboardings.filter((o) => {
+      const progress = getProgress(o.tasks);
+      return o.status !== "CANCELLED" && (o.status === "COMPLETED" || progress === 100);
+    }).length;
+
   const highRiskCount = offboardings.filter((o) => 
     o.riskLevel !== "NORMAL" && o.status !== "COMPLETED" && o.status !== "CANCELLED"
   ).length;
@@ -158,31 +195,6 @@ export default function OffboardingsClient({
       }
     }
     setLoading(false);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "PENDING": return "warning";
-      case "IN_PROGRESS": return "info";
-      case "PENDING_APPROVAL": return "secondary";
-      case "COMPLETED": return "success";
-      case "CANCELLED": return "default";
-      default: return "default";
-    }
-  };
-
-  const getRiskColor = (risk: string) => {
-    switch (risk) {
-      case "CRITICAL": return "error";
-      case "HIGH": return "warning";
-      default: return "default";
-    }
-  };
-
-  const getProgress = (tasks: { status: string }[]) => {
-    if (tasks.length === 0) return 0;
-    const completed = tasks.filter((t) => t.status === "COMPLETED" || t.status === "SKIPPED").length;
-    return Math.round((completed / tasks.length) * 100);
   };
 
   return (
