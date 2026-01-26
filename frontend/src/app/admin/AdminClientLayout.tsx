@@ -195,14 +195,21 @@ export default function AdminPlatformClientLayout({ children, session }: { child
   const handleSignOut = async () => {
     try {
       setSigningOut(true);
-      await fetch("/api/platform/auth/sign-out", { method: "POST" }).catch(() => {});
+      
+      try {
+        await fetch("/api/platform/auth/sign-out", { method: "POST" });
+      } catch (error) {
+        console.error("[Auth] Failed to sign out from server:", error);
+        // Continue with client-side sign-out even if server sign-out fails
+      }
+      
         clearRememberMe();
         const supabase = createClient();
         await supabase.auth.signOut();
         localStorage.clear();
       window.location.href = "/login";
     } catch (error) {
-      console.error("Sign out failed", error);
+      console.error("[Auth] Sign out failed:", error);
       setSigningOut(false);
     }
   };

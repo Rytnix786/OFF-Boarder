@@ -30,12 +30,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import {
+  grantTemporaryAccess,
   suspendEmployee,
   lockEmployee,
   toggleHighRisk,
   forceLogoutAll,
   blockIpAddress,
-  grantTemporaryAccess,
 } from "@/lib/actions/employees";
 
 type Employee = {
@@ -191,42 +191,32 @@ export default function EmployeeSecurityClient({
           return;
         }
 
-        const endpoint = `/api/employees/${employee.id}/security`;
-        let body: Record<string, unknown> = { reason };
-
+        let res: any;
+        
         switch (actionDialog.type) {
           case "suspend":
-            body.action = "suspend";
+            res = await suspendEmployee(employee.id, reason);
             break;
           case "lock":
-            body.action = "lock";
+            res = await lockEmployee(employee.id, reason);
             break;
           case "highRisk":
-            body.action = securityProfile.isHighRisk ? "removeHighRisk" : "markHighRisk";
+            res = await toggleHighRisk(employee.id, reason);
             break;
           case "forceLogout":
-            body.action = "forceLogout";
+            res = await forceLogoutAll(employee.id, reason);
             break;
           case "blockIP":
             if (!ipToBlock.trim()) {
               setError("IP address is required");
               return;
             }
-            body.action = "blockIP";
-            body.ipAddress = ipToBlock;
-            body.offboardingOnly = offboardingOnly;
+            res = await blockIpAddress(employee.id, ipToBlock, reason);
             break;
         }
 
-        const res = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error || "Action failed");
+        if (res.error) {
+          throw new Error(res.error);
         }
 
         setActionDialog({ type: null, open: false });

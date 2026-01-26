@@ -6,6 +6,16 @@ import { requirePermission } from "@/lib/rbac.server";
 import { createAuditLog } from "@/lib/audit.server";
 import { revalidatePath } from "next/cache";
 import { randomBytes } from "crypto";
+import { 
+  suspendEmployeeAccess,
+  unsuspendEmployeeAccess,
+  lockEmployeeAccount,
+  unlockEmployeeAccount,
+  forceLogoutEmployee,
+  blockEmployeeIP,
+  markEmployeeHighRisk,
+  removeHighRiskStatus
+} from "@/lib/employee-security";
 
 export async function createEmployee(formData: FormData) {
   try {
@@ -300,7 +310,7 @@ export async function updateEmployee(employeeId: string, formData: FormData) {
 }
 
 export async function grantTemporaryAccess(employeeId: string, hours: number) {
-  let lastError: any = null;
+  let lastError: unknown = null;
   const maxRetries = 3;
   const retryDelay = 500; // ms
 
@@ -356,38 +366,38 @@ export async function grantTemporaryAccess(employeeId: string, hours: number) {
       revalidatePath(`/app/employees/${employeeId}`);
       revalidatePath(`/app/employees/${employeeId}/security`);
       return { success: true, expiresAt };
-    } catch (err: any) {
+    } catch (err: unknown) {
       lastError = err;
       
       // Don't retry auth or permission errors
-      if (err instanceof AuthError || err.message?.includes("Permission denied")) {
-        return { error: err.message, authError: true };
+      if (err instanceof AuthError || (err instanceof Error && err.message?.includes("Permission denied"))) {
+        return { error: err instanceof Error ? err.message : "Permission denied", authError: true };
       }
 
       // If it's a connection error or pool exhaustion, retry
       const isRetryable = 
-        err.message?.includes("MaxClientsInSessionMode") || 
-        err.message?.includes("pool_size") ||
-        err.message?.includes("connection pool") ||
-        err.code === "P2024"; // Prisma timeout
+        (err instanceof Error && err.message?.includes("MaxClientsInSessionMode")) || 
+        (err instanceof Error && err.message?.includes("pool_size")) ||
+        (err instanceof Error && err.message?.includes("connection pool")) ||
+        (err && typeof err === 'object' && 'code' in err && err.code === "P2024"); // Prisma timeout
 
       if (!isRetryable || attempt === maxRetries) {
         break;
       }
 
-      console.warn(`[grantTemporaryAccess] Attempt ${attempt} failed, retrying in ${retryDelay}ms...`, err.message);
+      console.warn(`[grantTemporaryAccess] Attempt ${attempt} failed, retrying in ${retryDelay}ms...`, err instanceof Error ? err.message : String(err));
       await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
     }
   }
 
-  const errorMessage = lastError?.message || "Unknown database error";
+  const errorMessage = lastError instanceof Error ? lastError.message : "Unknown database error";
   const isConnectionError = errorMessage.includes("MaxClientsInSessionMode") || errorMessage.includes("pool_size");
   
   return { 
     error: isConnectionError 
       ? "Database is currently busy (Connection Pool Limit). Please try again in a few seconds." 
       : `Failed to grant access: ${errorMessage}`,
-    details: lastError?.code || "INTERNAL_ERROR"
+    details: lastError && typeof lastError === 'object' && 'code' in lastError ? String(lastError.code) : "INTERNAL_ERROR"
   };
 }
 
@@ -636,6 +646,136 @@ export async function getEmployee(employeeId: string) {
   } catch (err) {
     if (err instanceof AuthError) {
       return null;
+    }
+    throw err;
+  }
+}
+
+// Security action functions
+export async function suspendEmployee(employeeId: string, reason: string) {
+  try {
+    const session = await requireActiveOrg();
+    await requirePermission(session, "employee:update");
+    
+    const result = await suspendEmployeeAccess(session, employeeId, session.currentOrgId!, reason);
+    
+    await createAuditLog(session, session.currentOrgId!, {
+      action: "employee.suspended",
+      entityType: "Employee",
+      entityId: employeeId,
+      newData: { reason },
+    });
+    
+    revalidatePath("/app/employees");
+    return { success: true, ...result };
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return { error: err.message };
+    }
+    throw err;
+  }
+}
+
+export async function lockEmployee(employeeId: string, reason: string) {
+  try {
+    const session = await requireActiveOrg();
+    await requirePermission(session, "employee:update");
+    
+    const result = await lockEmployeeAccount(session, employeeId, session.currentOrgId!, reason);
+    
+    await createAuditLog(session, session.currentOrgId!, {
+      action: "employee.locked",
+      entityType: "Employee",
+      entityId: employeeId,
+      newData: { reason },
+    });
+    
+    revalidatePath("/app/employees");
+    return { success: true, ...result };
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return { error: err.message };
+    }
+    throw err;
+  }
+}
+
+export async function toggleHighRisk(employeeId: string, reason: string) {
+  try {
+    const session = await requireActiveOrg();
+    await requirePermission(session, "employee:update");
+    
+    // Check current status first
+    const profile = await prisma.employeeSecurityProfile.findUnique({
+      where: { employeeId },
+      select: { isHighRisk: true }
+    });
+    
+    let result;
+    if (profile?.isHighRisk) {
+      result = await removeHighRiskStatus(session, employeeId, session.currentOrgId!, reason);
+    } else {
+      result = await markEmployeeHighRisk(session, employeeId, session.currentOrgId!, reason);
+    }
+    
+    await createAuditLog(session, session.currentOrgId!, {
+      action: profile?.isHighRisk ? "employee.risk_removed" : "employee.risk_marked",
+      entityType: "Employee",
+      entityId: employeeId,
+      newData: { isHighRisk: !profile?.isHighRisk, reason },
+    });
+    
+    revalidatePath("/app/employees");
+    return { success: true, ...result };
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return { error: err.message };
+    }
+    throw err;
+  }
+}
+
+export async function forceLogoutAll(employeeId: string, reason: string) {
+  try {
+    const session = await requireActiveOrg();
+    await requirePermission(session, "employee:update");
+    
+    const result = await forceLogoutEmployee(session, employeeId, session.currentOrgId!, reason);
+    
+    await createAuditLog(session, session.currentOrgId!, {
+      action: "employee.force_logout",
+      entityType: "Employee",
+      entityId: employeeId,
+      newData: { revokedCount: result.revokedCount },
+    });
+    
+    return { success: true, ...result };
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return { error: err.message };
+    }
+    throw err;
+  }
+}
+
+export async function blockIpAddress(employeeId: string, ipAddress: string, reason: string) {
+  try {
+    const session = await requireActiveOrg();
+    await requirePermission(session, "employee:update");
+    
+    const result = await blockEmployeeIP(session, employeeId, session.currentOrgId!, ipAddress, reason);
+    
+    await createAuditLog(session, session.currentOrgId!, {
+      action: "employee.ip_blocked",
+      entityType: "Employee",
+      entityId: employeeId,
+      newData: { ipAddress, reason },
+    });
+    
+    return { success: true, ...result };
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return { error: err.message };
     }
     throw err;
   }

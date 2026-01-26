@@ -84,6 +84,30 @@ export async function POST(request: NextRequest) {
       manager = existingEmployees[0];
     }
 
+    // Create membership for manager
+    const managerUser = await prisma.user.findUnique({ where: { email: "sarah.johnson@example.com" } });
+    let managerMembershipId = null;
+    if (managerUser) {
+      const existingManagerMembership = await prisma.membership.findFirst({
+        where: { userId: managerUser.id, organizationId: orgId },
+      });
+      
+      if (!existingManagerMembership) {
+        const managerMembership = await prisma.membership.create({
+          data: {
+            userId: managerUser.id,
+            organizationId: orgId,
+            systemRole: "ADMIN",
+            status: "ACTIVE",
+            updatedAt: now,
+          },
+        });
+        managerMembershipId = managerMembership.id;
+      } else {
+        managerMembershipId = existingManagerMembership.id;
+      }
+    }
+
     const riskEmployees = [
       { employeeId: "RISK001", firstName: "Michael", lastName: "Thompson", email: "m.thompson@example.com", status: EmployeeStatus.OFFBOARDING },
       { employeeId: "RISK002", firstName: "Jennifer", lastName: "Williams", email: "j.williams@example.com", status: EmployeeStatus.OFFBOARDING },
@@ -105,7 +129,7 @@ export async function POST(request: NextRequest) {
             departmentId: department1.id,
             jobTitleId: jobTitle1.id,
             locationId: location1.id,
-            managerId: manager.id,
+            managerMembershipId: managerMembershipId,
             updatedAt: now,
           },
         });

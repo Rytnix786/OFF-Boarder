@@ -328,6 +328,21 @@ export default function EmployeesClient({
     }
   };
 
+  const getStatusDisplay = (emp: Employee) => {
+    // Check if employee has completed offboardings
+    const hasCompletedOffboarding = emp.offboardings?.some(o => o.status === "COMPLETED");
+    
+    if (hasCompletedOffboarding) {
+      return { label: "OFFBOARDED", color: "error" as const };
+    }
+    
+    // Otherwise show current employee status
+    return { 
+      label: emp.status.replace("_", " "), 
+      color: getStatusColor(emp.status) as "success" | "info" | "warning" | "error" | "default"
+    };
+  };
+
   const getManagerDisplayName = (manager: OrgMember | null) => {
     if (!manager) return "—";
     return manager.user.name || manager.user.email;
@@ -634,24 +649,24 @@ export default function EmployeesClient({
                     </TableCell>
                     <TableCell sx={{ borderColor: isOrgView ? alpha("#ffffff", 0.05) : "divider" }}>
                       <Chip
-                        label={emp.status.replace("_", " ")}
+                        label={getStatusDisplay(emp).label}
                         size="small"
-                        color={getStatusColor(emp.status) as "success" | "info" | "warning" | "error" | "default"}
+                        color={getStatusDisplay(emp).color}
                         sx={{ 
                           fontWeight: 700,
                           fontSize: "0.65rem",
                           height: 20,
                           ...(isOrgView && {
-                            bgcolor: alpha(getStatusColor(emp.status) === "success" ? "#10b981" : 
-                                     getStatusColor(emp.status) === "warning" ? "#f59e0b" :
-                                     getStatusColor(emp.status) === "error" ? "#ef4444" :
-                                     getStatusColor(emp.status) === "info" ? "#3b82f6" : "#64748b", 0.1),
-                            color: getStatusColor(emp.status) === "success" ? "#34d399" : 
-                                   getStatusColor(emp.status) === "warning" ? "#fbbf24" :
-                                   getStatusColor(emp.status) === "error" ? "#f87171" :
-                                   getStatusColor(emp.status) === "info" ? "#60a5fa" : "#94a3b8",
+                            bgcolor: alpha(getStatusDisplay(emp).color === "success" ? "#10b981" : 
+                                     getStatusDisplay(emp).color === "warning" ? "#f59e0b" :
+                                     getStatusDisplay(emp).color === "error" ? "#ef4444" :
+                                     getStatusDisplay(emp).color === "info" ? "#3b82f6" : "#64748b", 0.1),
+                            color: getStatusDisplay(emp).color === "success" ? "#34d399" : 
+                                   getStatusDisplay(emp).color === "warning" ? "#fbbf24" :
+                                   getStatusDisplay(emp).color === "error" ? "#f87171" :
+                                   getStatusDisplay(emp).color === "info" ? "#60a5fa" : "#94a3b8",
                             border: "1px solid",
-                            borderColor: alpha(getStatusColor(emp.status) === "success" ? "#10b981" : "#64748b", 0.2),
+                            borderColor: alpha(getStatusDisplay(emp).color === "success" ? "#10b981" : "#64748b", 0.2),
                           })
                         }}
                       />

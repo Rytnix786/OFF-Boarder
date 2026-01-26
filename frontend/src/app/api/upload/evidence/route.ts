@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireActiveOrg } from "@/lib/auth.server";
 import { requirePermission } from "@/lib/rbac.server";
+import { prisma } from "@/lib/prisma.server";
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
 

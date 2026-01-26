@@ -722,19 +722,19 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
                         }}
                       >
                         <span className="material-symbols-outlined" style={{ fontSize: 20, color: "#d97706" }}>
-                          {ar.status === "LOST" ? "help" : "devices"}
+                          {ar.status === "MISSING" ? "help" : "devices"}
                         </span>
                       </Box>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Typography variant="body2" fontWeight={600}>
-                          {ar.asset.name} - {ar.status === "LOST" ? "Reported Lost" : "Not Returned"}
+                          {ar.asset.name} - {ar.status === "MISSING" ? "Reported Lost" : "Not Returned"}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
                           {ar.offboarding.employee.firstName} {ar.offboarding.employee.lastName}
                         </Typography>
                       </Box>
                       <Typography variant="caption" sx={{ color: "#d97706", fontWeight: 600 }}>
-                        {ar.status === "LOST" ? "Lost" : "Pending Return"}
+                        {ar.status === "MISSING" ? "Lost" : "Pending Return"}
                       </Typography>
                     </Box>
                   </Link>

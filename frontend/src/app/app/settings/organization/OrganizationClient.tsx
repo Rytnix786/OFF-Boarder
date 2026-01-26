@@ -10,7 +10,6 @@ import {
   Button,
   Chip,
   Divider,
-  Grid,
   Avatar,
   Alert,
   CircularProgress,
@@ -22,6 +21,7 @@ import {
   Stack,
   Fade,
 } from "@mui/material";
+import Grid from "@mui/material/GridLegacy";
 import {
   Business as BusinessIcon,
   LocationOn as LocationIcon,
@@ -166,8 +166,9 @@ export default function OrganizationClient({
     color: "text.primary",
     fontWeight: 600,
     fontSize: "1.1rem",
-    letterSpacing: "-0.01em",
+    letterSpacing: "-0.005em",
     mb: 1,
+    lineHeight: 1.3,
   };
 
   const textFieldSx = {
@@ -220,6 +221,7 @@ export default function OrganizationClient({
       padding: '12px 14px',
       fontSize: '0.925rem',
       fontWeight: 500,
+      lineHeight: 1.4,
     },
     '& .MuiFormHelperText-root': {
       fontSize: '0.75rem',
@@ -253,10 +255,10 @@ export default function OrganizationClient({
   return (
     <Box sx={{ maxWidth: 1200, mx: "auto", py: 4, px: { xs: 2, sm: 3 } }}>
       <Stack spacing={1.5} sx={{ mb: 6 }}>
-        <Typography variant="h4" fontWeight={800} sx={{ letterSpacing: "-0.03em", color: "text.primary" }}>
+        <Typography variant="h4" fontWeight={800} sx={{ letterSpacing: "-0.02em", color: "text.primary", lineHeight: 1.2 }}>
           Organization Settings
         </Typography>
-        <Typography color="text.secondary" variant="body1" sx={{ maxWidth: 600, opacity: 0.85 }}>
+        <Typography color="text.secondary" variant="body1" sx={{ maxWidth: 600, opacity: 0.85, lineHeight: 1.6 }}>
           Configure your enterprise identity, regional operations, and administrative preferences.
         </Typography>
       </Stack>
@@ -281,7 +283,7 @@ export default function OrganizationClient({
                     <Typography sx={sectionTitleSx}>
                       Corporate Profile
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ opacity: 0.8 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ opacity: 0.8, lineHeight: 1.5 }}>
                       Core identity settings for {organization.name}
                     </Typography>
                   </Box>
@@ -387,7 +389,7 @@ export default function OrganizationClient({
 
                       <Box>
                         <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>
-                          <Typography variant="overline" sx={{ fontWeight: 800, color: "text.disabled", letterSpacing: "0.12em", fontSize: "0.7rem" }}>
+                    <Typography variant="overline" sx={{ fontWeight: 800, color: "text.disabled", letterSpacing: "0.08em", fontSize: "0.7rem", lineHeight: 1.4 }}>
                             Regional & Industry Operations
                           </Typography>
                           <Divider sx={{ flex: 1, borderColor: alpha(theme.palette.divider, 0.06) }} />
@@ -493,11 +495,11 @@ export default function OrganizationClient({
                               return (
                                 <Box component="li" key={option.value} {...rest} sx={{ px: "16px !important", py: "12px !important" }}>
                                   <Stack spacing={0.5}>
-                                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.4 }}>
                                       {option.label}
                                     </Typography>
                                     {option.description && (
-                                      <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.7, fontSize: "0.75rem" }}>
+                                      <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.7, fontSize: "0.75rem", lineHeight: 1.4 }}>
                                         {option.description}
                                       </Typography>
                                     )}
@@ -627,7 +629,7 @@ export default function OrganizationClient({
                     {organization.name.charAt(0)}
                   </Avatar>
                   <Box sx={{ minWidth: 0 }}>
-                    <Typography variant="subtitle1" fontWeight={800} noWrap sx={{ mb: 0.75, letterSpacing: "-0.01em" }}>
+                    <Typography variant="subtitle1" fontWeight={800} noWrap sx={{ mb: 0.75, letterSpacing: "-0.005em", lineHeight: 1.2 }}>
                       {organization.name}
                     </Typography>
                     <Chip
@@ -741,7 +743,7 @@ export default function OrganizationClient({
                         Danger Zone
                       </Typography>
                     </Stack>
-                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, opacity: 0.8 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, opacity: 0.8, wordBreak: 'break-word' }}>
                       Decommissioning this organization will permanently purge all memberships, employee records, and security audit logs. This action is irreversible.
                     </Typography>
                     <Button 

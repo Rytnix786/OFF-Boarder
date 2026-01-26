@@ -5,7 +5,7 @@ import { requirePermission, isOwner, isAdmin, isAuditor } from "@/lib/rbac.serve
 import { createAuditLog } from "@/lib/audit.server";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import crypto from "crypto";
+import * as crypto from "crypto";
 
 const PHASE_MAP: Record<string, string> = {
   HR: "Pre-exit",
@@ -112,6 +112,10 @@ export async function GET(
     const approvalsApproved = offboarding.approvals.filter(a => a.status === "APPROVED").length;
     const approvalsTotal = offboarding.approvals.length;
 
+    // Determine status at generation time based on actual completion metrics
+    // TODO: Use statusAtGeneration after migration is applied
+    const statusAtGeneration = offboarding.status === "COMPLETED" ? "COMPLETED" : "IN_PROGRESS";
+
     const evidenceItemHashes: string[] = [];
     for (const task of offboarding.tasks) {
       for (const ev of task.evidence) {
@@ -171,13 +175,13 @@ export async function GET(
     doc.text(`Offboarding ID: ${offboarding.id}`, margin, 170);
     doc.text(`Risk Level: ${offboarding.riskLevel || "NORMAL"}`, margin, 185);
 
-    const statusColor = offboarding.status === "COMPLETED" ? [34, 197, 94] : offboarding.status === "CANCELLED" ? [239, 68, 68] : [251, 191, 36];
+    const statusColor = statusAtGeneration === "COMPLETED" ? [34, 197, 94] : [251, 191, 36];
     doc.setFillColor(statusColor[0], statusColor[1], statusColor[2]);
     doc.roundedRect(pageWidth - margin - 120, 90, 120, 30, 3, 3, "F");
     doc.setTextColor(255);
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
-    doc.text(offboarding.status.replace("_", " "), pageWidth - margin - 60, 110, { align: "center" });
+    doc.text(statusAtGeneration.replace("_", " "), pageWidth - margin - 60, 110, { align: "center" });
 
     doc.setTextColor(150);
     doc.setFontSize(9);
@@ -296,12 +300,10 @@ export async function GET(
     doc.setTextColor(30);
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
-    const verdictText = offboarding.status === "COMPLETED" && nonCompliantTasks.length === 0
+    const verdictText = statusAtGeneration === "COMPLETED" && nonCompliantTasks.length === 0
       ? "Offboarding completed successfully with full compliance."
-      : offboarding.status === "COMPLETED" && nonCompliantTasks.length > 0
+      : statusAtGeneration === "COMPLETED" && nonCompliantTasks.length > 0
       ? "Offboarding completed with compliance gaps requiring review."
-      : offboarding.status === "CANCELLED"
-      ? "Offboarding was cancelled."
       : "Offboarding is in progress.";
     doc.text(`Final Status: ${verdictText}`, margin, yPos + 10);
 
@@ -380,40 +382,87 @@ export async function GET(
 
         if (task.evidence.length > 0) {
           for (const ev of task.evidence) {
-            checkPageBreak(40);
+            checkPageBreak(60);
 
             doc.setFillColor(248, 250, 252);
-            doc.roundedRect(margin + 20, yPos, pageWidth - margin * 2 - 30, 35, 2, 2, "F");
+            doc.roundedRect(margin + 20, yPos, pageWidth - margin * 2 - 30, 55, 2, 2, "F");
 
-            doc.setFontSize(9);
+            doc.setFontSize(10);
             doc.setFont("helvetica", "bold");
+            doc.setTextColor(30);
             doc.text(`[${ev.type}] ${ev.title || "Untitled"}`, margin + 30, yPos + 12);
 
             doc.setFont("helvetica", "normal");
-            doc.setFontSize(8);
+            doc.setFontSize(9);
             doc.setTextColor(100);
-            doc.text(`Added: ${new Date(ev.createdAt).toLocaleString("en-US")} | Immutable: ${ev.isImmutable ? "Yes" : "No"}`, margin + 30, yPos + 24);
+            doc.text(`Added: ${new Date(ev.createdAt).toLocaleString("en-US")} | Immutable: ${ev.isImmutable ? "Yes" : "No"}`, margin + 30, yPos + 25);
+            
+            // Handle evidence content with proper typography
+            if (ev.noteContent && ev.noteContent.trim()) {
+              // Split long content into multiple lines
+              const maxLineLength = 80;
+              const lines = [];
+              let currentLine = "";
+              const words = ev.noteContent.split(" ");
+              
+              for (const word of words) {
+                if ((currentLine + word).length <= maxLineLength) {
+                  currentLine += (currentLine ? " " : "") + word;
+                } else {
+                  if (currentLine) lines.push(currentLine);
+                  currentLine = word;
+                }
+              }
+              if (currentLine) lines.push(currentLine);
+              
+              doc.setFontSize(9);
+              doc.setTextColor(50);
+              doc.text("Note:", margin + 30, yPos + 38);
+              
+              let noteY = yPos + 48;
+              for (let i = 0; i < Math.min(lines.length, 3); i++) {
+                doc.text(lines[i], margin + 30, noteY);
+                noteY += 10;
+              }
+              
+              if (lines.length > 3) {
+                doc.setFontSize(8);
+                doc.setTextColor(100);
+                doc.text(`... (${lines.length - 3} more lines)`, margin + 30, noteY);
+              }
+            } else {
+              doc.setFontSize(9);
+              doc.setTextColor(150);
+              doc.setFont("italic");
+              doc.text("No evidence content provided.", margin + 30, yPos + 38);
+            }
             
             if (ev.linkUrl) {
-              doc.text(`Link: ${ev.linkUrl.slice(0, 60)}${ev.linkUrl.length > 60 ? "..." : ""}`, margin + 30, yPos + 34);
+              doc.setFont("helvetica", "normal");
+              doc.setFontSize(8);
+              doc.setTextColor(100);
+              const linkText = ev.linkUrl.length > 70 ? ev.linkUrl.slice(0, 70) + "..." : ev.linkUrl;
+              doc.text(`Link: ${linkText}`, margin + 30, yPos + 52);
             }
-            if (ev.noteContent) {
-              const truncated = ev.noteContent.slice(0, 100) + (ev.noteContent.length > 100 ? "..." : "");
-              doc.text(`Note: ${truncated}`, margin + 30, yPos + 34);
-            }
+            
             if (ev.fileHash) {
-              doc.text(`Checksum: ${ev.fileHash.slice(0, 24)}...`, margin + 350, yPos + 24);
+              doc.setFontSize(8);
+              doc.setTextColor(100);
+              doc.text(`Checksum: ${ev.fileHash.slice(0, 24)}...`, margin + 350, yPos + 25);
             }
 
             doc.setTextColor(30);
-            yPos += 42;
+            yPos += 62;
           }
         } else if (task.evidenceRequirement === "REQUIRED") {
+          doc.setFillColor(254, 242, 242);
+          doc.roundedRect(margin + 20, yPos, pageWidth - margin * 2 - 30, 25, 2, 2, "F");
           doc.setTextColor(185, 28, 28);
-          doc.setFontSize(9);
-          doc.text("⚠ Required evidence missing", margin + 30, yPos);
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "bold");
+          doc.text("⚠ Required evidence missing", margin + 30, yPos + 15);
           doc.setTextColor(30);
-          yPos += 15;
+          yPos += 30;
         }
 
         yPos += 10;
@@ -497,6 +546,18 @@ export async function GET(
           generatedBy: session.user.id,
           checksum: packContentHash,
           version: { increment: 1 },
+          // TODO: Add snapshot fields after migration is applied
+          // statusAtGeneration,
+          // completedTasksCount: completedTasks,
+          // totalTasksCount: offboarding.tasks.length,
+          // accessRevokedCount: accessRevoked,
+          // accessTotalCount: accessTotal,
+          // assetsRecoveredCount: assetsRecovered,
+          // assetsTotalCount: assetsTotal,
+          // approvalsApprovedCount: approvalsApproved,
+          // approvalsTotalCount: approvalsTotal,
+          // compliantEvidenceCount: compliantEvidenceTasks.length,
+          // requiredEvidenceCount: requiredEvidenceTasks.length,
           accessLog: {
             [new Date().toISOString()]: {
               userId: session.user.id,
@@ -509,6 +570,18 @@ export async function GET(
           organizationId: orgId,
           generatedBy: session.user.id,
           checksum: packContentHash,
+          // TODO: Add snapshot fields after migration is applied
+          // statusAtGeneration,
+          // completedTasksCount: completedTasks,
+          // totalTasksCount: offboarding.tasks.length,
+          // accessRevokedCount: accessRevoked,
+          // accessTotalCount: accessTotal,
+          // assetsRecoveredCount: assetsRecovered,
+          // assetsTotalCount: assetsTotal,
+          // approvalsApprovedCount: approvalsApproved,
+          // approvalsTotalCount: approvalsTotal,
+          // compliantEvidenceCount: compliantEvidenceTasks.length,
+          // requiredEvidenceCount: requiredEvidenceTasks.length,
           data: {},
           accessLog: {
             [new Date().toISOString()]: {

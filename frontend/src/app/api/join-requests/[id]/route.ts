@@ -34,7 +34,7 @@ export async function PATCH(
       where: { id },
       include: {
         organization: true,
-        requester: true,
+        User_JoinRequest_requesterUserIdToUser: true,
       },
     });
 
@@ -244,8 +244,8 @@ export async function GET(
       where: { id },
       include: {
         organization: { select: { id: true, name: true, slug: true } },
-        requester: { select: { id: true, name: true, email: true, avatarUrl: true } },
-        resolvedBy: { select: { id: true, name: true, email: true } },
+        User_JoinRequest_requesterUserIdToUser: { select: { id: true, name: true, email: true, avatarUrl: true } },
+        User_JoinRequest_resolvedByUserIdToUser: { select: { id: true, name: true, email: true } },
       },
     });
 

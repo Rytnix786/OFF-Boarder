@@ -1,0 +1,13 @@
+-- Add snapshot fields to EvidencePack model
+ALTER TABLE "EvidencePack" 
+ADD COLUMN "statusAtGeneration" TEXT,
+ADD COLUMN "completedTasksCount" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN "totalTasksCount" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN "accessRevokedCount" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN "accessTotalCount" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN "assetsRecoveredCount" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN "assetsTotalCount" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN "approvalsApprovedCount" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN "approvalsTotalCount" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN "compliantEvidenceCount" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN "requiredEvidenceCount" INTEGER NOT NULL DEFAULT 0;

@@ -88,9 +88,6 @@ export default function LandingPage() {
               : `0 16px 40px -8px rgba(0, 0, 0, 0.06), inset 0 1px 1px ${alpha("#fff", 0.8)}`,
             transition: "all 400ms cubic-bezier(0.22, 1, 0.36, 1)",
           }}
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
         >
           <Container maxWidth="lg">
             <Box
@@ -461,8 +458,7 @@ export default function LandingPage() {
                         variants={fadeInUp}
                         whileHover={{ 
                           y: -4,
-                          borderColor: alpha(theme.palette.primary.main, 0.3),
-                          bgcolor: isDark ? alpha(theme.palette.primary.main, 0.08) : alpha(theme.palette.primary.main, 0.04),
+                          backgroundColor: isDark ? alpha(theme.palette.primary.main, 0.08) : alpha(theme.palette.primary.main, 0.04),
                           boxShadow: `0 12px 24px -8px ${alpha(theme.palette.primary.main, 0.15)}`,
                         }}
                         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
@@ -1017,7 +1013,7 @@ export default function LandingPage() {
                           <Card
                             variant="outlined"
                             sx={{
-                              ...cardStyle,
+                              height: "100%",
                               borderRadius: 4,
                               zIndex: 1,
                               borderColor: plan.popular 
@@ -1025,17 +1021,25 @@ export default function LandingPage() {
                                 : isFreeTrial
                                   ? alpha(isDark ? "#fff" : "#000", 0.15)
                                   : alpha(isDark ? "#fff" : "#000", 0.08),
-                              background: isFreeTrial && isDark
+                              backgroundColor: isFreeTrial && isDark
                                 ? alpha("#0B0F1A", 0.4)
-                                : undefined,
+                                : isDark ? alpha("#0B0F1A", 0.4) : "#fff",
+                              backdropFilter: "blur(12px)",
+                              transition: "all 400ms cubic-bezier(0.22, 1, 0.36, 1)",
+                              position: "relative",
+                              overflow: "hidden",
+                              display: "flex",
+                              flexDirection: "column",
+                              boxShadow: isDark 
+                                ? `0 4px 24px ${alpha("#000", 0.3)}, inset 0 1px 1px ${alpha("#fff", 0.05)}`
+                                : `0 4px 24px ${alpha("#000", 0.04)}, inset 0 1px 1px ${alpha("#fff", 0.8)}`,
                               "&:hover": {
-                                ...cardStyle["&:hover"],
                                 borderColor: plan.popular ? theme.palette.primary.main : alpha(theme.palette.primary.main, 0.4),
                                 boxShadow: isDark
                                   ? `0 40px 100px -20px rgba(0, 0, 0, 0.8), 0 0 40px ${alpha(theme.palette.primary.main, 0.1)}`
                                   : `0 40px 100px -20px rgba(0, 0, 0, 0.12), 0 0 40px ${alpha(theme.palette.primary.main, 0.05)}`,
                                 transform: "translateY(-8px)",
-                                bgcolor: isDark ? alpha("#0B0F1A", 0.6) : "#fff",
+                                backgroundColor: isDark ? alpha("#0B0F1A", 0.6) : "#fff",
                               }
                             }}
                           >

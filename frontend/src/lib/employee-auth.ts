@@ -106,12 +106,15 @@ export async function getEmployeePortalSession(): Promise<EmployeePortalSession 
           location: {
             select: { id: true, name: true },
           },
-          manager: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
+          managerMembership: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
             },
           },
         },
@@ -168,7 +171,12 @@ export async function getEmployeePortalSession(): Promise<EmployeePortalSession 
       department: employeeLink.employee.department,
       jobTitle: employeeLink.employee.jobTitle,
       location: employeeLink.employee.location,
-      manager: employeeLink.employee.manager,
+      manager: employeeLink.employee.managerMembership?.user ? {
+        id: employeeLink.employee.managerMembership.user.id,
+        firstName: employeeLink.employee.managerMembership.user.name?.split(' ')[0] || '',
+        lastName: employeeLink.employee.managerMembership.user.name?.split(' ').slice(1).join(' ') || '',
+        email: employeeLink.employee.managerMembership.user.email,
+      } : null,
     },
     organizationId: employeeLink.organizationId,
     organizationName: employeeLink.organization.name,
@@ -213,12 +221,15 @@ export async function getEmployeeOffboarding(session: EmployeePortalSession) {
           department: true,
           jobTitle: true,
           location: true,
-          manager: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
+          managerMembership: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
             },
           },
         },

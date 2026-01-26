@@ -222,7 +222,7 @@ export async function getBlockedIPAttempts(params: {
     prisma.blockedIPAttempt.findMany({
       where,
       include: {
-        user: { select: { id: true, name: true, email: true } },
+        User: { select: { id: true, name: true, email: true } },
         blockedIP: { select: { id: true, reason: true, scope: true } },
       },
       orderBy: { createdAt: "desc" },

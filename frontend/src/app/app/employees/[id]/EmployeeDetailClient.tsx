@@ -130,6 +130,18 @@ export default function EmployeeDetailClient({
     }
   };
 
+  const getEmployeeStatusDisplay = (employee: Employee) => {
+    // Check if employee has completed offboardings
+    const hasCompletedOffboarding = employee.offboardings?.some(o => o.status === "COMPLETED");
+    
+    if (hasCompletedOffboarding) {
+      return "OFFBOARDED";
+    }
+    
+    // Otherwise show current employee status
+    return employee.status.replace("_", " ");
+  };
+
   const handleEdit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -285,7 +297,7 @@ export default function EmployeeDetailClient({
               {employee.jobTitle?.title || "No title"}
             </Typography>
             <Chip
-              label={employee.status.replace("_", " ")}
+              label={getEmployeeStatusDisplay(employee)}
               color={getStatusColor(employee.status) as any}
               sx={{ mt: 1, fontWeight: 600 }}
             />
