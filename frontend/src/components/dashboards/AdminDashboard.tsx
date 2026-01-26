@@ -65,208 +65,230 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  const [
-    activeOffboardings,
-    pendingApprovalOffboardings,
-    criticalRiskOffboardings,
-    highRiskOffboardings,
-    overdueTasksCount,
-    pendingRevocations,
-    unreturnedAssets,
-    completedThisMonth,
-    completedLastMonth,
-    recentOffboardingsWithDetails,
-    overdueTasks,
-    highRiskCases,
-    pendingApprovals,
-    assetIssues,
-    recentSecurityEvents,
-    avgCompletionTime,
-    recentCompletions,
-    bottlenecksByDept,
-    totalEvidencePacks,
-    sealedEvidencePacks,
-    totalAuditLogs,
-    recentAuditLogs,
-    activePolicies,
-    totalWorkflows,
-    onboardingStatus,
-  ] = await Promise.all([
-    prisma.offboarding.count({
-      where: { organizationId: orgId, status: { in: ["PENDING", "IN_PROGRESS", "PENDING_APPROVAL"] } },
-    }),
-    prisma.offboarding.count({
-      where: { organizationId: orgId, status: "PENDING_APPROVAL" },
-    }),
-    prisma.offboarding.count({
-      where: { organizationId: orgId, riskLevel: "CRITICAL", status: { in: ["PENDING", "IN_PROGRESS"] } },
-    }),
-    prisma.offboarding.count({
-      where: { organizationId: orgId, riskLevel: "HIGH", status: { in: ["PENDING", "IN_PROGRESS"] } },
-    }),
-    prisma.offboardingTask.count({
-      where: {
-        offboarding: { organizationId: orgId, status: { in: ["PENDING", "IN_PROGRESS"] } },
-        status: { in: ["PENDING", "IN_PROGRESS"] },
-        dueDate: { lt: now },
-      },
-    }),
-    prisma.accessRevocation.count({
-      where: {
-        organizationId: orgId,
-        status: "PENDING",
-        offboarding: { status: { in: ["PENDING", "IN_PROGRESS"] } },
-      },
-    }),
-    prisma.assetReturn.count({
-      where: {
-        offboarding: { organizationId: orgId, status: { in: ["PENDING", "IN_PROGRESS", "COMPLETED"] } },
-        status: { in: ["PENDING", "MISSING", "DAMAGED"] },
-      },
-    }),
-    prisma.offboarding.count({
-      where: { organizationId: orgId, status: "COMPLETED", completedDate: { gte: thirtyDaysAgo } },
-    }),
-    prisma.offboarding.count({
-      where: {
-        organizationId: orgId,
-        status: "COMPLETED",
-        completedDate: {
-          gte: new Date(thirtyDaysAgo.getTime() - 30 * 24 * 60 * 60 * 1000),
-          lt: thirtyDaysAgo,
+    const [
+      allActiveCases,
+      pendingApprovalOffboardings,
+      criticalRiskOffboardings,
+      highRiskOffboardings,
+      overdueTasksCount,
+      pendingRevocations,
+      unreturnedAssets,
+      completedThisMonth,
+      completedLastMonth,
+      allPipelineCases,
+      overdueTasks,
+      highRiskCases,
+      pendingApprovals,
+      assetIssues,
+      recentSecurityEvents,
+      avgCompletionTime,
+      recentCompletionsInDb,
+      bottlenecksByDept,
+      totalEvidencePacks,
+      sealedEvidencePacks,
+      totalAuditLogs,
+      recentAuditLogs,
+      activePolicies,
+      totalWorkflows,
+      onboardingStatus,
+    ] = await Promise.all([
+      prisma.offboarding.findMany({
+        where: { organizationId: orgId, status: { in: ["PENDING", "IN_PROGRESS", "PENDING_APPROVAL"] } },
+        select: { tasks: { select: { status: true } } },
+      }),
+      prisma.offboarding.count({
+        where: { organizationId: orgId, status: "PENDING_APPROVAL" },
+      }),
+      prisma.offboarding.count({
+        where: { organizationId: orgId, riskLevel: "CRITICAL", status: { in: ["PENDING", "IN_PROGRESS"] } },
+      }),
+      prisma.offboarding.count({
+        where: { organizationId: orgId, riskLevel: "HIGH", status: { in: ["PENDING", "IN_PROGRESS"] } },
+      }),
+      prisma.offboardingTask.count({
+        where: {
+          offboarding: { organizationId: orgId, status: { in: ["PENDING", "IN_PROGRESS"] } },
+          status: { in: ["PENDING", "IN_PROGRESS"] },
+          dueDate: { lt: now },
         },
-      },
-    }),
-    prisma.offboarding.findMany({
-      where: { organizationId: orgId, status: { in: ["PENDING", "IN_PROGRESS", "PENDING_APPROVAL"] } },
-      include: {
-        employee: { select: { firstName: true, lastName: true, department: { select: { name: true } } } },
-        tasks: { select: { status: true, dueDate: true } },
-        riskScore: { select: { level: true, score: true } },
-      },
-      orderBy: [{ riskLevel: "desc" }, { scheduledDate: "asc" }],
-      take: 8,
-    }),
-    prisma.offboardingTask.findMany({
-      where: {
-        offboarding: { organizationId: orgId, status: { in: ["PENDING", "IN_PROGRESS"] } },
-        status: { in: ["PENDING", "IN_PROGRESS"] },
-        dueDate: { lt: now },
-      },
-      include: {
-        offboarding: {
-          select: { id: true, employee: { select: { firstName: true, lastName: true } } },
+      }),
+      prisma.accessRevocation.count({
+        where: {
+          organizationId: orgId,
+          status: "PENDING",
+          offboarding: { status: { in: ["PENDING", "IN_PROGRESS"] } },
         },
-      },
-      orderBy: { dueDate: "asc" },
-      take: 5,
-    }),
-    prisma.offboarding.findMany({
-      where: {
-        organizationId: orgId,
-        status: { in: ["PENDING", "IN_PROGRESS"] },
-        riskScore: { score: { gte: 50 } },
-      },
-      include: {
-        employee: { select: { firstName: true, lastName: true } },
-        riskScore: { select: { level: true, score: true, factors: true } },
-      },
-      orderBy: { riskScore: { score: "desc" } },
-      take: 5,
-    }),
-    prisma.approval.findMany({
-      where: {
-        offboarding: { organizationId: orgId },
-        status: "PENDING",
-      },
-      include: {
-        offboarding: {
-          select: { id: true, employee: { select: { firstName: true, lastName: true } } },
+      }),
+      prisma.assetReturn.count({
+        where: {
+          offboarding: { organizationId: orgId, status: { in: ["PENDING", "IN_PROGRESS", "COMPLETED"] } },
+          status: { in: ["PENDING", "MISSING", "DAMAGED"] },
         },
-        task: { select: { name: true } },
-      },
-      orderBy: { createdAt: "asc" },
-      take: 5,
-    }),
-    prisma.assetReturn.findMany({
-      where: {
-        offboarding: { organizationId: orgId },
-        status: { in: ["MISSING", "DAMAGED"] },
-      },
-      include: {
-        asset: { select: { name: true, type: true } },
-        offboarding: {
-          select: { id: true, employee: { select: { firstName: true, lastName: true } } },
-        },
-      },
-      take: 5,
-    }),
-    prisma.securityEvent.findMany({
-      where: { organizationId: orgId, resolved: false, createdAt: { gte: sevenDaysAgo } },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    }),
-    (async () => {
-      const completedWithDates = await prisma.offboarding.findMany({
+      }),
+      prisma.offboarding.count({
+        where: { organizationId: orgId, status: "COMPLETED", completedDate: { gte: thirtyDaysAgo } },
+      }),
+      prisma.offboarding.count({
         where: {
           organizationId: orgId,
           status: "COMPLETED",
-          completedDate: { not: null },
-          createdAt: { gte: thirtyDaysAgo },
+          completedDate: {
+            gte: new Date(thirtyDaysAgo.getTime() - 30 * 24 * 60 * 60 * 1000),
+            lt: thirtyDaysAgo,
+          },
         },
-        select: { createdAt: true, completedDate: true },
-      });
-      if (completedWithDates.length === 0) return null;
-      const totalDays = completedWithDates.reduce((acc, o) => {
-        const diff = (new Date(o.completedDate!).getTime() - new Date(o.createdAt).getTime()) / (1000 * 60 * 60 * 24);
-        return acc + diff;
-      }, 0);
-      return Math.round(totalDays / completedWithDates.length);
-    })(),
-    prisma.offboarding.findMany({
-      where: { organizationId: orgId, status: "COMPLETED", completedDate: { gte: sevenDaysAgo } },
-      include: { employee: { select: { firstName: true, lastName: true } } },
-      orderBy: { completedDate: "desc" },
-      take: 5,
-    }),
-    prisma.offboarding.groupBy({
-      by: ["employeeId"],
-      where: {
-        organizationId: orgId,
-        status: { in: ["PENDING", "IN_PROGRESS"] },
-        tasks: { some: { status: { in: ["PENDING", "IN_PROGRESS"] }, dueDate: { lt: now } } },
-      },
-      _count: true,
-    }).then(async (result) => {
-      if (result.length === 0) return [];
-      const employeeIds = result.map(r => r.employeeId);
-      const employees = await prisma.employee.findMany({
-        where: { id: { in: employeeIds } },
-        select: { id: true, department: { select: { name: true } } },
-      });
-      const deptCounts: Record<string, number> = {};
-      employees.forEach(emp => {
-        const deptName = emp.department?.name || "No Department";
-        const count = result.find(r => r.employeeId === emp.id)?._count || 0;
-        deptCounts[deptName] = (deptCounts[deptName] || 0) + count;
-      });
-      return Object.entries(deptCounts)
-        .map(([name, count]) => ({ name, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 3);
-    }),
-    prisma.evidencePack.count({ where: { offboarding: { organizationId: orgId } } }),
-    prisma.evidencePack.count({ where: { offboarding: { organizationId: orgId }, sealed: true } }),
-    prisma.auditLog.count({ where: { organizationId: orgId } }),
-    prisma.auditLog.findMany({
-      where: { organizationId: orgId },
-      orderBy: { createdAt: "desc" },
-      take: 1,
-    }),
-    prisma.securityPolicy.count({ where: { organizationId: orgId, isActive: true } }),
-    prisma.workflowTemplate.count({ where: { organizationId: orgId, isActive: true } }),
-    getOnboardingStatus(orgId),
-  ]);
+      }),
+      prisma.offboarding.findMany({
+        where: { organizationId: orgId, status: { in: ["PENDING", "IN_PROGRESS", "PENDING_APPROVAL", "COMPLETED"] } },
+        include: {
+          employee: { select: { firstName: true, lastName: true, department: { select: { name: true } } } },
+          tasks: { select: { status: true, dueDate: true } },
+          riskScore: { select: { level: true, score: true } },
+        },
+        orderBy: [{ riskLevel: "desc" }, { scheduledDate: "asc" }],
+      }),
+      prisma.offboardingTask.findMany({
+        where: {
+          offboarding: { organizationId: orgId, status: { in: ["PENDING", "IN_PROGRESS"] } },
+          status: { in: ["PENDING", "IN_PROGRESS"] },
+          dueDate: { lt: now },
+        },
+        include: {
+          offboarding: {
+            select: { id: true, employee: { select: { firstName: true, lastName: true } } },
+          },
+        },
+        orderBy: { dueDate: "asc" },
+        take: 5,
+      }),
+      prisma.offboarding.findMany({
+        where: {
+          organizationId: orgId,
+          status: { in: ["PENDING", "IN_PROGRESS"] },
+          riskScore: { score: { gte: 50 } },
+        },
+        include: {
+          employee: { select: { firstName: true, lastName: true } },
+          riskScore: { select: { level: true, score: true, factors: true } },
+        },
+        orderBy: { riskScore: { score: "desc" } },
+        take: 5,
+      }),
+      prisma.approval.findMany({
+        where: {
+          offboarding: { organizationId: orgId },
+          status: "PENDING",
+        },
+        include: {
+          offboarding: {
+            select: { id: true, employee: { select: { firstName: true, lastName: true } } },
+          },
+          task: { select: { name: true } },
+        },
+        orderBy: { createdAt: "asc" },
+        take: 5,
+      }),
+      prisma.assetReturn.findMany({
+        where: {
+          offboarding: { organizationId: orgId },
+          status: { in: ["MISSING", "DAMAGED"] },
+        },
+        include: {
+          asset: { select: { name: true, type: true } },
+          offboarding: {
+            select: { id: true, employee: { select: { firstName: true, lastName: true } } },
+          },
+        },
+        take: 5,
+      }),
+      prisma.securityEvent.findMany({
+        where: { organizationId: orgId, resolved: false, createdAt: { gte: sevenDaysAgo } },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      }),
+      (async () => {
+        const completedWithDates = await prisma.offboarding.findMany({
+          where: {
+            organizationId: orgId,
+            status: "COMPLETED",
+            completedDate: { not: null },
+            createdAt: { gte: thirtyDaysAgo },
+          },
+          select: { createdAt: true, completedDate: true },
+        });
+        if (completedWithDates.length === 0) return null;
+        const totalDays = completedWithDates.reduce((acc, o) => {
+          const diff = (new Date(o.completedDate!).getTime() - new Date(o.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+          return acc + diff;
+        }, 0);
+        return Math.round(totalDays / completedWithDates.length);
+      })(),
+      prisma.offboarding.findMany({
+        where: { organizationId: orgId, status: "COMPLETED", completedDate: { gte: sevenDaysAgo } },
+        include: { employee: { select: { firstName: true, lastName: true } } },
+        orderBy: { completedDate: "desc" },
+        take: 5,
+      }),
+      prisma.offboarding.groupBy({
+        by: ["employeeId"],
+        where: {
+          organizationId: orgId,
+          status: { in: ["PENDING", "IN_PROGRESS"] },
+          tasks: { some: { status: { in: ["PENDING", "IN_PROGRESS"] }, dueDate: { lt: now } } },
+        },
+        _count: true,
+      }).then(async (result) => {
+        if (result.length === 0) return [];
+        const employeeIds = result.map(r => r.employeeId);
+        const employees = await prisma.employee.findMany({
+          where: { id: { in: employeeIds } },
+          select: { id: true, department: { select: { name: true } } },
+        });
+        const deptCounts: Record<string, number> = {};
+        employees.forEach(emp => {
+          const deptName = emp.department?.name || "No Department";
+          const count = result.find(r => r.employeeId === emp.id)?._count || 0;
+          deptCounts[deptName] = (deptCounts[deptName] || 0) + count;
+        });
+        return Object.entries(deptCounts)
+          .map(([name, count]) => ({ name, count }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 3);
+      }),
+      prisma.evidencePack.count({ where: { offboarding: { organizationId: orgId } } }),
+      prisma.evidencePack.count({ where: { offboarding: { organizationId: orgId }, sealed: true } }),
+      prisma.auditLog.count({ where: { organizationId: orgId } }),
+      prisma.auditLog.findMany({
+        where: { organizationId: orgId },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      }),
+      prisma.securityPolicy.count({ where: { organizationId: orgId, isActive: true } }),
+      prisma.workflowTemplate.count({ where: { organizationId: orgId, isActive: true } }),
+      getOnboardingStatus(orgId),
+    ]);
+
+    const activeOffboardings = allActiveCases.filter(o => {
+      const completed = o.tasks.filter(t => t.status === "COMPLETED" || t.status === "SKIPPED").length;
+      const progress = o.tasks.length > 0 ? Math.round((completed / o.tasks.length) * 100) : 0;
+      return progress < 100;
+    }).length;
+
+    const recentOffboardingsWithDetails = allPipelineCases.filter(o => {
+      const completed = o.tasks.filter(t => t.status === "COMPLETED" || t.status === "SKIPPED").length;
+      const progress = o.tasks.length > 0 ? Math.round((completed / o.tasks.length) * 100) : 0;
+      return o.status !== "COMPLETED" && progress < 100;
+    }).slice(0, 8);
+
+    const recentCompletions = [
+      ...recentCompletionsInDb,
+      ...allPipelineCases.filter(o => {
+        const completed = o.tasks.filter(t => t.status === "COMPLETED" || t.status === "SKIPPED").length;
+        const progress = o.tasks.length > 0 ? Math.round((completed / o.tasks.length) * 100) : 0;
+        return o.status !== "COMPLETED" && progress === 100;
+      })
+    ].slice(0, 5);
+
 
   const { posture } = calculateRiskPosture(
     criticalRiskOffboardings,
