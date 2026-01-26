@@ -385,98 +385,95 @@ export default function OrganizationClient({
                       </Grid>
                     </Box>
 
-                    <Box>
-                      <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>
-                        <Typography variant="overline" sx={{ fontWeight: 800, color: "text.disabled", letterSpacing: "0.12em", fontSize: "0.7rem" }}>
-                          Regional & Industry Operations
-                        </Typography>
-                        <Divider sx={{ flex: 1, borderColor: alpha(theme.palette.divider, 0.06) }} />
-                      </Stack>
+                      <Box>
+                        <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>
+                          <Typography variant="overline" sx={{ fontWeight: 800, color: "text.disabled", letterSpacing: "0.12em", fontSize: "0.7rem" }}>
+                            Regional & Industry Operations
+                          </Typography>
+                          <Divider sx={{ flex: 1, borderColor: alpha(theme.palette.divider, 0.06) }} />
+                        </Stack>
 
-                        <Grid container spacing={3}>
-                          <Grid item xs={12}>
-                            <TextField
-                              id="org-location-field"
-                              fullWidth
-                              label="Operational Headquarters"
-                              value={formData.primaryLocation}
-                              onChange={handleChange("primaryLocation")}
-                              disabled={!canEdit}
-                              required={organization.isSetupComplete}
-                              placeholder="e.g., London, UK"
-                              sx={textFieldSx}
-                              InputProps={{
-                                startAdornment: (
-                                  <LocationIcon fontSize="small" sx={{ mr: 1.5, color: alpha(theme.palette.text.secondary, 0.4) }} />
-                                ),
-                              }}
-                            />
-                          </Grid>
+                        <Stack spacing={3}>
+                          <TextField
+                            id="org-location-field"
+                            fullWidth
+                            label="Operational Headquarters"
+                            value={formData.primaryLocation}
+                            onChange={handleChange("primaryLocation")}
+                            disabled={!canEdit}
+                            required={organization.isSetupComplete}
+                            placeholder="e.g., London, UK"
+                            sx={textFieldSx}
+                            InputProps={{
+                              startAdornment: (
+                                <LocationIcon fontSize="small" sx={{ mr: 1.5, color: alpha(theme.palette.text.secondary, 0.4) }} />
+                              ),
+                            }}
+                          />
 
-                          <Grid item xs={12}>
-                            <Autocomplete
-                              id="org-timezone-autocomplete"
-                              value={selectedTimezone}
-                              onChange={(_, newValue) => handleTimezoneChange(newValue)}
-                              options={timezoneOptions}
-                              disabled={!canEdit}
-                              getOptionLabel={(option) => `${option.offset} — ${option.label}`}
-                              filterOptions={(options, { inputValue }) => {
-                                const search = inputValue.toLowerCase();
-                                return options.filter(opt => opt.searchTerms.includes(search));
-                              }}
-                              PopperComponent={CustomPopper}
-                              renderOption={(props, option) => {
-                                const { key, ...rest } = props as any;
-                                return (
-                                  <Box component="li" key={option.value} {...rest} sx={{ px: "16px !important", py: "10px !important" }}>
-                                    <Stack direction="row" spacing={2} alignItems="center" sx={{ width: "100%" }}>
-                                      <Typography 
-                                        variant="caption" 
-                                        sx={{ 
-                                          minWidth: 70,
-                                          px: 1,
-                                          py: 0.5,
-                                          borderRadius: "6px",
-                                          bgcolor: alpha(theme.palette.primary.main, 0.05),
-                                          color: "primary.main",
-                                          fontWeight: 700,
-                                          textAlign: "center",
-                                          border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-                                          fontSize: "0.7rem"
-                                        }}
-                                      >
-                                        {option.offset}
-                                      </Typography>
-                                      <Typography variant="body2" sx={{ fontWeight: 500 }}>{option.label}</Typography>
-                                    </Stack>
-                                  </Box>
-                                );
-                              }}
-                              renderInput={(params) => (
-                                <TextField
-                                  {...params}
-                                  label="Enterprise Timezone"
-                                  required={organization.isSetupComplete}
-                                  sx={textFieldSx}
-                                  InputProps={{
-                                    ...params.InputProps,
-                                    startAdornment: (
-                                      <>
-                                        <TimezoneIcon fontSize="small" sx={{ ml: 1, mr: -0.5, color: alpha(theme.palette.text.secondary, 0.4) }} />
-                                        {params.InputProps.startAdornment}
-                                      </>
-                                    ),
-                                  }}
-                                />
-                              )}
-                              isOptionEqualToValue={(option, value) => option.value === value.value}
-                            />
-                          </Grid>
+                          <Autocomplete
+                            id="org-timezone-autocomplete"
+                            fullWidth
+                            value={selectedTimezone}
+                            onChange={(_, newValue) => handleTimezoneChange(newValue)}
+                            options={timezoneOptions}
+                            disabled={!canEdit}
+                            getOptionLabel={(option) => `${option.offset} — ${option.label}`}
+                            filterOptions={(options, { inputValue }) => {
+                              const search = inputValue.toLowerCase();
+                              return options.filter(opt => opt.searchTerms.includes(search));
+                            }}
+                            PopperComponent={CustomPopper}
+                            renderOption={(props, option) => {
+                              const { key, ...rest } = props as any;
+                              return (
+                                <Box component="li" key={option.value} {...rest} sx={{ px: "16px !important", py: "10px !important" }}>
+                                  <Stack direction="row" spacing={2} alignItems="center" sx={{ width: "100%" }}>
+                                    <Typography 
+                                      variant="caption" 
+                                      sx={{ 
+                                        minWidth: 70,
+                                        px: 1,
+                                        py: 0.5,
+                                        borderRadius: "6px",
+                                        bgcolor: alpha(theme.palette.primary.main, 0.05),
+                                        color: "primary.main",
+                                        fontWeight: 700,
+                                        textAlign: "center",
+                                        border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+                                        fontSize: "0.7rem"
+                                      }}
+                                    >
+                                      {option.offset}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{option.label}</Typography>
+                                  </Stack>
+                                </Box>
+                              );
+                            }}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                label="Enterprise Timezone"
+                                required={organization.isSetupComplete}
+                                sx={textFieldSx}
+                                InputProps={{
+                                  ...params.InputProps,
+                                  startAdornment: (
+                                    <>
+                                      <TimezoneIcon fontSize="small" sx={{ ml: 1, mr: 0.5, color: alpha(theme.palette.text.secondary, 0.4) }} />
+                                      {params.InputProps.startAdornment}
+                                    </>
+                                  ),
+                                }}
+                              />
+                            )}
+                            isOptionEqualToValue={(option, value) => option.value === value.value}
+                          />
 
-                          <Grid item xs={12}>
                           <Autocomplete
                             id="org-type-autocomplete"
+                            fullWidth
                             value={selectedOrgType}
                             onChange={(_, newValue) => handleOrgTypeChange(newValue)}
                             options={ORGANIZATION_TYPES}
@@ -527,9 +524,8 @@ export default function OrganizationClient({
                             )}
                             isOptionEqualToValue={(option, value) => option.value === value.value}
                           />
-                        </Grid>
-                      </Grid>
-                    </Box>
+                        </Stack>
+                      </Box>
 
                     {canEdit && (
                       <Stack direction="row" spacing={2} sx={{ pt: 1 }}>
