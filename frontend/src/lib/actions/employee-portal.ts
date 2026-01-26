@@ -68,7 +68,7 @@ async function logBlockedAction(
 }
 
 export async function completeEmployeeTask(taskId: string) {
-  const session = await requireEmployeeOffboarding();
+  const session = await requireEmployeeOffboarding({ allowRevoked: true });
   
   const isOwner = await verifyEmployeeOwnership(session, "task", taskId);
   if (!isOwner) {
@@ -145,7 +145,7 @@ export async function uploadAssetReturnProof(
     description?: string;
   }
 ) {
-  const session = await requireEmployeeOffboarding();
+  const session = await requireEmployeeOffboarding({ allowRevoked: true });
 
   const isOwner = await verifyEmployeeOwnership(session, "assetReturn", assetReturnId);
   if (!isOwner) {
@@ -211,7 +211,7 @@ export async function uploadAssetReturnProof(
 }
 
 export async function signAttestation() {
-  const session = await requireEmployeeOffboarding();
+  const session = await requireEmployeeOffboarding({ allowRevoked: true });
 
   const existingAttestation = await prisma.employeeAttestation.findUnique({
     where: {
@@ -268,7 +268,7 @@ export async function signAttestation() {
 }
 
 export async function getEmployeeTasks() {
-  const session = await requireEmployeeOffboarding();
+  const session = await requireEmployeeOffboarding({ allowRevoked: true });
 
   const tasks = await prisma.offboardingTask.findMany({
     where: {
@@ -285,7 +285,7 @@ export async function getEmployeeTasks() {
 }
 
 export async function getEmployeeAssets() {
-  const session = await requireEmployeeOffboarding();
+  const session = await requireEmployeeOffboarding({ allowRevoked: true });
 
   const assetReturns = await prisma.assetReturn.findMany({
     where: {
@@ -317,7 +317,7 @@ export async function getEmployeeAssignedAssets() {
 }
 
 export async function getEmployeeAccessRevocations() {
-  const session = await requireEmployeeOffboarding();
+  const session = await requireEmployeeOffboarding({ allowRevoked: true });
 
   const revocations = await prisma.accessRevocation.findMany({
     where: {
@@ -330,7 +330,7 @@ export async function getEmployeeAccessRevocations() {
 }
 
 export async function getEmployeeTimeline() {
-  const session = await requireEmployeeOffboarding();
+  const session = await requireEmployeeOffboarding({ allowRevoked: true });
 
   const [tasks, assetReturns, attestations] = await Promise.all([
     prisma.offboardingTask.findMany({
@@ -452,7 +452,7 @@ export async function getEmployeeTimeline() {
 }
 
 export async function getEmployeeAttestation() {
-  const session = await requireEmployeeOffboarding();
+  const session = await requireEmployeeOffboarding({ allowRevoked: true });
 
   const attestation = await prisma.employeeAttestation.findUnique({
     where: {
@@ -471,7 +471,7 @@ export async function getEmployeeAttestation() {
 }
 
 export async function exportEmployeeData() {
-  const session = await requireEmployeeOffboarding();
+  const session = await requireEmployeeOffboarding({ allowRevoked: true });
 
   const [offboarding, tasks, attestations] = await Promise.all([
     prisma.offboarding.findUnique({
@@ -542,7 +542,7 @@ prisma.offboardingTask.findMany({
 }
 
 export async function checkOffboardingCompletionEligibility() {
-  const session = await requireEmployeeOffboarding();
+  const session = await requireEmployeeOffboarding({ allowRevoked: true });
 
   const [pendingTasks, pendingAssetReturns, attestation] = await Promise.all([
     prisma.offboardingTask.count({
@@ -590,7 +590,7 @@ export async function addEmployeeTaskEvidence(
     noteContent?: string;
   }
 ) {
-  const session = await requireEmployeeOffboarding();
+  const session = await requireEmployeeOffboarding({ allowRevoked: true });
 
   const isOwner = await verifyEmployeeOwnership(session, "task", taskId);
   if (!isOwner) {
@@ -655,7 +655,7 @@ export async function addEmployeeTaskEvidence(
 }
 
 export async function getEmployeeTaskEvidence(taskId: string) {
-  const session = await requireEmployeeOffboarding();
+  const session = await requireEmployeeOffboarding({ allowRevoked: true });
 
   const isOwner = await verifyEmployeeOwnership(session, "task", taskId);
   if (!isOwner) {
@@ -669,7 +669,7 @@ export async function getEmployeeTaskEvidence(taskId: string) {
 }
 
 export async function deleteEmployeeTaskEvidence(evidenceId: string) {
-  const session = await requireEmployeeOffboarding();
+  const session = await requireEmployeeOffboarding({ allowRevoked: true });
 
   const evidence = await prisma.taskEvidence.findUnique({
     where: { id: evidenceId },
@@ -712,7 +712,7 @@ export async function deleteEmployeeTaskEvidence(evidenceId: string) {
 }
 
 export async function getEmployeeTasksWithEvidence() {
-  const session = await requireEmployeeOffboarding();
+  const session = await requireEmployeeOffboarding({ allowRevoked: true });
 
   const tasks = await prisma.offboardingTask.findMany({
     where: {

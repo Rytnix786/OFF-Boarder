@@ -248,7 +248,7 @@ export async function requireEmployeePortalAuth(options?: { allowRevoked?: boole
     }
 
     const inServerAction = await isServerAction();
-    if (inServerAction) {
+    if (inServerAction && !options?.allowRevoked) {
       throw new Error("Your access to the employee portal has been revoked.");
     }
 
@@ -270,8 +270,8 @@ export async function requireEmployeePortalAuth(options?: { allowRevoked?: boole
   return session;
 }
 
-export async function requireEmployeeOffboarding(): Promise<EmployeePortalSession & { offboardingId: string }> {
-  const session = await requireEmployeePortalAuth();
+export async function requireEmployeeOffboarding(options?: { allowRevoked?: boolean }): Promise<EmployeePortalSession & { offboardingId: string }> {
+  const session = await requireEmployeePortalAuth(options);
   
   if (!session.offboardingId) {
     redirect("/app/employee");
