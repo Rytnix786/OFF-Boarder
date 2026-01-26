@@ -267,17 +267,22 @@ export async function signAttestation() {
     },
   });
 
-  // Find related tasks to auto-complete
-  const relatedTasks = await prisma.offboardingTask.findMany({
+  // Find related tasks to auto-complete using keywords
+  const allEmployeeTasks = await prisma.offboardingTask.findMany({
     where: {
       offboardingId: session.offboardingId,
       assignedToEmployeeId: session.employee.id,
-      name: {
-        in: ["Complete final attestation", "Complete exit checklist"]
-      },
       status: { not: "COMPLETED" }
     }
   });
+
+  const attestationKeywords = ["attestation", "sign", "acknowledge", "confirm"];
+  const relatedTasks = allEmployeeTasks.filter(task => 
+    attestationKeywords.some(kw => 
+      task.name.toLowerCase().includes(kw) || 
+      task.category?.toLowerCase().includes(kw)
+    )
+  );
 
   if (relatedTasks.length > 0) {
     const taskIds = relatedTasks.map(t => t.id);
@@ -540,6 +545,38 @@ export async function getEmployeeAttestation() {
       },
     },
   });
+
+  // Retroactive fix: If attestation exists but tasks are pending, complete them
+  if (attestation) {
+    const allEmployeeTasks = await prisma.offboardingTask.findMany({
+      where: {
+        offboardingId: session.offboardingId,
+        assignedToEmployeeId: session.employee.id,
+        status: { not: "COMPLETED" }
+      }
+    });
+
+    const attestationKeywords = ["attestation", "sign", "acknowledge", "confirm"];
+    const pendingAttestationTasks = allEmployeeTasks.filter(task => 
+      attestationKeywords.some(kw => 
+        task.name.toLowerCase().includes(kw) || 
+        task.category?.toLowerCase().includes(kw)
+      )
+    );
+
+    if (pendingAttestationTasks.length > 0) {
+      await prisma.offboardingTask.updateMany({
+        where: { id: { in: pendingAttestationTasks.map(t => t.id) } },
+        data: {
+          status: "COMPLETED",
+          completedAt: attestation.signedAt,
+          completedBy: session.user.id,
+        }
+      });
+      revalidatePath("/app/access-suspended");
+      revalidatePath("/app/employee/tasks");
+    }
+  }
 
   return {
     attestation,
