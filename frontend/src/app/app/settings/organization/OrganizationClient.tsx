@@ -70,6 +70,11 @@ export default function OrganizationClient({
     organizationType: normalizeOrgType(organization.organizationType) || "",
   });
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const isOwner = userRole === "OWNER";
 
   const CustomPopper = (props: PopperProps) => (
@@ -548,15 +553,15 @@ export default function OrganizationClient({
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <Typography variant="caption" color="text.secondary">Created</Typography>
-                        <Typography variant="caption" fontWeight={600}>
-                          {new Date(organization.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <Typography variant="caption" color="text.secondary">Last Updated</Typography>
-                        <Typography variant="caption" fontWeight={600}>
-                          {new Date(organization.updatedAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}
-                        </Typography>
+                          <Typography variant="caption" fontWeight={600}>
+                            {mounted ? new Date(organization.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' }) : "—"}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <Typography variant="caption" color="text.secondary">Last Updated</Typography>
+                          <Typography variant="caption" fontWeight={600}>
+                            {mounted ? new Date(organization.updatedAt).toLocaleDateString(undefined, { dateStyle: 'medium' }) : "—"}
+                          </Typography>
                       </Box>
                     </Box>
                   </Box>
