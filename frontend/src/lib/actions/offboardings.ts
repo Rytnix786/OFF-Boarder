@@ -500,67 +500,7 @@ export async function updateOffboardingTask(taskId: string, status: "PENDING" | 
     });
   }
 
-  const allTasks = await prisma.offboardingTask.findMany({
-    where: { offboardingId: task.offboardingId },
-  });
-
-  const assetReturns = await prisma.assetReturn.findMany({
-    where: { offboardingId: task.offboardingId },
-  });
-
-  const allAssetsResolved = assetReturns.every(ar => 
-    ar.status === "RETURNED" || ar.status === "MISSING" || ar.status === "VERIFIED" || ar.status === "DAMAGED"
-  );
-
-  const completedCount = allTasks.filter((t) => t.status === "COMPLETED" || t.status === "SKIPPED").length;
-  const inProgressCount = allTasks.filter((t) => t.status === "IN_PROGRESS").length;
-
-  let offboardingStatus: "PENDING" | "IN_PROGRESS" | "PENDING_APPROVAL" | "COMPLETED" = task.offboarding.status as any;
-    
-  if (completedCount === allTasks.length && allAssetsResolved) {
-    const policyCheck = await checkOffboardingCompletion(
-      orgId,
-      task.offboardingId,
-      task.offboarding.employeeId
-    );
-    
-    if (policyCheck.allowed) {
-      offboardingStatus = "COMPLETED";
-    } else {
-      offboardingStatus = "PENDING_APPROVAL";
-    }
-  } else if (completedCount > 0 || inProgressCount > 0) {
-    if (task.offboarding.status !== "PENDING_APPROVAL") {
-      offboardingStatus = "IN_PROGRESS";
-    }
-  }
-
-  if (task.offboarding.status !== offboardingStatus) {
-    await prisma.offboarding.update({
-      where: { id: task.offboardingId },
-      data: {
-        status: offboardingStatus,
-        completedDate: offboardingStatus === "COMPLETED" ? new Date() : null,
-      },
-    });
-
-    if (offboardingStatus === "COMPLETED") {
-      await prisma.employee.update({
-        where: { id: task.offboarding.employeeId },
-        data: { status: "TERMINATED" },
-      });
-
-      await createNotificationForOrgMembers(
-        orgId,
-        session.user.id,
-        "offboarding_completed",
-        "Offboarding Completed",
-        `${task.offboarding.employee.firstName} ${task.offboarding.employee.lastName}'s offboarding has been completed.`,
-        `/app/offboardings/${task.offboardingId}`,
-        task.offboarding.employeeId
-      );
-    }
-  }
+  await resolveOffboardingStatus(task.offboardingId, orgId);
 
   await createAuditLog(session, orgId, {
     action: "task.completed",
@@ -589,6 +529,94 @@ export async function updateOffboardingTask(taskId: string, status: "PENDING" | 
 
   revalidatePath(`/app/offboardings/${task.offboardingId}`);
   return { success: true, task: updated };
+}
+
+/**
+ * Centralized logic to resolve and update the status of an offboarding 
+ * based on tasks, assets, and security policies.
+ */
+export async function resolveOffboardingStatus(offboardingId: string, orgId: string) {
+  const offboarding = await prisma.offboarding.findUnique({
+    where: { id: offboardingId },
+    include: { 
+      tasks: true, 
+      employee: { select: { id: true, firstName: true, lastName: true } } 
+    }
+  });
+
+  if (!offboarding) return;
+
+  const assetReturns = await prisma.assetReturn.findMany({
+    where: { offboardingId },
+  });
+
+  const allAssetsResolved = assetReturns.every(ar => 
+    ar.status === "RETURNED" || ar.status === "MISSING" || ar.status === "VERIFIED" || ar.status === "DAMAGED"
+  );
+
+  const completedCount = offboarding.tasks.filter((t) => t.status === "COMPLETED" || t.status === "SKIPPED").length;
+  const inProgressCount = offboarding.tasks.filter((t) => t.status === "IN_PROGRESS").length;
+
+  let newStatus = offboarding.status;
+
+  if (completedCount === offboarding.tasks.length && allAssetsResolved) {
+    const policyCheck = await checkOffboardingCompletion(
+      orgId,
+      offboardingId,
+      offboarding.employeeId
+    );
+    
+    if (policyCheck.allowed) {
+      newStatus = "COMPLETED";
+    } else {
+      newStatus = "PENDING_APPROVAL";
+    }
+  } else if (completedCount > 0 || inProgressCount > 0) {
+    if (offboarding.status !== "PENDING_APPROVAL") {
+      newStatus = "IN_PROGRESS";
+    }
+  }
+
+  if (offboarding.status !== newStatus) {
+    await prisma.offboarding.update({
+      where: { id: offboardingId },
+      data: {
+        status: newStatus,
+        completedDate: newStatus === "COMPLETED" ? new Date() : null,
+      },
+    });
+
+    if (newStatus === "COMPLETED") {
+      await prisma.employee.update({
+        where: { id: offboarding.employeeId },
+        data: { status: "TERMINATED" },
+      });
+
+      // We need a session-like object or just enough for notifications
+      // Since this is called from other actions, we'll use a dummy system user ID if needed,
+      // but ideally we pass the current user ID. 
+      // For now, let's assume we can trigger notifications without a full session if we have the orgId.
+      
+      await createNotificationForOrgMembers(
+        orgId,
+        "SYSTEM", // System triggered
+        "offboarding_completed",
+        "Offboarding Completed",
+        `${offboarding.employee.firstName} ${offboarding.employee.lastName}'s offboarding has been completed.`,
+        `/app/offboardings/${offboardingId}`,
+        offboarding.employeeId
+      );
+    }
+
+    const { invalidateOrgCache, refreshAnalyticsSnapshot } = await import("@/lib/cache.server");
+    invalidateOrgCache(orgId);
+    if (newStatus === "COMPLETED") {
+      refreshAnalyticsSnapshot(orgId).catch(() => {});
+    }
+    
+    revalidatePath(`/app/offboardings/${offboardingId}`);
+    revalidatePath("/app/offboardings");
+  }
 }
 
 export async function cancelOffboarding(offboardingId: string) {
