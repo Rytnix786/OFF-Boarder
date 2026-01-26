@@ -442,46 +442,46 @@ export default function EmployeeDetailClient({
                     <TableCell sx={{ fontWeight: 600 }}>Location</TableCell>
                     <TableCell>{employee.location?.name || "—"}</TableCell>
                   </TableRow>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 600 }}>Hire Date</TableCell>
-                      <TableCell>
-                        {employee.hireDate ? new Date(employee.hireDate).toISOString().split("T")[0] : "—"}
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-            </CardContent>
-          </Card>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 600 }}>Hire Date</TableCell>
+                        <TableCell>
+                          {employee.hireDate ? (isMounted ? new Date(employee.hireDate).toISOString().split("T")[0] : "...") : "—"}
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+              </CardContent>
+            </Card>
 
-          {employee.offboardings.length > 0 && (
-              <Card variant="outlined" sx={{ borderRadius: 3, mt: 3 }}>
-                <CardContent>
-                  <Typography variant="h6" fontWeight={700} gutterBottom>
-                    Offboarding History
-                  </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                    {employee.offboardings.map((ob) => (
-                      <Link key={ob.id} href={`/app/offboardings/${ob.id}`} style={{ textDecoration: "none", color: "inherit" }}>
-                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", p: 1.5, borderRadius: 2, "&:hover": { bgcolor: "action.hover" } }}>
-                          <Box>
-                            <Chip
-                              label={ob.status}
-                              size="small"
-                              color={ob.status === "COMPLETED" ? "success" : ob.status === "IN_PROGRESS" ? "warning" : "default"}
-                            />
-                            <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
-                              Created {new Date(ob.createdAt).toISOString().split("T")[0]}
-                            </Typography>
+            {employee.offboardings.length > 0 && (
+                <Card variant="outlined" sx={{ borderRadius: 3, mt: 3 }}>
+                  <CardContent>
+                    <Typography variant="h6" fontWeight={700} gutterBottom>
+                      Offboarding History
+                    </Typography>
+                    <Divider sx={{ my: 2 }} />
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                      {employee.offboardings.map((ob) => (
+                        <Link key={ob.id} href={`/app/offboardings/${ob.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", p: 1.5, borderRadius: 2, "&:hover": { bgcolor: "action.hover" } }}>
+                            <Box>
+                              <Chip
+                                label={ob.status}
+                                size="small"
+                                color={ob.status === "COMPLETED" ? "success" : ob.status === "IN_PROGRESS" ? "warning" : "default"}
+                              />
+                              <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
+                                Created {isMounted ? new Date(ob.createdAt).toISOString().split("T")[0] : "..."}
+                              </Typography>
+                            </Box>
+                            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>chevron_right</span>
                           </Box>
-                          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>chevron_right</span>
-                        </Box>
-                      </Link>
-                    ))}
-                  </Box>
-                </CardContent>
-              </Card>
-            )}
+                        </Link>
+                      ))}
+                    </Box>
+                  </CardContent>
+                </Card>
+              )}
 
             <Card variant="outlined" sx={{ borderRadius: 3, mt: 3 }}>
               <CardContent>

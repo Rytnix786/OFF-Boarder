@@ -947,19 +947,19 @@ export async function AdminDashboard({ session }: AdminDashboardProps) {
                                   {ob.employee.department?.name || "No department"}
                                 </Typography>
                               </Box>
-                              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                                <Chip
-                                  label={ob.status.replace("_", " ")}
-                                  size="small"
-                                  sx={{
-                                    height: 22,
-                                    fontSize: "0.75rem",
-                                    fontWeight: 600,
-                                    bgcolor: ob.status === "IN_PROGRESS" ? "#f59e0b15" : ob.status === "PENDING_APPROVAL" ? "#6366f115" : "#6b728015",
-                                    color: ob.status === "IN_PROGRESS" ? "#d97706" : ob.status === "PENDING_APPROVAL" ? "#6366f1" : "#6b7280",
-                                  }}
-                                />
-                                <Box sx={{ width: 80, textAlign: "right" }}>
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                                  <Chip
+                                    label={(ob.status === "IN_PROGRESS" && progress === 100) ? "COMPLETED" : ob.status.replace("_", " ")}
+                                    size="small"
+                                    sx={{
+                                      height: 22,
+                                      fontSize: "0.75rem",
+                                      fontWeight: 600,
+                                      bgcolor: (ob.status === "IN_PROGRESS" && progress === 100) ? "#10b98115" : ob.status === "IN_PROGRESS" ? "#f59e0b15" : ob.status === "PENDING_APPROVAL" ? "#6366f115" : "#6b728015",
+                                      color: (ob.status === "IN_PROGRESS" && progress === 100) ? "#059669" : ob.status === "IN_PROGRESS" ? "#d97706" : ob.status === "PENDING_APPROVAL" ? "#6366f1" : "#6b7280",
+                                    }}
+                                  />
+                                  <Box sx={{ width: 80, textAlign: "right" }}>
                                   <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.75rem" }}>
                                     {progress}%
                                   </Typography>
