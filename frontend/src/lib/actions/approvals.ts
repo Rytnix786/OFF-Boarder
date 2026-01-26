@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma.server";
 import { requireActiveOrg } from "@/lib/auth.server";
+import { createNotification, createEmployeeNotification } from "@/lib/notifications";
 import { 
   requirePermission, 
   isAdmin, 

@@ -66,7 +66,7 @@ export async function createWorkflowTemplate(formData: FormData) {
   });
 
   await createAuditLog(session, orgId, {
-    action: "workflow.created" as any,
+    action: "workflow.created",
     entityType: "WorkflowTemplate",
     entityId: template.id,
     newData: { name: data.name, taskCount: template.tasks.length },
@@ -115,7 +115,7 @@ export async function updateWorkflowTemplate(templateId: string, formData: FormD
   });
 
   await createAuditLog(session, orgId, {
-    action: "workflow.updated" as any,
+    action: "workflow.updated",
     entityType: "WorkflowTemplate",
     entityId: templateId,
     oldData: { name: template.name, isDefault: template.isDefault, version: template.version },
@@ -178,7 +178,7 @@ export async function duplicateWorkflowTemplate(templateId: string, newName: str
   });
 
   await createAuditLog(session, orgId, {
-    action: "workflow.created" as any,
+    action: "workflow.created",
     entityType: "WorkflowTemplate",
     entityId: newTemplate.id,
     newData: { name: newName, duplicatedFrom: template.name, taskCount: newTemplate.tasks.length },
@@ -212,7 +212,7 @@ export async function deleteWorkflowTemplate(templateId: string) {
   });
 
   await createAuditLog(session, orgId, {
-    action: "workflow.deleted" as any,
+    action: "workflow.deleted",
     entityType: "WorkflowTemplate",
     entityId: templateId,
     oldData: { name: template.name },
@@ -263,7 +263,7 @@ export async function addTemplateTask(templateId: string, formData: FormData) {
   });
 
   await createAuditLog(session, orgId, {
-    action: "workflow.updated" as any,
+    action: "workflow.updated",
     entityType: "WorkflowTemplate",
     entityId: templateId,
     newData: { taskAdded: task.name },
@@ -311,7 +311,7 @@ export async function updateTemplateTask(taskId: string, formData: FormData) {
   });
 
   await createAuditLog(session, orgId, {
-    action: "workflow.updated" as any,
+    action: "workflow.updated",
     entityType: "WorkflowTemplate",
     entityId: task.workflowTemplateId,
     newData: { taskUpdated: updated.name },
@@ -346,7 +346,7 @@ export async function deleteTemplateTask(taskId: string) {
   });
 
   await createAuditLog(session, orgId, {
-    action: "workflow.updated" as any,
+    action: "workflow.updated",
     entityType: "WorkflowTemplate",
     entityId: task.workflowTemplateId,
     oldData: { taskRemoved: task.name },
@@ -460,7 +460,7 @@ async function createTemplateFromDefinition(
 
   if (session) {
     await createAuditLog(session, orgId, {
-      action: "workflow.created" as any,
+      action: "workflow.created",
       entityType: "WorkflowTemplate",
       entityId: template.id,
       newData: { name: template.name, taskCount: template.tasks.length, isSystemDefault: true },
@@ -532,7 +532,7 @@ export async function resetDefaultWorkflowTemplates() {
   }
 
   await createAuditLog(session, orgId, {
-    action: "workflow.updated" as any,
+    action: "workflow.updated",
     entityType: "WorkflowTemplate",
     entityId: orgId,
     newData: { action: "reset_defaults", templatesCreated: createdTemplates.length },

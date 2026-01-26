@@ -264,6 +264,30 @@ export async function POST() {
     },
   });
 
+  // Create membership for manager
+  const managerUser = await prisma.user.findUnique({ where: { email: "sarah.johnson@acme.com" } });
+  let managerMembershipId = null;
+  if (managerUser) {
+    const existingManagerMembership = await prisma.membership.findFirst({
+      where: { userId: managerUser.id, organizationId: existingOrg.id },
+    });
+    
+    if (!existingManagerMembership) {
+      const managerMembership = await prisma.membership.create({
+        data: {
+          userId: managerUser.id,
+          organizationId: existingOrg.id,
+          systemRole: "ADMIN",
+          status: "ACTIVE",
+          updatedAt: now,
+        },
+      });
+      managerMembershipId = managerMembership.id;
+    } else {
+      managerMembershipId = existingManagerMembership.id;
+    }
+  }
+
   const employees = [
     { id: "demo-emp-1", employeeId: "ACME002", firstName: "Alex", lastName: "Chen", email: "alex.chen@acme.com" },
     { id: "demo-emp-2", employeeId: "ACME003", firstName: "Maria", lastName: "Garcia", email: "maria.garcia@acme.com" },
@@ -286,7 +310,7 @@ export async function POST() {
         departmentId: department.id,
         jobTitleId: jobTitle.id,
         locationId: location.id,
-        managerId: manager.id,
+        managerMembershipId: managerMembershipId,
         updatedAt: now,
       },
     });
@@ -307,7 +331,7 @@ export async function POST() {
       departmentId: department.id,
       jobTitleId: jobTitle.id,
       locationId: location.id,
-      managerId: manager.id,
+      managerMembershipId: managerMembershipId,
       updatedAt: now,
     },
   });

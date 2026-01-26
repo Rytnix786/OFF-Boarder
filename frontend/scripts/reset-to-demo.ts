@@ -272,6 +272,23 @@ async function main() {
     });
     console.log(`Created Employee: Sarah Johnson (Manager)`);
 
+    // Create membership for manager
+    const managerUser = await prisma.user.findUnique({ where: { email: "sarah.johnson@acme.com" } });
+    let managerMembershipId = null;
+    if (managerUser) {
+      const managerMembership = await prisma.membership.create({
+        data: {
+          userId: managerUser.id,
+          organizationId: org.id,
+          systemRole: "ADMIN",
+          status: "ACTIVE",
+          updatedAt: now,
+        },
+      });
+      managerMembershipId = managerMembership.id;
+      console.log(`Created Membership: sarah.johnson@acme.com -> ADMIN`);
+    }
+
     const employees = [
       { id: "demo-emp-1", employeeId: "ACME002", firstName: "Alex", lastName: "Chen", email: "alex.chen@acme.com" },
       { id: "demo-emp-2", employeeId: "ACME003", firstName: "Maria", lastName: "Garcia", email: "maria.garcia@acme.com" },
@@ -292,7 +309,7 @@ async function main() {
           departmentId: department.id,
           jobTitleId: jobTitle.id,
           locationId: location.id,
-          managerId: manager.id,
+          managerMembershipId: managerMembershipId,
           updatedAt: now,
         },
       });
@@ -312,7 +329,7 @@ async function main() {
         departmentId: department.id,
         jobTitleId: jobTitle.id,
         locationId: location.id,
-        managerId: manager.id,
+        managerMembershipId: managerMembershipId,
         updatedAt: now,
       },
     });

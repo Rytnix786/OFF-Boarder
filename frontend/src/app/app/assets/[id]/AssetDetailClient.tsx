@@ -279,8 +279,8 @@ export default function AssetDetailClient({ asset, history, employees, canManage
   const handleAddEvidence = async (data: any) => {
     setLoading(true);
     const result = await addAssetEvidence(asset.id, data);
-    if (result.error) {
-      setSnackbar({ open: true, message: result.error, severity: "error" });
+    if (!result.success) {
+      setSnackbar({ open: true, message: "Failed to add evidence", severity: "error" });
     } else {
       setSnackbar({ open: true, message: "Evidence added successfully", severity: "success" });
       router.refresh();
@@ -415,8 +415,8 @@ export default function AssetDetailClient({ asset, history, employees, canManage
                   clickable
                   icon={<span className="material-symbols-outlined" style={{ fontSize: 16 }}>exit_to_app</span>}
                 />
-              )}
-            </Box>
+                )}
+            </Grid>
           </Grid>
         </CardContent>
       </Card>
@@ -437,7 +437,7 @@ export default function AssetDetailClient({ asset, history, employees, canManage
                   </Avatar>
                   <Box>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Typography variant="h5" fontWeight={900}>{asset.name}</Typography>
+                      <Typography variant="h5" fontWeight={900} sx={{ lineHeight: 1.2 }}>{asset.name}</Typography>
                       <Chip 
                         label={riskConfig.label} 
                         size="small" 
@@ -445,7 +445,7 @@ export default function AssetDetailClient({ asset, history, employees, canManage
                         sx={{ height: 20, fontSize: "0.7rem", fontWeight: 800 }}
                       />
                     </Box>
-                    <Typography color="text.secondary" variant="body2" fontWeight={500}>{asset.type}</Typography>
+                    <Typography color="text.secondary" variant="body2" fontWeight={500} sx={{ lineHeight: 1.4 }}>{asset.type}</Typography>
                     <Box sx={{ mt: 1 }}>
                       <Chip 
                         label={statusConfig.label} 
@@ -472,39 +472,39 @@ export default function AssetDetailClient({ asset, history, employees, canManage
 
                 <Grid container spacing={4}>
                   <Grid size={12}>
-                    <Typography variant="overline" color="text.secondary" fontWeight={800} sx={{ letterSpacing: 1.2 }}>
+                    <Typography variant="overline" color="text.secondary" fontWeight={800} sx={{ letterSpacing: "0.08em", lineHeight: 1.4 }}>
                       Asset Identity
                     </Typography>
                     <Grid container spacing={2} sx={{ mt: 0.5 }}>
                       <Grid size={{ xs: 12, sm: 4 }}>
-                        <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase" }}>Serial Number</Typography>
-                        <Typography fontWeight={600} variant="body1" sx={{ fontFamily: "monospace" }}>{asset.serialNumber || "—"}</Typography>
+                        <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase", lineHeight: 1.3 }}>Serial Number</Typography>
+                        <Typography fontWeight={600} variant="body1" sx={{ fontFamily: "monospace", lineHeight: 1.4 }}>{asset.serialNumber || "—"}</Typography>
                       </Grid>
                       <Grid size={{ xs: 12, sm: 4 }}>
-                        <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase" }}>Asset Tag</Typography>
-                        <Typography fontWeight={600} variant="body1" sx={{ fontFamily: "monospace" }}>{asset.assetTag || "—"}</Typography>
+                        <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase", lineHeight: 1.3 }}>Asset Tag</Typography>
+                        <Typography fontWeight={600} variant="body1" sx={{ fontFamily: "monospace", lineHeight: 1.4 }}>{asset.assetTag || "—"}</Typography>
                       </Grid>
                       <Grid size={{ xs: 12, sm: 4 }}>
-                        <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase" }}>Type</Typography>
-                        <Typography fontWeight={600} variant="body1">{asset.type}</Typography>
+                        <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase", lineHeight: 1.3 }}>Type</Typography>
+                        <Typography fontWeight={600} variant="body1" sx={{ lineHeight: 1.4 }}>{asset.type}</Typography>
                       </Grid>
                     </Grid>
                   </Grid>
 
                   <Grid size={12}>
-                    <Typography variant="overline" color="text.secondary" fontWeight={800} sx={{ letterSpacing: 1.2 }}>
+                    <Typography variant="overline" color="text.secondary" fontWeight={800} sx={{ letterSpacing: "0.08em", lineHeight: 1.4 }}>
                       Financials & History
                     </Typography>
                     <Grid container spacing={2} sx={{ mt: 0.5 }}>
                       <Grid size={{ xs: 12, sm: 4 }}>
-                        <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase" }}>Purchase Value</Typography>
-                        <Typography fontWeight={600} variant="body1">
+                        <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase", lineHeight: 1.3 }}>Purchase Value</Typography>
+                        <Typography fontWeight={600} variant="body1" sx={{ lineHeight: 1.4 }}>
                           {asset.value ? `$${asset.value.toLocaleString()}` : "—"}
                         </Typography>
                       </Grid>
                       <Grid size={{ xs: 12, sm: 4 }}>
-                        <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase" }}>Purchase Date</Typography>
-                        <Typography fontWeight={600} variant="body1">
+                        <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ textTransform: "uppercase", lineHeight: 1.3 }}>Purchase Date</Typography>
+                        <Typography fontWeight={600} variant="body1" sx={{ lineHeight: 1.4 }}>
                           {asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : "—"}
                         </Typography>
                       </Grid>
@@ -733,7 +733,7 @@ export default function AssetDetailClient({ asset, history, employees, canManage
         }}
       >
         <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", pb: 1 }}>
-          <Typography variant="h5" fontWeight={900}>Assign Asset</Typography>
+          <Typography variant="h6" fontWeight={900}>Assign Asset</Typography>
           <IconButton onClick={() => setAssignDialogOpen(false)} size="small">
             <span className="material-symbols-outlined">close</span>
           </IconButton>
@@ -825,8 +825,10 @@ export default function AssetDetailClient({ asset, history, employees, canManage
                     }}
                   />
                 )}
-                renderOption={(props, option) => (
-                  <Box component="li" {...props} sx={{ p: 1.5 }}>
+                renderOption={(props, option) => {
+                  const { key, ...rest } = props as any;
+                  return (
+                    <Box component="li" key={key} {...rest} sx={{ p: 1.5 }}>
                     <Stack direction="row" spacing={2} alignItems="center">
                       <Avatar sx={{ width: 40, height: 40, bgcolor: alpha(theme.palette.primary.main, 0.1), color: theme.palette.primary.main }}>
                         {option.firstName[0]}{option.lastName[0]}
@@ -841,7 +843,8 @@ export default function AssetDetailClient({ asset, history, employees, canManage
                       </Box>
                     </Stack>
                   </Box>
-                )}
+                  );
+                }}
               />
             </Box>
 

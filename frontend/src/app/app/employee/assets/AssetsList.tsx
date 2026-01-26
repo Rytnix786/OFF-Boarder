@@ -35,7 +35,7 @@ interface AssetsListProps {
 export default function AssetsList({ assetReturns }: AssetsListProps) {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedAssetReturn, setSelectedAssetReturn] = useState<AssetReturnWithRelations | null>(null);
-  const [proofType, setProofType] = useState<AssetProofType>("TRACKING_NUMBER");
+  const [proofType, setProofType] = useState<AssetProofType>("SHIPPING_LABEL");
   const [trackingNumber, setTrackingNumber] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
@@ -44,7 +44,7 @@ export default function AssetsList({ assetReturns }: AssetsListProps) {
   const handleOpenUpload = (assetReturn: AssetReturnWithRelations) => {
     setSelectedAssetReturn(assetReturn);
     setUploadDialogOpen(true);
-    setProofType("TRACKING_NUMBER");
+    setProofType("SHIPPING_LABEL");
     setTrackingNumber("");
     setDescription("");
     setError(null);
@@ -58,7 +58,7 @@ export default function AssetsList({ assetReturns }: AssetsListProps) {
 
     try {
       const result = await uploadAssetReturnProof(selectedAssetReturn.id, proofType, {
-        trackingNumber: proofType === "TRACKING_NUMBER" ? trackingNumber : undefined,
+        trackingNumber: proofType === "SHIPPING_LABEL" ? trackingNumber : undefined,
         description,
       });
 
@@ -195,9 +195,9 @@ export default function AssetsList({ assetReturns }: AssetsListProps) {
                     }}
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                      {proof.type === "TRACKING_NUMBER"
+                      {proof.type === "SHIPPING_LABEL"
                         ? "local_shipping"
-                        : proof.type === "SHIPPING_RECEIPT"
+                        : proof.type === "RECEIPT"
                         ? "receipt"
                         : proof.type === "PHOTO"
                         ? "photo"
@@ -241,14 +241,14 @@ export default function AssetsList({ assetReturns }: AssetsListProps) {
               label="Proof Type"
               onChange={(e) => setProofType(e.target.value as AssetProofType)}
             >
-              <MenuItem value="TRACKING_NUMBER">Tracking Number</MenuItem>
-              <MenuItem value="SHIPPING_RECEIPT">Shipping Receipt</MenuItem>
+              <MenuItem value="SHIPPING_LABEL">Tracking Number</MenuItem>
+              <MenuItem value="RECEIPT">Shipping Receipt</MenuItem>
               <MenuItem value="PHOTO">Photo</MenuItem>
               <MenuItem value="OTHER">Other</MenuItem>
             </Select>
           </FormControl>
 
-          {proofType === "TRACKING_NUMBER" && (
+          {proofType === "SHIPPING_LABEL" && (
             <TextField
               fullWidth
               label="Tracking Number"
@@ -274,7 +274,7 @@ export default function AssetsList({ assetReturns }: AssetsListProps) {
           <Button
             variant="contained"
             onClick={handleUploadProof}
-            disabled={loading || (proofType === "TRACKING_NUMBER" && !trackingNumber)}
+            disabled={loading || (proofType === "SHIPPING_LABEL" && !trackingNumber)}
             startIcon={loading ? <CircularProgress size={16} /> : null}
           >
             {loading ? "Uploading..." : "Upload Proof"}

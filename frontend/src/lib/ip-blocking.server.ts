@@ -132,7 +132,7 @@ export async function recordBlockedAttempt(params: {
     });
 
     if (policy?.isActive) {
-      const config = policy.config as any;
+      const config = policy.config as { maxFailedAttempts?: number; blockDurationMinutes?: number };
       const maxAttempts = config.maxFailedAttempts || 5;
       const duration = config.blockDurationMinutes || 60;
 
@@ -144,21 +144,36 @@ export async function recordBlockedAttempt(params: {
       });
 
       if (attemptCount >= maxAttempts) {
-        await prisma.blockedIP.upsert({
-          where: { ipAddress_scope_organizationId: { ipAddress: params.ipAddress, scope: BlockScope.GLOBAL, organizationId: "" } },
-          create: {
-            ipAddress: params.ipAddress,
-            scope: BlockScope.GLOBAL,
-            reason: `Automatic block: Exceeded threshold of ${maxAttempts} failed attempts.`,
-            expiresAt: new Date(Date.now() + duration * 60 * 1000),
-            isActive: true,
-            createdById: "system"
-          },
-          update: {
-            isActive: true,
-            expiresAt: new Date(Date.now() + duration * 60 * 1000)
+        const existingBlock = await prisma.blockedIP.findFirst({
+          where: { 
+            ipAddress: params.ipAddress, 
+            scope: BlockScope.GLOBAL, 
+            organizationId: null 
           }
         });
+
+        if (existingBlock) {
+          await prisma.blockedIP.update({
+            where: { id: existingBlock.id },
+            data: {
+              isActive: true,
+              expiresAt: new Date(Date.now() + duration * 60 * 1000),
+              reason: `Automatic block: Exceeded threshold of ${maxAttempts} failed attempts.`,
+              updatedAt: new Date()
+            }
+          });
+        } else {
+          await prisma.blockedIP.create({
+            data: {
+              ipAddress: params.ipAddress,
+              scope: BlockScope.GLOBAL,
+              reason: `Automatic block: Exceeded threshold of ${maxAttempts} failed attempts.`,
+              expiresAt: new Date(Date.now() + duration * 60 * 1000),
+              isActive: true,
+              createdById: "system"
+            }
+          });
+        }
 
         await prisma.policyEnforcementLog.create({
           data: {
@@ -271,7 +286,7 @@ export async function getBlockedIPAttempts(params: {
     prisma.blockedIPAttempt.findMany({
       where,
       include: {
-        user: { select: { id: true, name: true, email: true } },
+        User: { select: { id: true, name: true, email: true } },
         blockedIP: { select: { id: true, reason: true, scope: true } },
       },
       orderBy: { createdAt: "desc" },

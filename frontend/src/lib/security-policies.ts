@@ -212,7 +212,7 @@ export async function getEnforcementLogs(organizationId: string, limit = 50) {
 }
 
 export interface PolicyViolation {
-  policyType: PolicyType;
+  policyType: string;
   policyName: string;
   violation: string;
   severity: PolicySeverity;
@@ -232,7 +232,7 @@ export async function checkOffboardingCompletion(
   });
 
   if (globalApprovalPolicy?.isActive) {
-    const config = globalApprovalPolicy.config as any;
+    const config = globalApprovalPolicy.config as { minApprovals?: number };
     const minApprovals = config.minApprovals || 1;
     
     const approvedCount = await prisma.approval.count({
@@ -245,7 +245,7 @@ export async function checkOffboardingCompletion(
 
     if (approvedCount < minApprovals) {
       violations.push({
-        policyType: "MANDATORY_APPROVAL_CHAIN" as any,
+        policyType: "MANDATORY_APPROVAL_CHAIN",
         policyName: "Global: Mandatory Approval Chain",
         violation: `Global policy requires at least ${minApprovals} approvals (currently have ${approvedCount})`,
         severity: "HIGH",

@@ -274,13 +274,13 @@ export default function AnalyticsDashboardClient({ analytics }: AnalyticsDashboa
                     </Typography>
                   </Box>
                   <Box sx={{ display: "flex", gap: 1 }}>
-                    <Tooltip title="Insights are currently generated via heuristic security rules and organizational baseline thresholds.">
+                    <MuiTooltip title="Insights are currently generated via heuristic security rules and organizational baseline thresholds.">
                       <Chip 
                         label="Rule-Based"
                         size="small"
                         sx={{ bgcolor: alpha(theme.palette.info.main, 0.1), color: theme.palette.info.main, fontWeight: 700, fontSize: "0.65rem" }}
                       />
-                    </Tooltip>
+                    </MuiTooltip>
                     <Chip 
                       label={`${insights.length} insight${insights.length > 1 ? "s" : ""}`}
                       size="small"

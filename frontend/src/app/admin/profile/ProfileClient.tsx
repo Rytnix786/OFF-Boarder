@@ -233,7 +233,14 @@ export default function ProfileClient({ session }: ProfileClientProps) {
               onClick={async () => {
                 const { createClient } = await import("@/lib/supabase/client");
                 const supabase = createClient();
-                await fetch("/api/platform/auth/sign-out", { method: "POST" }).catch(() => {});
+                
+                try {
+                  await fetch("/api/platform/auth/sign-out", { method: "POST" });
+                } catch (error) {
+                  console.error("[Auth] Failed to sign out from server:", error);
+                  // Continue with client-side sign-out even if server sign-out fails
+                }
+                
                 await supabase.auth.signOut();
                 localStorage.clear();
                 window.location.href = "/login";

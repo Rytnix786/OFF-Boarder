@@ -99,7 +99,7 @@ type Approval = {
 
 type AssetReturn = {
   id: string;
-  status: "PENDING" | "RETURNED" | "NOT_RETURNED" | "LOST" | "DAMAGED";
+  status: "PENDING" | "RETURNED" | "NOT_RETURNED" | "MISSING" | "DAMAGED";
   returnedAt: Date | null;
   condition: string | null;
   notes: string | null;
@@ -256,7 +256,7 @@ export default function OffboardingDetailClient({
     router.refresh();
   };
 
-  const handleAssetReturn = async (status: "RETURNED" | "LOST" | "DAMAGED", condition?: string, notes?: string) => {
+  const handleAssetReturn = async (status: "RETURNED" | "MISSING" | "DAMAGED", condition?: string, notes?: string) => {
     if (!assetDialog) return;
     setLoading("asset");
     const result = await updateAssetReturn(offboarding.id, assetDialog.asset.id, status, notes);
@@ -950,7 +950,7 @@ export default function OffboardingDetailClient({
           <Button onClick={() => setAssetDialog(null)}>Cancel</Button>
           <Button
             color="error"
-            onClick={() => handleAssetReturn("LOST")}
+            onClick={() => handleAssetReturn("MISSING")}
             disabled={loading === "asset"}
           >
             Mark Lost

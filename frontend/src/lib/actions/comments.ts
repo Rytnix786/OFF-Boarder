@@ -108,7 +108,7 @@ export async function createTaskComment(taskId: string, content: string) {
     throw new Error("Task not found");
   }
 
-  let authorType: CommentAuthorType;
+  let authorType: CommentAuthorType = "ORG_USER";
   let userId: string | null = null;
   let employeeId: string | null = null;
   let authorName: string = "";

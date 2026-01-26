@@ -23,7 +23,15 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
       organizationId: session.currentOrgId!, 
       status: { in: ["ACTIVE", "ON_LEAVE", "OFFBOARDING"] } 
     },
-    select: { id: true, firstName: true, lastName: true, email: true },
+    select: { 
+      id: true, 
+      firstName: true, 
+      lastName: true, 
+      email: true,
+      offboardings: {
+        select: { id: true, status: true }
+      }
+    },
   });
 
   const canManage = session.currentMembership?.systemRole === "OWNER" ||

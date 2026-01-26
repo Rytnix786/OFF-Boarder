@@ -197,7 +197,7 @@ export async function GET(request: NextRequest) {
           status: { in: statusFilter as any },
         },
         include: {
-          requester: { select: { id: true, name: true, email: true, avatarUrl: true } },
+          User_JoinRequest_requesterUserIdToUser: { select: { id: true, name: true, email: true, avatarUrl: true } },
         },
         orderBy: { createdAt: "desc" },
       });

@@ -76,8 +76,7 @@ export async function createOffboarding(formData: FormData) {
     template = await ensureDefaultWorkflowTemplate(orgId);
   }
 
-  const templateWithTasks = template as any;
-  const templateTasks = templateWithTasks.tasks || [];
+  const templateTasks = (template as any)?.tasks || [];
   const allTasks = [...templateTasks];
 
   if (riskLevel === "HIGH" || riskLevel === "CRITICAL") {
@@ -218,7 +217,10 @@ export async function createOffboarding(formData: FormData) {
 
   const { invalidateOrgCache, refreshAnalyticsSnapshot } = await import("@/lib/cache.server");
   invalidateOrgCache(orgId);
-  refreshAnalyticsSnapshot(orgId).catch(() => {});
+  refreshAnalyticsSnapshot(orgId).catch((error) => {
+    console.error(`[Analytics] Failed to refresh snapshot for org ${orgId} after offboarding creation:`, error);
+    // Analytics refresh failure shouldn't block the main operation
+  });
 
   revalidatePath("/app/offboardings");
   revalidatePath("/app/employees");
@@ -314,7 +316,10 @@ export async function updateOffboarding(offboardingId: string, formData: FormDat
   const { invalidateOrgCache, refreshAnalyticsSnapshot } = await import("@/lib/cache.server");
   invalidateOrgCache(orgId);
   if (data.status === "COMPLETED" || data.status === "CANCELLED") {
-    refreshAnalyticsSnapshot(orgId).catch(() => {});
+    refreshAnalyticsSnapshot(orgId).catch((error) => {
+      console.error(`[Analytics] Failed to refresh snapshot for org ${orgId} after offboarding ${offboardingId} status ${data.status}:`, error);
+      // Analytics refresh failure shouldn't block the main operation
+    });
   }
 
   revalidatePath("/app/offboardings");
@@ -523,8 +528,11 @@ export async function updateOffboardingTask(taskId: string, status: "PENDING" | 
 
   const { invalidateOrgCache, refreshAnalyticsSnapshot } = await import("@/lib/cache.server");
   invalidateOrgCache(orgId);
-  if (offboardingStatus === "COMPLETED") {
-    refreshAnalyticsSnapshot(orgId).catch(() => {});
+  if (status === "COMPLETED") {
+    refreshAnalyticsSnapshot(orgId).catch((error) => {
+      console.error(`[Analytics] Failed to refresh snapshot for org ${orgId} after task completion for offboarding ${task.offboardingId}:`, error);
+      // Analytics refresh failure shouldn't block the main operation
+    });
   }
 
   revalidatePath(`/app/offboardings/${task.offboardingId}`);
@@ -611,7 +619,10 @@ export async function resolveOffboardingStatus(offboardingId: string, orgId: str
     const { invalidateOrgCache, refreshAnalyticsSnapshot } = await import("@/lib/cache.server");
     invalidateOrgCache(orgId);
     if (newStatus === "COMPLETED") {
-      refreshAnalyticsSnapshot(orgId).catch(() => {});
+      refreshAnalyticsSnapshot(orgId).catch((error) => {
+        console.error(`[Analytics] Failed to refresh snapshot for org ${orgId} after offboarding ${offboardingId} status change to ${newStatus}:`, error);
+        // Analytics refresh failure shouldn't block the main operation
+      });
     }
     
     revalidatePath(`/app/offboardings/${offboardingId}`);
@@ -666,7 +677,10 @@ export async function cancelOffboarding(offboardingId: string) {
 
   const { invalidateOrgCache, refreshAnalyticsSnapshot } = await import("@/lib/cache.server");
   invalidateOrgCache(orgId);
-  refreshAnalyticsSnapshot(orgId).catch(() => {});
+  refreshAnalyticsSnapshot(orgId).catch((error) => {
+    console.error(`[Analytics] Failed to refresh snapshot for org ${orgId} after workflow reset:`, error);
+    // Analytics refresh failure shouldn't block the main operation
+  });
 
   revalidatePath("/app/offboardings");
   return { success: true };

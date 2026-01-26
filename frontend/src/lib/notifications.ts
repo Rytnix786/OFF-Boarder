@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma.server";
+import { sendEmail, isEmailConfigured } from "@/lib/email/resend.server";
 
 export type NotificationType =
   | "offboarding_started"
@@ -47,6 +48,36 @@ export async function createNotification(params: CreateNotificationParams) {
 
   if (error) {
     console.error("Failed to create notification:", error);
+  }
+
+  // Try to send email notification
+  try {
+    if (process.env.ENABLE_EMAIL_NOTIFICATIONS === "true" && isEmailConfigured()) {
+      const user = await prisma.user.findUnique({
+        where: { id: params.userId },
+        select: { email: true }
+      });
+
+      if (user?.email) {
+        const emailResult = await sendEmail({
+          to: user.email,
+          subject: params.title,
+          html: `
+            <h2>${params.title}</h2>
+            <p>${params.message}</p>
+            ${params.link ? `<p><a href="${params.link}">View Details</a></p>` : ''}
+          `
+        });
+
+        if (emailResult.success) {
+          console.log(`Email notification sent: ${emailResult.id} to ${user.email}`);
+        } else {
+          console.error(`Email notification failed: ${emailResult.error}`);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Failed to send email notification:", error);
   }
 }
 
@@ -148,7 +179,7 @@ export async function createNotificationForOrgMembers(
 
   if (!memberships) return;
 
-  let excludedUserIds: string[] = [];
+  const excludedUserIds: string[] = [];
   if (excludeUserId) {
     excludedUserIds.push(excludeUserId);
   }

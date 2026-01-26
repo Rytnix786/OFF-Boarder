@@ -47,14 +47,15 @@ export async function getUserPermissions(session: AuthSession): Promise<Permissi
   });
 
   for (const policy of globalPolicies) {
-    const config = policy.config as any;
+    const config = policy.config as unknown;
 
     // Enforcement: DATA_EXPORT_CONTROLS
     if (policy.policyType === "DATA_EXPORT_CONTROLS") {
-      if (config.blockExportsDuringOffboarding) {
+      const exportConfig = config as { blockExportsDuringOffboarding?: boolean };
+      if (exportConfig.blockExportsDuringOffboarding) {
         const isOffboarding = await isUserOffboardingSubject(session.user.id, session.currentOrgId!);
         if (isOffboarding) {
-          permissions = permissions.filter((p) => p !== "report:export");
+          permissions = permissions.filter((p) => p !== "audit:export");
         }
       }
     }
