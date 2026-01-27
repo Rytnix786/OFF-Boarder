@@ -26,17 +26,43 @@ export async function POST(
     // Initialize Supabase Admin client
     const supabaseAdmin = createAdminClient();
 
-    // Invite the user via Supabase
-    const { data, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-      conversation.contactEmail,
-      {
-        data: {
-          full_name: conversation.contactName || "Enterprise User",
-          company_name: conversation.companyName || "Unknown",
-          source: "enterprise_inquiry",
-        },
-      }
-    );
+    // Check if we're in development mode and allow test emails
+    const isDevelopment = process.env.NODE_ENV === "development";
+    const isTestEmail = conversation.contactEmail.includes("test") || 
+                       conversation.contactEmail.includes("demo") || 
+                       conversation.contactEmail.match(/^[a-z]+\d*@gmail\.com$/);
+
+    let data, inviteError;
+
+    if (isDevelopment && isTestEmail) {
+      // For development with test emails, create a mock user without real invitation
+      console.log(`Development mode: Creating mock invitation for test email ${conversation.contactEmail}`);
+      
+      // Create a mock user response
+      data = {
+        user: {
+          id: `mock-user-${Date.now()}`,
+          email: conversation.contactEmail,
+          created_at: new Date().toISOString(),
+        }
+      };
+      inviteError = null;
+    } else {
+      // For production or real emails, use actual Supabase invitation
+      const result = await supabaseAdmin.auth.admin.inviteUserByEmail(
+        conversation.contactEmail,
+        {
+          data: {
+            full_name: conversation.contactName || "Enterprise User",
+            company_name: conversation.companyName || "Unknown",
+            source: "enterprise_inquiry",
+          },
+        }
+      );
+      
+      data = result.data;
+      inviteError = result.error;
+    }
 
     if (inviteError) {
       console.error("Supabase invite error:", inviteError);
@@ -50,7 +76,7 @@ export async function POST(
       entityId: id,
       metadata: {
         email: conversation.contactEmail,
-        supabaseUserId: data.user.id,
+        supabaseUserId: data.user?.id || "mock-user",
       },
       userId: admin.user.id,
       userName: admin.user.name || "Admin",
