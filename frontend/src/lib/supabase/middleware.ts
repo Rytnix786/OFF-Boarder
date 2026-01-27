@@ -23,6 +23,21 @@ interface EmployeeUserLink {
   accessExpiresAt?: string;
 }
 
+function isValidIP(ip: string): boolean {
+  if (!ip || typeof ip !== 'string') return false;
+  
+  // IPv4 regex
+  const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+  
+  // IPv6 regex (simplified)
+  const ipv6Regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$/;
+  
+  // Handle IPv6 compressed notation
+  const ipv6CompressedRegex = /^(?:[0-9a-fA-F]{1,4}:){1,7}:$|^:(?:[0-9a-fA-F]{1,4}:){1,6}[0-9a-fA-F]{1,4}$|^[0-9a-fA-F]{1,4}:(?::[0-9a-fA-F]{1,4}){1,6}$/;
+  
+  return ipv4Regex.test(ip) || ipv6Regex.test(ip) || ipv6CompressedRegex.test(ip);
+}
+
 
 
 function getClientIPFromRequest(request: NextRequest): string {
@@ -33,17 +48,19 @@ function getClientIPFromRequest(request: NextRequest): string {
 
     const ips = forwardedFor.split(",").map((ip) => ip.trim());
 
-    return ips[0];
-
+    // Validate first IP in chain
+    if (ips.length > 0 && isValidIP(ips[0])) {
+      return ips[0];
+    }
   }
 
   const realIP = request.headers.get("x-real-ip");
 
-  if (realIP) return realIP;
+  if (realIP && isValidIP(realIP)) return realIP;
 
   const cfConnectingIP = request.headers.get("cf-connecting-ip");
 
-  if (cfConnectingIP) return cfConnectingIP;
+  if (cfConnectingIP && isValidIP(cfConnectingIP)) return cfConnectingIP;
 
   return "127.0.0.1";
 
@@ -62,6 +79,12 @@ async function checkIPBlocked(
 ): Promise<{ blocked: boolean; error: boolean }> {
 
   try {
+
+    // Validate IP format before proceeding
+    if (!isValidIP(ipAddress)) {
+      console.error("[Middleware] Invalid IP format detected:", ipAddress);
+      return { blocked: false, error: true };
+    }
 
     // Use anon key with RLS for global IP blocks only
 
