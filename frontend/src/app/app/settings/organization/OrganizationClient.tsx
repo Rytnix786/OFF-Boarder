@@ -841,7 +841,7 @@ export default function OrganizationClient({
             <DialogContentText sx={{ mb: 3, fontWeight: 500, color: "text.primary" }}>
               Are you absolutely sure you want to delete <strong>{organization.name}</strong>?
             </DialogContentText>
-            <DialogContentText variant="body2" sx={{ lineHeight: 1.6 }}>
+            <DialogContentText variant="body2" sx={{ lineHeight: 1.6 }} component="div">
               This action will:
               <Box component="ul" sx={{ mt: 1, pl: 2 }}>
                 <li>Immediately revoke access for all {organization._count.memberships} members</li>
