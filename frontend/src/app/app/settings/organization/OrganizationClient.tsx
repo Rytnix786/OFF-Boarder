@@ -19,19 +19,26 @@ import {
   PopperProps,
   useTheme,
   Stack,
-  Fade,
-} from "@mui/material";
-import Grid from "@mui/material/GridLegacy";
-import {
-  Business as BusinessIcon,
-  LocationOn as LocationIcon,
-  AccessTime as TimezoneIcon,
-  Category as TypeIcon,
-  Lock as LockIcon,
-  Save as SaveIcon,
-  WarningAmber as WarningIcon,
-} from "@mui/icons-material";
-import { updateOrganizationProfile } from "@/lib/actions/organization";
+    Fade,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+  } from "@mui/material";
+  import Grid from "@mui/material/GridLegacy";
+  import {
+    Business as BusinessIcon,
+    LocationOn as LocationIcon,
+    AccessTime as TimezoneIcon,
+    Category as TypeIcon,
+    Lock as LockIcon,
+    Save as SaveIcon,
+    WarningAmber as WarningIcon,
+    DeleteForever as DeleteIcon,
+  } from "@mui/icons-material";
+  import { updateOrganizationProfile, deleteOrganization } from "@/lib/actions/organization";
+
 import { useRouter } from "next/navigation";
 import { getTimezoneOptions, type TimezoneOption } from "@/lib/data/timezones";
 import { ORGANIZATION_TYPES, normalizeOrgType, type OrgTypeOption } from "@/lib/data/organization-types";
@@ -88,15 +95,19 @@ export default function OrganizationClient({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [formData, setFormData] = useState({
-    name: organization.name,
-    logoUrl: organization.logoUrl || "",
-    primaryLocation: organization.primaryLocation || "",
-    timezone: organization.timezone || "",
-    organizationType: normalizeOrgType(organization.organizationType) || "",
-  });
+    const [formData, setFormData] = useState({
+      name: organization.name,
+      logoUrl: organization.logoUrl || "",
+      primaryLocation: organization.primaryLocation || "",
+      timezone: organization.timezone || "",
+      organizationType: normalizeOrgType(organization.organizationType) || "",
+    });
+  
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+  
+    const [mounted, setMounted] = useState(false);
 
-  const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -131,29 +142,51 @@ export default function OrganizationClient({
     setError(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setSuccess(false);
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setLoading(true);
+      setError(null);
+      setSuccess(false);
+  
+      const data = new FormData();
+      data.append("name", formData.name);
+      data.append("logoUrl", formData.logoUrl);
+      data.append("primaryLocation", formData.primaryLocation);
+      data.append("timezone", formData.timezone);
+      data.append("organizationType", formData.organizationType);
+  
+      const result = await updateOrganizationProfile(data);
+  
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setSuccess(true);
+        router.refresh();
+      }
+      setLoading(false);
+    };
 
-    const data = new FormData();
-    data.append("name", formData.name);
-    data.append("logoUrl", formData.logoUrl);
-    data.append("primaryLocation", formData.primaryLocation);
-    data.append("timezone", formData.timezone);
-    data.append("organizationType", formData.organizationType);
+    const handleDelete = async () => {
+      setIsDeleting(true);
+      setError(null);
+      
+      try {
+        const result = await deleteOrganization();
+        if (result.error) {
+          setError(result.error);
+          setDeleteDialogOpen(false);
+        } else {
+          // Redirect to login or a special "deleted" page
+          router.push("/login?reason=org_deleted");
+        }
+      } catch (err) {
+        setError("An unexpected error occurred during deletion.");
+        setDeleteDialogOpen(false);
+      } finally {
+        setIsDeleting(false);
+      }
+    };
 
-    const result = await updateOrganizationProfile(data);
-
-    if (result.error) {
-      setError(result.error);
-    } else {
-      setSuccess(true);
-      router.refresh();
-    }
-    setLoading(false);
-  };
 
   const hasChanges =
     formData.name !== organization.name ||
@@ -743,37 +776,108 @@ export default function OrganizationClient({
                         Danger Zone
                       </Typography>
                     </Stack>
-                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, opacity: 0.8, wordBreak: 'break-word' }}>
-                      Decommissioning this organization will permanently purge all memberships, employee records, and security audit logs. This action is irreversible.
-                    </Typography>
-                    <Button 
-                      variant="contained" 
-                      color="error" 
-                      size="medium" 
-                      fullWidth
-                      disabled 
-                      sx={{ 
-                        borderRadius: "12px", 
-                        fontWeight: 800, 
-                        py: 1.25,
-                        bgcolor: alpha(theme.palette.error.main, 0.1),
-                        color: theme.palette.error.main,
-                        boxShadow: "none",
-                        fontSize: "0.85rem",
-                        '&:hover': {
-                          bgcolor: alpha(theme.palette.error.main, 0.15),
-                        }
-                      }}
-                    >
-                      Delete Organization
-                    </Button>
-                  </Stack>
-                </CardContent>
-              </Card>
-            )}
-          </Stack>
+                      <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, opacity: 0.8, wordBreak: 'break-word' }}>
+                        Deleting your organization is a permanent action that will immediately revoke access for all members and employees. All records are preserved for compliance purposes, but the organization will become inaccessible.
+                      </Typography>
+                      <Button 
+                        variant="contained" 
+                        color="error" 
+                        size="medium" 
+                        fullWidth
+                        onClick={() => setDeleteDialogOpen(true)}
+                        startIcon={<DeleteIcon />}
+                        sx={{ 
+                          borderRadius: "12px", 
+                          fontWeight: 800, 
+                          py: 1.25,
+                          bgcolor: alpha(theme.palette.error.main, 0.1),
+                          color: theme.palette.error.main,
+                          boxShadow: "none",
+                          fontSize: "0.85rem",
+                          transition: "all 0.2s ease",
+                          '&:hover': {
+                            bgcolor: theme.palette.error.main,
+                            color: "white",
+                            boxShadow: `0 8px 20px ${alpha(theme.palette.error.main, 0.25)}`,
+                          }
+                        }}
+                      >
+                        Delete Organization
+                      </Button>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              )}
+            </Stack>
+          </Grid>
         </Grid>
-      </Grid>
-    </Box>
-  );
-}
+
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={() => !isDeleting && setDeleteDialogOpen(false)}
+          PaperProps={{
+            sx: {
+              borderRadius: "20px",
+              padding: 1,
+              maxWidth: "450px"
+            }
+          }}
+        >
+          <DialogTitle sx={{ pb: 1, pt: 3, px: 3 }}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Box sx={{ 
+                p: 1, 
+                borderRadius: "10px", 
+                bgcolor: alpha(theme.palette.error.main, 0.1),
+                color: "error.main",
+                display: "flex"
+              }}>
+                <WarningIcon />
+              </Box>
+              <Typography variant="h6" fontWeight={800}>Confirm Deletion</Typography>
+            </Stack>
+          </DialogTitle>
+          <DialogContent sx={{ px: 3 }}>
+            <DialogContentText sx={{ mb: 3, fontWeight: 500, color: "text.primary" }}>
+              Are you absolutely sure you want to delete <strong>{organization.name}</strong>?
+            </DialogContentText>
+            <DialogContentText variant="body2" sx={{ lineHeight: 1.6 }}>
+              This action will:
+              <Box component="ul" sx={{ mt: 1, pl: 2 }}>
+                <li>Immediately revoke access for all {organization._count.memberships} members</li>
+                <li>Deactivate all {organization._count.employees} employee portals</li>
+                <li>Disable all active offboarding workflows</li>
+                <li>Mark all memberships and links as REVOKED</li>
+              </Box>
+              Your data will be preserved in a <strong>DELETED</strong> state for compliance and audit requirements, but you will no longer be able to log in to this organization.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions sx={{ p: 3, pt: 1 }}>
+            <Button 
+              onClick={() => setDeleteDialogOpen(false)} 
+              disabled={isDeleting}
+              sx={{ fontWeight: 700, borderRadius: "10px", color: "text.secondary" }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleDelete}
+              variant="contained"
+              color="error"
+              disabled={isDeleting}
+              startIcon={isDeleting ? <CircularProgress size={16} color="inherit" /> : <DeleteIcon />}
+              sx={{ 
+                fontWeight: 700, 
+                borderRadius: "10px",
+                px: 3,
+                boxShadow: `0 4px 12px ${alpha(theme.palette.error.main, 0.2)}`
+              }}
+            >
+              {isDeleting ? "Deleting..." : "Confirm Deletion"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+    );
+  }
+

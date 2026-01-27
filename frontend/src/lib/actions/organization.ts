@@ -1072,3 +1072,67 @@ export async function applyStructurePreset(mode: "merge" | "replace" = "merge") 
 
   return { success: true, ...results };
 }
+
+export async function deleteOrganization() {
+  const session = await requireActiveOrg();
+  const orgId = session.currentOrgId!;
+  const userRole = session.currentMembership?.systemRole;
+
+  if (userRole !== "OWNER") {
+    return { error: "Only the organization owner can delete the organization" };
+  }
+
+  const org = await prisma.organization.findUnique({
+    where: { id: orgId },
+    select: { name: true, status: true },
+  });
+
+  if (!org) {
+    return { error: "Organization not found" };
+  }
+
+  // Use a transaction to ensure all revocations happen together
+  await prisma.$transaction([
+    // 1. Set organization status to DELETED
+    prisma.organization.update({
+      where: { id: orgId },
+      data: { status: "DELETED" },
+    }),
+    
+    // 2. Revoke all memberships
+    prisma.membership.updateMany({
+      where: { organizationId: orgId },
+      data: { status: "REVOKED", revokedAt: new Date(), revokedBy: session.user.id },
+    }),
+    
+    // 3. Revoke all employee user links
+    prisma.employeeUserLink.updateMany({
+      where: { organizationId: orgId },
+      data: { status: "REVOKED", revokedAt: new Date() },
+    }),
+    
+    // 4. Revoke all employee portal invites
+    prisma.employeePortalInvite.updateMany({
+      where: { organizationId: orgId, status: "PENDING" },
+      data: { status: "REVOKED" },
+    }),
+    
+    // 5. Create audit log
+    prisma.auditLog.create({
+      data: {
+        action: "organization.deleted",
+        entityType: "Organization",
+        entityId: orgId,
+        organizationId: orgId,
+        userId: session.user.id,
+        newData: { status: "DELETED", name: org.name },
+        scope: "ORGANIZATION",
+      },
+    }),
+  ]);
+
+  revalidatePath("/admin/organizations");
+  revalidatePath("/app/settings/organization");
+  
+  return { success: true };
+}

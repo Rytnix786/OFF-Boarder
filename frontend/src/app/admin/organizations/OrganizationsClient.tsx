@@ -34,7 +34,7 @@ type Organization = {
   id: string;
   name: string;
   slug: string;
-  status: "PENDING" | "ACTIVE" | "SUSPENDED" | "REJECTED";
+  status: "PENDING" | "ACTIVE" | "SUSPENDED" | "REJECTED" | "DELETED";
   createdAt: Date;
   rejectionReason: string | null;
   memberships: { user: { id: string; name: string | null; email: string } }[];
@@ -49,30 +49,34 @@ interface OrganizationsClientProps {
 
 export default function OrganizationsClient({ organizations, initialStatus, initialTab }: OrganizationsClientProps) {
   const router = useRouter();
-  const getInitialTab = () => {
-    if (initialStatus === "PENDING") return 0;
-    if (initialStatus === "ACTIVE") return 1;
-    if (initialStatus === "SUSPENDED" || initialStatus === "REJECTED") return 2;
-    if (initialTab === "offboardings") return 1;
-    return 0;
-  };
+    const getInitialTab = () => {
+      if (initialStatus === "PENDING") return 0;
+      if (initialStatus === "ACTIVE") return 1;
+      if (initialStatus === "SUSPENDED" || initialStatus === "REJECTED") return 2;
+      if (initialStatus === "DELETED") return 3;
+      if (initialTab === "offboardings") return 1;
+      return 0;
+    };
+  
+    const [tab, setTab] = useState(getInitialTab());
+    const [menuAnchor, setMenuAnchor] = useState<{ el: HTMLElement; org: Organization } | null>(null);
+    const [rejectDialog, setRejectDialog] = useState<Organization | null>(null);
+    const [rejectReason, setRejectReason] = useState("");
+    const [loading, setLoading] = useState(false);
+  
+    const filteredOrgs = organizations.filter((org) => {
+      if (tab === 0) return org.status === "PENDING";
+      if (tab === 1) return org.status === "ACTIVE";
+      if (tab === 2) return org.status === "SUSPENDED" || org.status === "REJECTED";
+      if (tab === 3) return org.status === "DELETED";
+      return true;
+    });
+  
+    const pendingCount = organizations.filter((o) => o.status === "PENDING").length;
+    const activeCount = organizations.filter((o) => o.status === "ACTIVE").length;
+    const inactiveCount = organizations.filter((o) => o.status === "SUSPENDED" || o.status === "REJECTED").length;
+    const deletedCount = organizations.filter((o) => o.status === "DELETED").length;
 
-  const [tab, setTab] = useState(getInitialTab());
-  const [menuAnchor, setMenuAnchor] = useState<{ el: HTMLElement; org: Organization } | null>(null);
-  const [rejectDialog, setRejectDialog] = useState<Organization | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const filteredOrgs = organizations.filter((org) => {
-    if (tab === 0) return org.status === "PENDING";
-    if (tab === 1) return org.status === "ACTIVE";
-    if (tab === 2) return org.status === "SUSPENDED" || org.status === "REJECTED";
-    return true;
-  });
-
-  const pendingCount = organizations.filter((o) => o.status === "PENDING").length;
-  const activeCount = organizations.filter((o) => o.status === "ACTIVE").length;
-  const inactiveCount = organizations.filter((o) => o.status === "SUSPENDED" || o.status === "REJECTED").length;
 
   const handleApprove = async (orgId: string) => {
     setLoading(true);
@@ -104,15 +108,17 @@ export default function OrganizationsClient({ organizations, initialStatus, init
     setLoading(false);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "ACTIVE": return "success";
-      case "PENDING": return "warning";
-      case "SUSPENDED": return "error";
-      case "REJECTED": return "default";
-      default: return "default";
-    }
-  };
+    const getStatusColor = (status: string) => {
+      switch (status) {
+        case "ACTIVE": return "success";
+        case "PENDING": return "warning";
+        case "SUSPENDED": return "error";
+        case "REJECTED": return "default";
+        case "DELETED": return "error";
+        default: return "default";
+      }
+    };
+
 
   return (
     <Box>
@@ -138,10 +144,21 @@ export default function OrganizationsClient({ organizations, initialStatus, init
                 )}
               </Box>
             }
-          />
-            <Tab label={`Active (${activeCount})`} />
-            <Tab label={`Inactive (${inactiveCount})`} />
-        </Tabs>
+            />
+              <Tab label={`Active (${activeCount})`} />
+              <Tab label={`Inactive (${inactiveCount})`} />
+              <Tab
+                label={
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    Deleted
+                    {deletedCount > 0 && (
+                      <Chip label={deletedCount} size="small" color="error" sx={{ height: 20, fontSize: 11 }} />
+                    )}
+                  </Box>
+                }
+              />
+          </Tabs>
+
 
         <TableContainer>
           <Table>
