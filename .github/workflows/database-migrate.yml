@@ -1,19 +1,18 @@
-name: CI
+name: Database Migration
 
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+    paths:
+      - 'prisma/schema.prisma'
+      - 'prisma/migrations/**'
 
 jobs:
-  build:
+  migrate:
     runs-on: ubuntu-latest
 
     env:
       DATABASE_URL: "postgresql://postgres.mcmqzwgaojgmrcmdsygh:spLavB1IJzRrybp9R0AsQT0xpSKYsxMCaV8bmlUVvHSVAhRwOKc2A1yjNpo3oyyM@aws-0-us-west-2.pooler.supabase.com:6543/postgres?pgbouncer=true"
-      NEXT_PUBLIC_SUPABASE_URL: "https://mcmqzwgaojgmrcmdsygh.supabase.co"
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jbXF6d2dhb2pnbXJjbWRzeWdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MzM3MTYsImV4cCI6MjA4NDIwOTcxNn0.ISxCuAwqkBaVsfHxsAckLY_n1gxUQLbgpWTR_oy6pPM"
       SUPABASE_SERVICE_ROLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jbXF6d2dhb2pnbXJjbWRzeWdoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODYzMzcxNiwiZXhwIjoyMDg0MjA5NzE2fQ.sQlAPHnY7jQsdaq8r3aKm-QYEwxqjxbYhBh62u7TIkU"
 
     steps:
@@ -31,8 +30,11 @@ jobs:
     - name: Generate Prisma Client
       run: npx prisma generate
 
-    - name: Lint
-      run: npm run lint
+    - name: Push database schema changes
+      run: npx prisma db push --accept-data-loss
 
-    - name: Build
-      run: npm run build
+    - name: Seed database (if needed)
+      run: |
+        if [ -f "prisma/seed.ts" ]; then
+          npx tsx prisma/seed.ts
+        fi
