@@ -3,16 +3,24 @@ import { requireEmployeeOffboarding } from "@/lib/employee-auth.server";
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Missing Supabase admin environment variables");
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey);
+}
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"];
 
 export async function POST(request: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+
     const session = await requireEmployeeOffboarding();
 
     const formData = await request.formData();
