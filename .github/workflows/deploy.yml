@@ -39,18 +39,18 @@ jobs:
       run: npm run build
 
     - name: Deploy to Vercel (if using Vercel)
-      if: ${{ secrets.VERCEL_TOKEN }}
+      if: ${{ secrets.VERCEL_TOKEN }}  # GitHub Actions syntax - ignore IDE warnings
       uses: amondnet/vercel-action@v25
       with:
-        vercel-token: ${{ secrets.VERCEL_TOKEN }}
-        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}  # GitHub Actions syntax - ignore IDE warnings
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}  # GitHub Actions syntax - ignore IDE warnings
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}  # GitHub Actions syntax - ignore IDE warnings
         vercel-args: '--prod'
 
     - name: Deploy to Railway (if using Railway)
-      if: ${{ secrets.RAILWAY_TOKEN }}
+      if: ${{ secrets.RAILWAY_TOKEN }}  # GitHub Actions syntax - ignore IDE warnings
       uses: railway-app/railway-action@v1
       with:
-        api-token: ${{ secrets.RAILWAY_TOKEN }}
+        api-token: ${{ secrets.RAILWAY_TOKEN }}  # GitHub Actions syntax - ignore IDE warnings
         project-id: ${{ secrets.RAILWAY_PROJECT_ID }}
         environment: production
