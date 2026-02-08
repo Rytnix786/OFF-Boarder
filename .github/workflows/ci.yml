@@ -97,7 +97,13 @@ jobs:
 
     - name: Build
       run: |
-        # Clear Next.js cache to avoid middleware/proxy conflicts
-        rm -rf .next
+        # Clear all caches to avoid middleware/proxy conflicts
+        rm -rf .next node_modules/.cache
+        
+        # Also clear any potential IDE cache files
+        find . -name "*.log" -delete 2>/dev/null || true
+        
+        # Run middleware check script
+        ./scripts/check-middleware.sh
         
         npm run build
