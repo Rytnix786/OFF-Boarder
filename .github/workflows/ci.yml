@@ -103,7 +103,8 @@ jobs:
         # Also clear any potential IDE cache files
         find . -name "*.log" -delete 2>/dev/null || true
         
-        # Run middleware check script
+        # Make script executable and run it
+        chmod +x ./scripts/check-middleware.sh
         ./scripts/check-middleware.sh
         
         npm run build
