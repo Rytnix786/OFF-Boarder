@@ -2,8 +2,8 @@
 
 **Security-first offboarding orchestration for multi-tenant organizations.**
 
-[![CI](https://github.com/Rytnix786/OFF-Boarder/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Rytnix786/OFF-Boarder/actions/workflows/ci.yml)
-[![Tests and Lint](https://github.com/Rytnix786/OFF-Boarder/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/Rytnix786/OFF-Boarder/actions/workflows/tests.yml)
+[![CI](https://github.com/Rytnix786/OFF-Boarder/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Rytnix786/OFF-Boarder/actions/workflows/ci.yml)
+[![Tests and Lint](https://github.com/Rytnix786/OFF-Boarder/actions/workflows/tests.yml/badge.svg?branch=master)](https://github.com/Rytnix786/OFF-Boarder/actions/workflows/tests.yml)
 
 OFF-Boarder is a Next.js + TypeScript platform for running employee offboarding with security controls built into the flow.  
 It combines lifecycle orchestration, risk scoring, approvals, evidence capture, and audit trails in one system.  
