@@ -12,6 +12,7 @@ jobs:
 
     env:
       DATABASE_URL: "prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqd3RfaWQiOjEsInNlY3VyZV9rZXkiOiJza19JYlVaSlFlTkx4QS1IXzdWRlBIangiLCJhcGlfa2V5IjoiMDFLR1lZMlNaOUdaOU1HM1JIRUpWMDM5VlgiLCJ0ZW5hbnRfaWQiOiJiNzNiYjU5OGM3ZTZmYzdjZTIyYWFjNDgwNjljNDBhMTg4ODg3ZjMyMDMyMTcxMTlmM2VmM2ZhZjViNjdiMTJlIiwiaW50ZXJuYWxfc2VjcmV0IjoiMmZjYzMwYzEtNjY4Zi00Zjg1LWEwZTYtNDc5OTdmZDZmOTg4In0.oB5vFVuOcFEjsIzVuIIICnDE6JxwJVstv4wzMPGwYCw"
+      DIRECT_DATABASE_URL: "postgresql://postgres.mcmqzwgaojgmrcmdsygh:spLavB1IJzRrybp9R0AsQT0xpSKYsxMCaV8bmlUVvHSVAhRwOKc2A1yjNpo3oyyM@aws-0-us-west-2.pooler.supabase.com:6543/postgres?pgbouncer=true"
       NEXT_PUBLIC_SUPABASE_URL: "https://mcmqzwgaojgmrcmdsygh.supabase.co"
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jbXF6d2dhb2pnbXJjbWRzeWdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MzM3MTYsImV4cCI6MjA4NDIwOTcxNn0.ISxCuAwqkBaVsfHxsAckLY_n1gxUQLbgpWTR_oy6pPM"
       SUPABASE_SERVICE_ROLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jbXF6d2dhb2pnbXJjbWRzeWdoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODYzMzcxNiwiZXhwIjoyMDg0MjA5NzE2fQ.sQlAPHnY7jQsdaq8r3aKm-QYEwxqjxbYhBh62u7TIkU"
@@ -65,17 +66,30 @@ jobs:
 
     - name: Generate Prisma Client
       run: |
-        # Ensure proper client generation
-        npx prisma generate
+        # Force clean client generation
+        rm -rf node_modules/@prisma/client
         
-        # Verify client was generated
-        ls -la node_modules/@prisma/client/runtime/ || echo "Client runtime not found"
+        # Temporarily use direct DB URL for client generation
+        export DATABASE_URL="$DIRECT_DATABASE_URL"
+        echo "Using direct DB URL for client generation: $DATABASE_URL"
         
-        # Re-generate if needed
-        if [ ! -f "node_modules/@prisma/client/runtime/query_engine_bg.postgresql.wasm-base64.js" ]; then
-          echo "Client runtime missing, regenerating..."
-          rm -rf node_modules/@prisma/client
-          npx prisma generate
+        # Generate client with direct connection
+        npx prisma generate --schema=./prisma/schema.prisma
+        
+        # Wait for file system sync
+        sleep 2
+        
+        # Check runtime files
+        echo "Checking for runtime files:"
+        find node_modules/@prisma/client/runtime/ -name "*.wasm*" -o -name "*.js" | head -5
+        
+        # Verify the specific file exists
+        if [ -f "node_modules/@prisma/client/runtime/query_engine_bg.postgresql.wasm-base64.js" ]; then
+          echo "✅ Runtime file found successfully"
+        else
+          echo "❌ Runtime file still missing"
+          ls -la node_modules/@prisma/client/runtime/ || echo "Runtime directory missing"
+          exit 1
         fi
 
     - name: Lint
