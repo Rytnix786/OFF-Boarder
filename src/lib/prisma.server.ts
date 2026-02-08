@@ -8,7 +8,8 @@ import { Pool } from "pg";
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
 function createPrismaClient() {
-  const connectionString = process.env.DATABASE_URL;
+  // Use direct database URL for driver adapter, not Accelerate
+  const connectionString = process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL;
   
   if (!connectionString) {
     throw new Error("DATABASE_URL environment variable is not set");
