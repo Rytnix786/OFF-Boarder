@@ -1,0 +1,39 @@
+
+> frontend@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.3 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.251:3000
+- Environments: .env
+
+✓ Starting...
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+✓ Ready in 1258ms
+ GET /login 200 in 1378ms (compile: 288ms, proxy.ts: 848ms, render: 243ms)
+ GET / 200 in 789ms (compile: 31ms, proxy.ts: 570ms, render: 188ms)
+ GET /login 200 in 703ms (compile: 5ms, proxy.ts: 680ms, render: 18ms)
+ POST /api/auth/setup 200 in 10.2s (compile: 77ms, proxy.ts: 728ms, render: 9.4s)
+ GET /app 200 in 15.8s (compile: 61ms, proxy.ts: 1096ms, render: 14.7s)
+ GET /login 200 in 696ms (compile: 6ms, proxy.ts: 637ms, render: 52ms)
+ GET /api/notifications 200 in 6.3s (compile: 38ms, proxy.ts: 740ms, render: 5.5s)
+
+thread 'tokio-runtime-worker' (17236) panicked at turbopack\crates\turbo-persistence\src\static_sorted_file.rs:387:51:
+range start index 5586231 out of range for slice of length 5585759
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+ GET /app/settings/organization 200 in 6.8s (compile: 921ms, proxy.ts: 1017ms, render: 4.8s)
+ GET /api/notifications 200 in 1901ms (compile: 3ms, proxy.ts: 729ms, render: 1170ms)
+ GET /app/settings/members 200 in 16.8s (compile: 605ms, proxy.ts: 1028ms, render: 15.2s)
+ GET /api/notifications 200 in 4.7s (compile: 2ms, proxy.ts: 818ms, render: 3.9s)
+ GET /app/settings/policies 200 in 9.1s (compile: 478ms, proxy.ts: 1033ms, render: 7.6s)
+ GET /api/notifications 200 in 6.8s (compile: 2ms, proxy.ts: 2.1s, render: 4.7s)
+ GET /api/notifications 200 in 4.2s (compile: 3ms, proxy.ts: 1332ms, render: 2.8s)
+ GET /api/notifications 200 in 2.3s (compile: 2ms, proxy.ts: 757ms, render: 1524ms)
+ GET /api/notifications 200 in 1900ms (compile: 2ms, proxy.ts: 726ms, render: 1173ms)
+ GET /api/notifications 200 in 11.0s (compile: 2ms, proxy.ts: 946ms, render: 10.0s)
+ GET /api/notifications 200 in 6.2s (compile: 2ms, proxy.ts: 739ms, render: 5.5s)
+ GET /api/notifications 200 in 7.0s (compile: 2ms, proxy.ts: 763ms, render: 6.2s)
+ GET /app/settings/policies 200 in 5.3s (compile: 3ms, proxy.ts: 958ms, render: 4.3s)
+ GET / 200 in 510ms (compile: 3ms, proxy.ts: 395ms, render: 112ms)
+ GET / 200 in 1540ms (compile: 3ms, proxy.ts: 1423ms, render: 115ms)
+ GET / 200 in 518ms (compile: 3ms, proxy.ts: 389ms, render: 126ms)
