@@ -96,4 +96,8 @@ jobs:
       run: npm run lint
 
     - name: Build
-      run: npm run build
+      run: |
+        # Clear Next.js cache to avoid middleware/proxy conflicts
+        rm -rf .next
+        
+        npm run build
