@@ -46,3 +46,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
  GET /login 200 in 1448ms (compile: 3ms, proxy.ts: 1405ms, render: 41ms)
  GET / 200 in 547ms (compile: 3ms, proxy.ts: 417ms, render: 127ms)
  GET /login 200 in 822ms (compile: 3ms, proxy.ts: 809ms, render: 10ms)
+ GET /login 200 in 1080ms (compile: 3ms, proxy.ts: 1036ms, render: 41ms)
+ GET / 200 in 1848ms (compile: 3ms, proxy.ts: 1712ms, render: 134ms)
+ GET / 200 in 563ms (compile: 3ms, proxy.ts: 428ms, render: 131ms)
+[?25h

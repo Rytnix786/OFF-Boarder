@@ -69,7 +69,7 @@ jobs:
         # Force clean client generation
         rm -rf node_modules/@prisma/client
         
-        # Temporarily use direct DB URL for client generation
+        # Use direct database URL for client generation (compatible with driver adapter)
         export DATABASE_URL="$DIRECT_DATABASE_URL"
         echo "Using direct DB URL for client generation: $DATABASE_URL"
         
