@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Compliance Evidence Vault</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#173b82",
+                        "background-light": "#f1f2f4",
+                        "background-dark": "#111317",
+                        "emerald-accent": "#33A871",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                    backgroundImage: {
+                        'glass-gradient': 'linear-gradient(145deg, rgba(23, 59, 130, 0.1) 0%, rgba(23, 59, 130, 0.05) 100%)',
+                        'glow-radial': 'radial-gradient(circle at center, rgba(23, 59, 130, 0.25) 0%, rgba(17, 19, 23, 0) 70%)'
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111317; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #273145; 
+            border-radius: 4px;
+        }
+        
+        .glass-panel {
+            background: rgba(23, 59, 130, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .paper-shadow {
+            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .stamp-border {
+            border: 3px solid #33A871;
+            mask-image: url("data:image/svg+xml,%3Csvg width='200' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.5' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E");
+        }
+        
+        /* Subtle float animation for the paper */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-white font-display overflow-x-hidden antialiased">
+<!-- Background Ambiance -->
+<div class="fixed inset-0 z-0 bg-glow-radial pointer-events-none"></div>
+<div class="relative z-10 flex min-h-screen w-full flex-col">
+<!-- Top Navigation (Glassmorphic) -->
+<header class="sticky top-0 z-50 glass-panel border-b-0 border-b-white/5 px-6 py-3">
+<div class="mx-auto flex max-w-[1400px] items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="flex size-8 items-center justify-center rounded-lg bg-primary/20 text-white">
+<span class="material-symbols-outlined text-[20px]">security</span>
+</div>
+<h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">OffboardHQ</h2>
+</div>
+<!-- Breadcrumbs integrated into Nav for cleaner look -->
+<div class="hidden md:flex items-center gap-2 text-sm">
+<a class="text-[#97a6c4] hover:text-white transition-colors" href="#">Home</a>
+<span class="text-[#97a6c4]/50">/</span>
+<a class="text-[#97a6c4] hover:text-white transition-colors" href="#">Offboarding</a>
+<span class="text-[#97a6c4]/50">/</span>
+<a class="text-[#97a6c4] hover:text-white transition-colors" href="#">John Doe</a>
+<span class="text-[#97a6c4]/50">/</span>
+<span class="text-emerald-accent font-medium">Evidence Vault</span>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-[#97a6c4] hover:text-white">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="size-8 rounded-full bg-cover bg-center ring-2 ring-white/10" data-alt="Profile picture of the current user" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBBdj4fpIWiYudrsFI9HDe4T3zOZg1lL3S89KDGgExAGH6WwJ1KDO2C9lYU2AM0ieCGut2a-dXVC1K7IDohjvq5eIp8buwdolu04073KjUfFTQIUN13JEPQ7YhYIJjwmFECU25H6R7Xk4AHzbKKPA9cWCZRQpYputg9uSSldHiVAcn_lpmaAU0Z0jwelHlP_9Ph7vI7K11zHZlxg6gWXI6ktZstQBG_5hU03lqcSqlntfJQI5st5CKtDtYFTvzyxy8QivFEM3hnX8kk");'>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow px-4 py-8 md:px-8 lg:py-12">
+<div class="mx-auto max-w-[1280px]">
+<!-- Page Header -->
+<div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="space-y-2">
+<div class="flex items-center gap-3">
+<h1 class="text-3xl md:text-4xl font-black tracking-tight text-white">Evidence Pack Generation</h1>
+<span class="flex items-center gap-1 rounded-full bg-emerald-accent/10 px-3 py-1 text-xs font-bold text-emerald-accent border border-emerald-accent/20">
+<span class="size-2 rounded-full bg-emerald-accent animate-pulse"></span>
+                                READY
+                            </span>
+</div>
+<p class="text-[#97a6c4] text-lg font-light">Finalizing audit trail for <span class="text-white font-medium">John Doe (Engineering Lead)</span></p>
+</div>
+<div class="text-right hidden md:block">
+<p class="text-sm font-medium italic text-[#97a6c4]/70">"Your auditors will love us."</p>
+</div>
+</div>
+<!-- Grid Layout: PDF Stage vs Control Panel -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Left Column: The PDF Artifact (Hero) -->
+<div class="lg:col-span-8 relative flex justify-center perspective-1000">
+<!-- Blue glow behind paper -->
+<div class="absolute inset-0 bg-primary/20 blur-[80px] rounded-full z-0 transform translate-y-10"></div>
+<!-- The Paper -->
+<div class="relative z-10 w-full max-w-[700px] bg-white text-slate-800 rounded-sm paper-shadow animate-float origin-top p-8 md:p-12 min-h-[800px] flex flex-col justify-between" data-alt="Visual representation of a generated PDF audit log document">
+<!-- Document Header -->
+<div>
+<div class="flex justify-between items-start border-b-2 border-slate-100 pb-6 mb-8">
+<div class="flex items-center gap-3 text-slate-900">
+<span class="material-symbols-outlined text-3xl">verified_user</span>
+<span class="text-xl font-bold tracking-tight">OffboardHQ Official Audit</span>
+</div>
+<div class="text-right">
+<p class="text-xs text-slate-400 uppercase tracking-widest font-bold">Document ID</p>
+<p class="text-sm font-mono text-slate-600">#OHQ-8821-JD</p>
+</div>
+</div>
+<!-- Document Body -->
+<div class="space-y-8">
+<div class="bg-slate-50 p-4 rounded border border-slate-100">
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Subject</h3>
+<div class="flex items-center gap-4">
+<div class="size-12 bg-slate-200 rounded-full flex items-center justify-center text-slate-500 font-bold">JD</div>
+<div>
+<p class="text-slate-900 font-bold text-lg">John Doe</p>
+<p class="text-slate-500 text-sm">john.doe@company.com</p>
+</div>
+</div>
+</div>
+<div>
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Audit Trail Summary</h3>
+<table class="w-full text-sm text-left">
+<thead class="text-slate-400 font-medium border-b border-slate-100">
+<tr>
+<th class="py-2">System</th>
+<th class="py-2">Action</th>
+<th class="py-2 text-right">Timestamp</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-50 text-slate-600">
+<tr>
+<td class="py-3 font-medium text-slate-800">Google Workspace</td>
+<td class="py-3 text-emerald-600 flex items-center gap-1"><span class="material-symbols-outlined text-sm">check_circle</span> Suspended &amp; Archived</td>
+<td class="py-3 text-right font-mono text-xs">Oct 24, 09:01 AM</td>
+</tr>
+<tr>
+<td class="py-3 font-medium text-slate-800">Slack Enterprise</td>
+<td class="py-3 text-emerald-600 flex items-center gap-1"><span class="material-symbols-outlined text-sm">check_circle</span> Session Revoked</td>
+<td class="py-3 text-right font-mono text-xs">Oct 24, 09:02 AM</td>
+</tr>
+<tr>
+<td class="py-3 font-medium text-slate-800">AWS IAM</td>
+<td class="py-3 text-emerald-600 flex items-center gap-1"><span class="material-symbols-outlined text-sm">check_circle</span> Keys Rotated</td>
+<td class="py-3 text-right font-mono text-xs">Oct 24, 09:02 AM</td>
+</tr>
+<tr>
+<td class="py-3 font-medium text-slate-800">MacBook Pro 16"</td>
+<td class="py-3 text-emerald-600 flex items-center gap-1"><span class="material-symbols-outlined text-sm">check_circle</span> Locked (MDM)</td>
+<td class="py-3 text-right font-mono text-xs">Oct 24, 09:05 AM</td>
+</tr>
+<tr>
+<td class="py-3 font-medium text-slate-800">Jira / Atlassian</td>
+<td class="py-3 text-emerald-600 flex items-center gap-1"><span class="material-symbols-outlined text-sm">check_circle</span> Access Removed</td>
+<td class="py-3 text-right font-mono text-xs">Oct 24, 09:05 AM</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Document Footer / Stamps -->
+<div class="relative mt-12 pt-8 border-t border-slate-100 flex justify-between items-end">
+<div>
+<p class="text-xs text-slate-400">Authorized by</p>
+<div class="h-8 mt-2 w-32 bg-slate-100 rounded"></div>
+<p class="text-[10px] text-slate-300 mt-1">Chief Information Security Officer</p>
+</div>
+<!-- Official Stamps Overlay -->
+<div class="absolute bottom-4 right-0 flex flex-col gap-4 opacity-90">
+<div class="border-4 border-emerald-600 rounded-lg px-3 py-1 -rotate-6 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-emerald-600">verified</span>
+<div class="flex flex-col items-start leading-none">
+<span class="text-[10px] font-black text-emerald-600 uppercase">SOC2 Type II</span>
+<span class="text-xs font-black text-emerald-600 uppercase">COMPLIANT</span>
+</div>
+</div>
+<div class="border-4 border-emerald-600 rounded-lg px-3 py-1 rotate-3 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-emerald-600">policy</span>
+<div class="flex flex-col items-start leading-none">
+<span class="text-[10px] font-black text-emerald-600 uppercase">ISO 27001</span>
+<span class="text-xs font-black text-emerald-600 uppercase">VERIFIED</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Control Room Metrics (Glass) -->
+<div class="lg:col-span-4 flex flex-col gap-6 sticky top-24">
+<!-- Panel 1: Document Retrieval (Circular) -->
+<div class="glass-panel rounded-xl p-6 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-20">
+<span class="material-symbols-outlined text-5xl">folder_zip</span>
+</div>
+<h3 class="text-sm font-semibold text-[#97a6c4] uppercase tracking-wider mb-4">Document Retrieval</h3>
+<div class="flex items-center gap-6">
+<div class="relative size-20">
+<svg class="size-full -rotate-90" viewbox="0 0 36 36">
+<path class="text-[#273145]" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-emerald-accent" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="100, 100" stroke-width="3"></path>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="text-sm font-mono font-bold text-white">100%</span>
+</div>
+</div>
+<div>
+<p class="text-white font-medium">All artifacts secured</p>
+<p class="text-xs text-[#97a6c4] mt-1">42 files indexed</p>
+</div>
+</div>
+</div>
+<!-- Panel 2: Account Revocation (Linear) -->
+<div class="glass-panel rounded-xl p-6">
+<div class="flex justify-between items-center mb-4">
+<h3 class="text-sm font-semibold text-[#97a6c4] uppercase tracking-wider">Account Revocation</h3>
+<span class="material-symbols-outlined text-emerald-accent">check_circle</span>
+</div>
+<div class="space-y-4">
+<div>
+<div class="flex justify-between text-xs mb-1">
+<span class="text-white">SaaS Access</span>
+<span class="font-mono text-emerald-accent">12/12</span>
+</div>
+<div class="h-2 w-full bg-[#273145] rounded-full overflow-hidden">
+<div class="h-full bg-emerald-accent w-full rounded-full"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-xs mb-1">
+<span class="text-white">Internal VPN</span>
+<span class="font-mono text-emerald-accent">1/1</span>
+</div>
+<div class="h-2 w-full bg-[#273145] rounded-full overflow-hidden">
+<div class="h-full bg-emerald-accent w-full rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Panel 3: Hardware Log (Checklist) -->
+<div class="glass-panel rounded-xl p-6">
+<h3 class="text-sm font-semibold text-[#97a6c4] uppercase tracking-wider mb-4">Hardware Log</h3>
+<div class="space-y-3">
+<div class="flex items-center gap-3 p-2 rounded hover:bg-white/5 transition-colors">
+<div class="size-6 rounded-full bg-emerald-accent/20 flex items-center justify-center text-emerald-accent">
+<span class="material-symbols-outlined text-sm">laptop_mac</span>
+</div>
+<div class="flex-1">
+<p class="text-sm text-white font-medium">MacBook Pro Returned</p>
+<p class="text-[10px] text-[#97a6c4]">Serial: C02X...</p>
+</div>
+<span class="material-symbols-outlined text-emerald-accent text-lg">check</span>
+</div>
+<div class="flex items-center gap-3 p-2 rounded hover:bg-white/5 transition-colors">
+<div class="size-6 rounded-full bg-emerald-accent/20 flex items-center justify-center text-emerald-accent">
+<span class="material-symbols-outlined text-sm">key</span>
+</div>
+<div class="flex-1">
+<p class="text-sm text-white font-medium">YubiKey Deactivated</p>
+<p class="text-[10px] text-[#97a6c4]">Log ID: 9921</p>
+</div>
+<span class="material-symbols-outlined text-emerald-accent text-lg">check</span>
+</div>
+</div>
+</div>
+<!-- Primary Action -->
+<div class="pt-4">
+<button class="w-full group relative overflow-hidden rounded-lg bg-primary p-4 shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all duration-300 active:scale-[0.98]">
+<div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex items-center justify-center gap-3">
+<span class="material-symbols-outlined text-white">download</span>
+<span class="text-white font-bold text-lg">Generate Evidence Pack</span>
+</div>
+</button>
+<div class="mt-4 flex gap-3">
+<button class="flex-1 rounded-lg border border-white/10 bg-white/5 py-3 text-sm font-medium text-white hover:bg-white/10 transition-colors">
+                                    Preview
+                                </button>
+<button class="flex-1 rounded-lg border border-white/10 bg-white/5 py-3 text-sm font-medium text-white hover:bg-white/10 transition-colors">
+                                    Share with Auditor
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

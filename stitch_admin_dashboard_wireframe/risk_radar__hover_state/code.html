@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Risk Radar: Hover State</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#9b88fb",
+              "background-light": "#f7f7f8",
+              "background-dark": "#0B1120", /* Deep Void per request */
+              "surface-dark": "#1F283C",
+              "border-slate": "#4A515E",
+              "vapor-purple": "#A78BFA",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            boxShadow: {
+                'glow': '0 0 25px 5px rgba(167, 139, 250, 0.4)',
+                'glow-strong': '0 0 40px 10px rgba(167, 139, 250, 0.6)',
+            }
+          },
+        },
+      }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased overflow-x-hidden text-slate-300">
+<div class="relative min-h-screen flex flex-col">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-40 w-full border-b border-border-slate/50 bg-[#0B1120]/80 backdrop-blur-md">
+<div class="px-6 h-16 flex items-center justify-between max-w-[1600px] mx-auto w-full">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 text-white">
+<span class="material-symbols-outlined text-primary">radar</span>
+<h2 class="text-white text-lg font-bold tracking-tight">OffboardHQ</h2>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-white text-sm font-medium hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-primary text-sm font-medium" href="#">Risks</a>
+<a class="text-slate-400 text-sm font-medium hover:text-white transition-colors" href="#">Settings</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-slate-400 hover:text-white p-2 rounded-full hover:bg-white/5">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-gradient-to-tr from-primary to-purple-600 p-[1px]">
+<div class="h-full w-full rounded-full bg-zinc-800" data-alt="User avatar profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCCgXjS_skaeYruNqdVie6qAkP3X9oLLHLdV4OdhNooJN-IiKQ-ZjUdXpOSHHrZrCVKMKAzLSEHF5m62stxiEOToUl3yUl_AYDDFqGRBUBbUdJdtRllP-aAhGVs3N6dIf09VUxKu194f03AAbAMxysasRrd8Bu1r5nLQ_IhM9898Bto74lhq1KQSpn2CXs9P1JK2BeSwad1G9YtikEp8SWjRdYBqBwKdZ-PNxyuvvk4qMwT9XXo21bvPotLFf1hisN2gJDwThVXCFlr'); background-size: cover;"></div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 w-full max-w-[1600px] mx-auto p-6 lg:p-8">
+<div class="flex flex-col gap-2 mb-8">
+<div class="flex items-center gap-2 text-primary text-sm font-medium mb-1">
+<span class="material-symbols-outlined text-[16px]">arrow_back</span>
+<span>Back to Overview</span>
+</div>
+<h1 class="text-white text-3xl font-bold tracking-tight">Risk Radar Dashboard</h1>
+<p class="text-slate-400 max-w-2xl">Real-time visualization of employee access anomalies and privilege escalations.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-220px)] min-h-[600px]">
+<!-- Radar Visualization (Main Canvas) -->
+<div class="lg:col-span-9 relative flex flex-col rounded-xl border border-border-slate bg-[#0f1623] overflow-hidden group/radar shadow-2xl">
+<!-- Grid Background (Technical feel) -->
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#4A515E 1px, transparent 1px); background-size: 40px 40px;">
+</div>
+<!-- Decorative corner accents -->
+<div class="absolute top-0 left-0 w-32 h-32 border-l border-t border-border-slate/50 rounded-tl-xl pointer-events-none"></div>
+<div class="absolute bottom-0 right-0 w-32 h-32 border-r border-b border-border-slate/50 rounded-br-xl pointer-events-none"></div>
+<!-- Radar Content Wrapper -->
+<div class="relative flex-1 w-full h-full flex items-center justify-center">
+<!-- Connecting Lines (SVG Layer) -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none z-0">
+<defs>
+<lineargradient id="gradientLine" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" stop-color="#A78BFA" stop-opacity="0.1"></stop>
+<stop offset="50%" stop-color="#A78BFA" stop-opacity="0.8"></stop>
+<stop offset="100%" stop-color="#A78BFA" stop-opacity="0.1"></stop>
+</lineargradient>
+<filter id="glowLine">
+<fegaussianblur result="coloredBlur" stddeviation="2"></fegaussianblur>
+<femerge>
+<femergenode in="coloredBlur"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+</defs>
+<!-- Spokes connecting to center (simulated coordinates for responsive center) -->
+<!-- These are visual representations, precise placement managed via CSS positioning of nodes -->
+<line filter="url(#glowLine)" stroke="url(#gradientLine)" stroke-width="2" x1="50%" x2="20%" y1="50%" y2="20%"></line>
+<line filter="url(#glowLine)" opacity="0.6" stroke="url(#gradientLine)" stroke-width="2" x1="50%" x2="80%" y1="50%" y2="25%"></line>
+<line filter="url(#glowLine)" opacity="0.4" stroke="url(#gradientLine)" stroke-width="2" x1="50%" x2="85%" y1="50%" y2="60%"></line>
+<line filter="url(#glowLine)" opacity="0.7" stroke="url(#gradientLine)" stroke-width="2" x1="50%" x2="30%" y1="50%" y2="75%"></line>
+<line filter="url(#glowLine)" opacity="0.3" stroke="url(#gradientLine)" stroke-width="2" x1="50%" x2="50%" y1="50%" y2="15%"></line>
+</svg>
+<!-- Satellite Nodes -->
+<!-- Top Left: Slack -->
+<div class="absolute top-[20%] left-[20%] flex flex-col items-center gap-2 z-10">
+<div class="w-12 h-12 rounded-full bg-surface-dark border border-border-slate flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-slate-300">chat</span>
+</div>
+<span class="text-xs text-slate-400 font-medium">Slack</span>
+</div>
+<!-- Top Right: GitHub -->
+<div class="absolute top-[25%] right-[20%] flex flex-col items-center gap-2 z-10">
+<div class="w-12 h-12 rounded-full bg-surface-dark border border-border-slate flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-slate-300">code</span>
+</div>
+<span class="text-xs text-slate-400 font-medium">GitHub</span>
+</div>
+<!-- Bottom Right: AWS -->
+<div class="absolute bottom-[40%] right-[15%] flex flex-col items-center gap-2 z-10">
+<div class="w-12 h-12 rounded-full bg-surface-dark border border-border-slate flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-slate-300">cloud</span>
+</div>
+<span class="text-xs text-slate-400 font-medium">AWS</span>
+</div>
+<!-- Bottom Left: Jira -->
+<div class="absolute bottom-[25%] left-[30%] flex flex-col items-center gap-2 z-10">
+<div class="w-12 h-12 rounded-full bg-surface-dark border border-border-slate flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-slate-300">view_kanban</span>
+</div>
+<span class="text-xs text-slate-400 font-medium">Jira</span>
+</div>
+<!-- Top Center: Google -->
+<div class="absolute top-[15%] left-[50%] -translate-x-1/2 flex flex-col items-center gap-2 z-10">
+<div class="w-12 h-12 rounded-full bg-surface-dark border border-border-slate flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-slate-300">mail</span>
+</div>
+<span class="text-xs text-slate-400 font-medium">Google</span>
+</div>
+<!-- CENTRAL NODE (HOVER STATE ACTIVE) -->
+<div class="relative z-20 group cursor-pointer">
+<!-- Outer Glow Ring (Static Pulse Simulation) -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-vapor-purple/20 blur-xl"></div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full border border-vapor-purple/50 animate-[spin_10s_linear_infinite] opacity-50"></div>
+<!-- The Node Itself -->
+<div class="relative w-20 h-20 rounded-full border-2 border-vapor-purple bg-surface-dark shadow-glow-strong overflow-hidden flex items-center justify-center">
+<div class="w-full h-full bg-cover bg-center opacity-90 hover:opacity-100 transition-opacity" data-alt="Alex Johnson profile photo centered in radar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA7Yo8iPPdfxt0bGv8qaXIBcc0SUuhraywcYbRZGkPco2OmNBuKvniki8LpvbMFqHbzyrh8lbA-kYPhnNmiJT7ehXAOnYjD_iCnfH7gm--JYc9c9SZoPV7LVQ5Qpcm0XWMmbRcl_7DBSPE6D47eFjd4u9rjmZAALYarYR5lZKYds7MM3iJdRDr2KldUoZNbnAD0awxkP-P97FoEkxQ82_8Xhy0PQTicerTiCl4Kt4gfiluH6De2MyxNl8ts02PW_23SufpG-d4F03IB');"></div>
+</div>
+<!-- Name Tag -->
+<div class="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded text-white text-xs font-semibold tracking-wide border border-white/10">
+                                Alex Johnson
+                            </div>
+<!-- GLASSMORPHIC TOOLTIP (Visible State) -->
+<div class="absolute left-full top-1/2 -translate-y-1/2 ml-6 w-64 z-50">
+<!-- Connecting line from node to tooltip -->
+<div class="absolute top-1/2 -left-6 w-6 h-[1px] bg-gradient-to-r from-transparent to-vapor-purple"></div>
+<div class="absolute top-1/2 -left-1 w-1.5 h-1.5 rounded-full bg-vapor-purple shadow-[0_0_10px_#A78BFA]"></div>
+<div class="rounded-lg border border-white/10 bg-[#1e1b4b]/60 backdrop-blur-xl p-4 shadow-2xl overflow-hidden relative">
+<!-- Glossy highlight -->
+<div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-white text-sm font-semibold">Risk Summary</h3>
+<span class="inline-flex items-center rounded-full bg-red-500/10 px-2 py-0.5 text-xs font-medium text-red-400 ring-1 ring-inset ring-red-500/20">High</span>
+</div>
+<div class="flex items-baseline gap-1 mb-3">
+<span class="text-3xl font-bold text-white tracking-tighter" style="text-shadow: 0 0 20px rgba(167,139,250,0.5);">85</span>
+<span class="text-sm text-slate-400 font-medium">/100</span>
+</div>
+<div class="space-y-3">
+<div class="flex items-start gap-2">
+<span class="material-symbols-outlined text-yellow-500 text-[16px] mt-0.5">warning</span>
+<p class="text-xs text-slate-300 leading-tight">3 Critical Access Points active including production DB.</p>
+</div>
+<button class="w-full group/btn relative flex items-center justify-center gap-2 overflow-hidden rounded bg-primary px-3 py-1.5 text-xs font-medium text-[#131023] transition-all hover:bg-[#b0a0fc]">
+<span class="relative z-10">Revoke Access</span>
+<span class="material-symbols-outlined text-[14px] relative z-10 transition-transform group-hover/btn:translate-x-0.5">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Radar Legend / Filters (Bottom Bar) -->
+<div class="absolute bottom-4 left-4 right-4 flex justify-between items-end pointer-events-none">
+<div class="flex gap-2 pointer-events-auto">
+<button class="px-3 py-1 rounded bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur text-xs text-slate-300 transition-colors">Infrastructure</button>
+<button class="px-3 py-1 rounded bg-primary/20 border border-primary/30 backdrop-blur text-xs text-white transition-colors">SaaS Apps</button>
+<button class="px-3 py-1 rounded bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur text-xs text-slate-300 transition-colors">Internal Tools</button>
+</div>
+<div class="text-[10px] text-slate-500 uppercase tracking-widest font-mono">
+                            Live Monitoring • 120ms Latency
+                        </div>
+</div>
+</div>
+<!-- Context Sidebar -->
+<div class="lg:col-span-3 flex flex-col gap-4 min-w-[280px]">
+<!-- At Risk Panel -->
+<div class="flex flex-col rounded-xl border border-border-slate bg-surface-dark overflow-hidden flex-1">
+<div class="p-4 border-b border-border-slate/50 bg-[#252e42]">
+<h3 class="text-white text-base font-bold">At-Risk Employees</h3>
+<p class="text-slate-400 text-xs mt-1">Sorted by anomaly score</p>
+</div>
+<div class="flex-1 overflow-y-auto p-2 space-y-1">
+<!-- Selected Item (Matches Radar) -->
+<div class="group flex items-center gap-3 p-2 rounded-lg bg-primary/10 border border-primary/20 cursor-pointer">
+<div class="relative">
+<div class="w-8 h-8 rounded-full bg-cover bg-center" data-alt="Alex Johnson thumbnail" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDk3-PINjm4TqB4R54WeogDFX6xRwfCZiXPfcqs4S2mvnCUNQOnOYM06CLi06PtRSG1fQq0RR9gMfQt3d6ZAnKw9YImXWkPO8K3MTMPrM6zC9wvIz5xjrEW0lPO7yThHs0j5ujsWFNZBw3xQQ8pQk-TbnIQsgZPLBmIbPGCAmXOUFTXazqUdBjQxdhc7Xs-A3O1F4fFyQM__ayCjUzCaNyis8pZ4VRWdIdjJPwbD7AeRIwc2F4FjAffZPe3HP2ePQBmI7LMtXUajJC2');"></div>
+<div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-surface-dark"></div>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-white text-sm font-medium truncate">Alex Johnson</p>
+<p class="text-primary text-xs truncate">Score: 85 (Critical)</p>
+</div>
+<span class="material-symbols-outlined text-primary text-[16px]">chevron_right</span>
+</div>
+<!-- Other Items -->
+<div class="group flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/5 cursor-pointer transition-colors">
+<div class="relative">
+<div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs text-white font-medium">SK</div>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-slate-200 text-sm font-medium truncate">Sarah K.</p>
+<p class="text-slate-500 text-xs truncate">Score: 62 (High)</p>
+</div>
+</div>
+<div class="group flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/5 cursor-pointer transition-colors">
+<div class="relative">
+<div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs text-white font-medium">MP</div>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-slate-200 text-sm font-medium truncate">Mike Peters</p>
+<p class="text-slate-500 text-xs truncate">Score: 48 (Medium)</p>
+</div>
+</div>
+<div class="group flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/5 cursor-pointer transition-colors">
+<div class="relative">
+<div class="w-8 h-8 rounded-full bg-cover bg-center" data-alt="Elena R thumbnail" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB6gCdG-Erx9VCLwAgSbkOhYYx3vakQhsSSIYL90SsxL-VMx5e0xRKvBrAdvvERB1av49b2PwVkxJv_5Qr1pktW8VHqnyZu3Hv_zKmABQVAZ-FBGmwBTMRKdShRi50NgVAvAHRLiNGdB3RM9QV-1_-hEnP-dm3Is2bKalFbC59S8mjNLYfYvypDRqYE4yL90BSZAGNOLfoHbo0woQoUUKdkghT8URHoH7-Z4DxnCUPBwszTyeL8je241eMQNLpAG8FqXC0WHz7kMyO4');"></div>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-slate-200 text-sm font-medium truncate">Elena R.</p>
+<p class="text-slate-500 text-xs truncate">Score: 45 (Medium)</p>
+</div>
+</div>
+</div>
+<div class="p-3 border-t border-border-slate/50 bg-[#252e42]/50">
+<button class="w-full py-2 text-xs text-slate-400 hover:text-white border border-dashed border-slate-600 rounded hover:bg-white/5 transition-colors">
+                                View All 12 Employees
+                            </button>
+</div>
+</div>
+<!-- Secondary Widget: Recent Activity -->
+<div class="rounded-xl border border-border-slate bg-surface-dark p-4">
+<div class="flex items-center justify-between mb-3">
+<h3 class="text-white text-sm font-bold">Recent Alerts</h3>
+<span class="material-symbols-outlined text-slate-500 text-[16px]">history</span>
+</div>
+<div class="space-y-3">
+<div class="flex gap-3 items-start">
+<div class="mt-0.5 w-1.5 h-1.5 rounded-full bg-orange-400 shadow-[0_0_6px_orange]"></div>
+<div>
+<p class="text-xs text-slate-300 leading-snug">Unusual login location detected for <span class="text-white">Alex Johnson</span>.</p>
+<p class="text-[10px] text-slate-500 mt-0.5">2 mins ago • Kyiv, UA</p>
+</div>
+</div>
+<div class="flex gap-3 items-start">
+<div class="mt-0.5 w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+<div>
+<p class="text-xs text-slate-300 leading-snug">Bulk export of Jira tickets by <span class="text-white">Guest User</span>.</p>
+<p class="text-[10px] text-slate-500 mt-0.5">15 mins ago</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

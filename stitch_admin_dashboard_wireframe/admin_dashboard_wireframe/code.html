@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OffboardHQ - Premium Offboarding</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&amp;family=Inter+Tight:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        void: "#0B1120",
+                        surface: "#1E293B",
+                        accent: "#34D399",
+                        "glass-border": "rgba(255,255,255,0.08)",
+                        "glass-surface": "rgba(30, 41, 59, 0.4)",
+                    },
+                    fontFamily: {
+                        sans: ["Manrope", "sans-serif"],
+                        display: ["Inter Tight", "sans-serif"],
+                    },
+                    backgroundImage: {
+                        'radial-glow': 'radial-gradient(circle at center, rgba(52, 211, 153, 0.15) 0%, rgba(11, 17, 32, 0) 70%)',
+                        'grid-pattern': 'linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px)'
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .font-display { font-family: 'Inter Tight', sans-serif; }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.3);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .text-glow {
+            text-shadow: 0 0 20px rgba(52, 211, 153, 0.5);
+        }
+        .icon-glow {
+            box-shadow: 0 0 15px rgba(52, 211, 153, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-void text-slate-300 antialiased selection:bg-accent selection:text-void overflow-x-hidden">
+<div class="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-900/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
+<div class="fixed bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-emerald-900/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
+<header class="fixed top-0 w-full z-50 border-b border-white/5 bg-void/70 backdrop-blur-xl">
+<div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-900/20">
+<span class="material-symbols-outlined text-void font-bold text-lg">shield_lock</span>
+</div>
+<span class="font-display font-bold text-xl text-white tracking-tight">OffboardHQ</span>
+</div>
+<nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
+<a class="hover:text-white transition-colors" href="#">Platform</a>
+<a class="hover:text-white transition-colors" href="#">Integrations</a>
+<a class="hover:text-white transition-colors" href="#">Compliance</a>
+<a class="hover:text-white transition-colors" href="#">Enterprise</a>
+</nav>
+<div class="flex items-center gap-4">
+<a class="text-sm font-medium text-slate-400 hover:text-white transition-colors hidden sm:block" href="#">Log in</a>
+<a class="text-sm font-bold bg-white/5 hover:bg-white/10 border border-white/10 text-white px-5 py-2.5 rounded-full transition-all backdrop-blur-sm" href="#">
+                    Book Demo
+                </a>
+</div>
+</div>
+</header>
+<main class="relative z-10 pt-32 pb-20">
+<section class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center min-h-[calc(100vh-8rem)]">
+<div class="space-y-10">
+<div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 text-xs font-semibold tracking-wide uppercase">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_currentColor]"></span>
+                    ISO 27001 Certified
+                </div>
+<h1 class="font-display text-5xl lg:text-7xl font-semibold text-white leading-[1.05] tracking-tight">
+                    Offboarding, <br/>
+<span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">on autopilot.</span>
+</h1>
+<p class="text-lg text-slate-400 max-w-xl leading-relaxed">
+                    The silent guardian for your enterprise security. Instantly revoke access across 500+ SaaS applications with calm authority and zero friction.
+                </p>
+<div class="flex flex-col sm:flex-row items-start gap-6 pt-4">
+<button class="group relative px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg text-white font-bold shadow-[0_0_30px_-10px_rgba(52,211,153,0.5)] hover:shadow-[0_0_40px_-5px_rgba(52,211,153,0.6)] transition-all">
+<span class="relative z-10 flex items-center gap-2">
+                            Start Verification
+                            <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</span>
+<div class="absolute inset-0 bg-white/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</button>
+<div class="flex items-center gap-4 px-4 py-4">
+<div class="flex -space-x-3">
+<div class="w-8 h-8 rounded-full border-2 border-void bg-slate-700 flex items-center justify-center text-[10px] text-white font-bold">JD</div>
+<div class="w-8 h-8 rounded-full border-2 border-void bg-slate-600 flex items-center justify-center text-[10px] text-white font-bold">AS</div>
+<div class="w-8 h-8 rounded-full border-2 border-void bg-emerald-900 flex items-center justify-center text-[10px] text-emerald-400 font-bold border-emerald-500/50">+2k</div>
+</div>
+<span class="text-sm text-slate-500 font-medium">Safe exits this month</span>
+</div>
+</div>
+</div>
+<div class="relative">
+<div class="absolute inset-0 bg-grid-pattern bg-[length:40px_40px] opacity-20 pointer-events-none mask-radial"></div>
+<div class="glass-panel rounded-2xl p-1 relative overflow-hidden shadow-2xl shadow-black/50">
+<div class="h-10 border-b border-white/5 bg-void/50 flex items-center px-4 justify-between">
+<div class="flex gap-1.5">
+<div class="w-2.5 h-2.5 rounded-full bg-slate-600"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-slate-600"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-slate-600"></div>
+</div>
+<div class="text-[10px] uppercase tracking-widest text-slate-500 font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                            Live Simulation
+                        </div>
+</div>
+<div class="p-8 bg-void/80 relative min-h-[400px] flex flex-col items-center justify-center">
+<div class="absolute inset-0 flex items-center justify-center opacity-30 pointer-events-none">
+<div class="w-[300px] h-[300px] border border-emerald-500/20 rounded-full"></div>
+<div class="absolute w-[180px] h-[180px] border border-emerald-500/30 rounded-full border-dashed"></div>
+</div>
+<div class="relative z-10 text-center mb-8">
+<div class="w-20 h-20 mx-auto rounded-full p-[2px] bg-gradient-to-b from-emerald-400 to-transparent relative">
+<div class="w-full h-full rounded-full overflow-hidden bg-surface border-4 border-void relative">
+<img alt="User Avatar" class="w-full h-full object-cover opacity-80 mix-blend-luminosity hover:mix-blend-normal transition-all duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDG6qmrUQyMDSLzXs4C9qgZRJpoIPmpxpY_pq9DKtXDHGESIXaBeGReenbPzxStLbdCCib0ORmgLd3S40WCXXkYS9AWbSGcNvK35Y2vANLasj3nf6wvEN5GDENa4638D4BanchD52G-xZyw2qM98PKCD_0OCKBbt_HMP1_vxTTl5xEJwaUBvfdtBm4p2RUq1r5TksJwVfznqhLzmW9yXGmVrf6QgD1JnC705yY9e8QUnyjgXK_3tn4iQ0lPWUqNbnHfCi9Fay-LkmL6"/>
+<div class="absolute inset-0 bg-emerald-500/20 mix-blend-overlay"></div>
+</div>
+<div class="absolute -bottom-2 -right-2 bg-void rounded-full p-1 border border-slate-700">
+<span class="material-symbols-outlined text-emerald-400 text-sm">check_circle</span>
+</div>
+</div>
+<div class="mt-4">
+<h3 class="text-white font-display font-bold">Jordan Doe</h3>
+<p class="text-xs text-emerald-400 font-mono tracking-wider">OFFBOARDING_SEQ_INIT</p>
+</div>
+</div>
+<div class="w-full grid grid-cols-2 gap-4">
+<div class="glass-panel p-3 rounded-lg flex items-center justify-between group hover:bg-emerald-900/10 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-[#4A154B] flex items-center justify-center text-white font-bold text-xs icon-glow">S</div>
+<div class="text-xs">
+<p class="text-white font-bold">Slack</p>
+<p class="text-slate-500">Workspace Access</p>
+</div>
+</div>
+<span class="text-[10px] font-bold text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 rounded">REVOKED</span>
+</div>
+<div class="glass-panel p-3 rounded-lg flex items-center justify-between group hover:bg-emerald-900/10 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-white flex items-center justify-center text-void font-bold text-xs icon-glow">G</div>
+<div class="text-xs">
+<p class="text-white font-bold">Google</p>
+<p class="text-slate-500">Corp Email</p>
+</div>
+</div>
+<span class="text-[10px] font-bold text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 rounded">REVOKED</span>
+</div>
+<div class="glass-panel p-3 rounded-lg flex items-center justify-between border-emerald-500/30 relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 translate-x-[-100%]"></div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-[#232F3E] flex items-center justify-center text-white font-bold text-[8px] icon-glow">AWS</div>
+<div class="text-xs">
+<p class="text-white font-bold">AWS IAM</p>
+<p class="text-slate-500">Root Access</p>
+</div>
+</div>
+<span class="text-[10px] font-bold text-emerald-300 flex items-center gap-1">
+<span class="material-symbols-outlined text-[10px] animate-spin">sync</span>
+                                    PURGING
+                                </span>
+</div>
+<div class="glass-panel p-3 rounded-lg flex items-center justify-between group hover:bg-emerald-900/10 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-[#24292e] flex items-center justify-center text-white font-bold text-xs icon-glow">
+<span class="material-symbols-outlined text-sm">code</span>
+</div>
+<div class="text-xs">
+<p class="text-white font-bold">GitHub</p>
+<p class="text-slate-500">Repo Access</p>
+</div>
+</div>
+<span class="text-[10px] font-bold text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 rounded">REVOKED</span>
+</div>
+</div>
+</div>
+<div class="bg-[#0f1520] p-3 text-[10px] font-mono text-slate-500 border-t border-white/5 flex flex-col gap-1">
+<div class="flex gap-2">
+<span class="text-emerald-500">➜</span>
+<span>Validating offboarding protocols...</span>
+</div>
+<div class="flex gap-2">
+<span class="text-emerald-500">➜</span>
+<span class="text-slate-300">Identity isolation complete. Risk score: <span class="text-emerald-400">0/100</span></span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="max-w-7xl mx-auto px-6 py-24 border-t border-white/5 relative">
+<div class="text-center mb-16">
+<h2 class="font-display text-3xl font-bold text-white mb-4">Total Observability</h2>
+<p class="text-slate-400 max-w-2xl mx-auto">Visualize access dependencies and potential security leaks before they happen.</p>
+</div>
+<div class="relative w-full max-w-4xl mx-auto aspect-[16/9] bg-surface/30 rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
+<div class="absolute inset-0 bg-radial-glow opacity-50"></div>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-[80%] h-[80%] border border-white/5 rounded-full"></div>
+<div class="absolute w-[60%] h-[60%] border border-white/5 rounded-full"></div>
+<div class="absolute w-[40%] h-[40%] border border-white/5 rounded-full"></div>
+<div class="absolute w-full h-[1px] bg-white/5 top-1/2 left-0"></div>
+<div class="absolute h-full w-[1px] bg-white/5 left-1/2 top-0"></div>
+</div>
+<div class="absolute top-[20%] left-[20%] glass-panel px-4 py-2 rounded-lg flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_red]"></div>
+<div class="text-left">
+<p class="text-[10px] uppercase text-slate-400 font-bold">Unrevoked Key</p>
+<p class="text-xs font-bold text-white">AWS us-east-1</p>
+</div>
+</div>
+<div class="absolute bottom-[30%] right-[25%] glass-panel px-4 py-2 rounded-lg flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_10px_#34D399]"></div>
+<div class="text-left">
+<p class="text-[10px] uppercase text-slate-400 font-bold">Secure</p>
+<p class="text-xs font-bold text-white">Notion Workspace</p>
+</div>
+</div>
+<div class="absolute top-[30%] right-[15%] glass-panel px-4 py-2 rounded-lg flex items-center gap-3 opacity-60">
+<div class="w-2 h-2 rounded-full bg-slate-500"></div>
+<div class="text-left">
+<p class="text-[10px] uppercase text-slate-400 font-bold">Inactive</p>
+<p class="text-xs font-bold text-white">Jira</p>
+</div>
+</div>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/50 flex items-center justify-center backdrop-blur-sm">
+<span class="material-symbols-outlined text-emerald-400">radar</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-4xl mx-auto">
+<div class="glass-panel p-6 rounded-xl text-center">
+<p class="text-3xl font-display font-bold text-white">99.9%</p>
+<p class="text-sm text-slate-500 mt-1 uppercase tracking-wide">Revocation Success</p>
+</div>
+<div class="glass-panel p-6 rounded-xl text-center">
+<p class="text-3xl font-display font-bold text-white">0s</p>
+<p class="text-sm text-slate-500 mt-1 uppercase tracking-wide">Manual Effort</p>
+</div>
+<div class="glass-panel p-6 rounded-xl text-center">
+<p class="text-3xl font-display font-bold text-white">SOC2</p>
+<p class="text-sm text-slate-500 mt-1 uppercase tracking-wide">Type II Compliant</p>
+</div>
+</div>
+</section>
+</main>
+<footer class="border-t border-white/5 bg-void py-12">
+<div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-white">shield_lock</span>
+<span class="font-display font-bold text-white tracking-tight">OffboardHQ</span>
+</div>
+<p class="text-slate-600 text-sm">© 2024 OffboardHQ Inc. All systems nominal.</p>
+<div class="flex gap-6 text-sm text-slate-500">
+<a class="hover:text-emerald-400 transition-colors" href="#">Privacy</a>
+<a class="hover:text-emerald-400 transition-colors" href="#">Terms</a>
+<a class="hover:text-emerald-400 transition-colors" href="#">Status</a>
+</div>
+</div>
+</footer>
+
+</body></html>
