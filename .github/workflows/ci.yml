@@ -33,8 +33,21 @@ jobs:
 
     - name: Add DATABASE_URL to schema for CI/CD
       run: |
-        # Add URL to datasource block
-        sed -i '/^datasource db {$/a\  url      = env("DATABASE_URL")' prisma/schema.prisma
+        # Show current schema for debugging
+        echo "Current schema datasource block:"
+        sed -n '/^datasource db {/,/^}/p' prisma/schema.prisma
+        
+        # Only add URL if it's not already present
+        if ! grep -q "url.*env.*DATABASE_URL" prisma/schema.prisma; then
+          echo "Adding DATABASE_URL to schema..."
+          sed -i '/^datasource db {$/a\  url      = env("DATABASE_URL")' prisma/schema.prisma
+        else
+          echo "DATABASE_URL already present in schema"
+        fi
+        
+        # Show final schema for debugging
+        echo "Final schema datasource block:"
+        sed -n '/^datasource db {/,/^}/p' prisma/schema.prisma
 
     - name: Fix vulnerabilities for successful build
       run: npm audit fix || npm audit fix --force || true
