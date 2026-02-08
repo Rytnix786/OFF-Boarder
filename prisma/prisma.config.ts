@@ -1,7 +1,7 @@
 export default {
   datasources: {
     db: {
-      url: "postgresql://postgres.mcmqzwgaojgmrcmdsygh:spLavB1IJzRrybp9R0AsQT0xpSKYsxMCaV8bmlUVvHSVAhRwOKc2A1yjNpo3oyyM@aws-0-us-west-2.pooler.supabase.com:6543/postgres?pgbouncer=true",
+      url: "prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqd3RfaWQiOjEsInNlY3VyZV9rZXkiOiJza19JYlVaSlFlTkx4QS1IXzdWRlBIangiLCJhcGlfa2V5IjoiMDFLR1lZMlNaOUdaOU1HM1JIRUpWMDM5VlgiLCJ0ZW5hbnRfaWQiOiJiNzNiYjU5OGM3ZTZmYzdjZTIyYWFjNDgwNjljNDBhMTg4ODg3ZjMyMDMyMTcxMTlmM2VmM2ZhZjViNjdiMTJlIiwiaW50ZXJuYWxfc2VjcmV0IjoiMmZjYzMwYzEtNjY4Zi00Zjg1LWEwZTYtNDc5OTdmZDZmOTg4In0.oB5vFVuOcFEjsIzVuIIICnDE6JxwJVstv4wzMPGwYCw",
     },
   },
 };
