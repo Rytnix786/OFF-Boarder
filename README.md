@@ -238,14 +238,6 @@ Based on current repository state:
 - Improve setup UX with a canonical `.env.example` and bootstrap docs
 
 ---
-
-## License
-
-No license file is currently present in this repository.  
-If this project is intended for open-source distribution, add a `LICENSE` file (for example, MIT or Apache-2.0).
-
----
-
 ## Contact / LinkedIn
 
 - GitHub: [@Rytnix786](https://github.com/Rytnix786)
