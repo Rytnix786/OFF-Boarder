@@ -49,9 +49,31 @@ jobs:
 
     - name: Generate Prisma Client
       run: |
-        # Use direct DB URL for client generation
+        # Force clean client generation
+        rm -rf node_modules/@prisma/client
+        
+        # Use direct database URL for client generation (compatible with driver adapter)
         export DATABASE_URL="${{ secrets.DIRECT_DATABASE_URL }}"
-        npx prisma generate
+        echo "Using direct DB URL for client generation: $DATABASE_URL"
+        
+        # Generate client with direct connection
+        npx prisma generate --schema=./prisma/schema.prisma
+        
+        # Wait for file system sync
+        sleep 2
+        
+        # Check runtime files
+        echo "Checking for runtime files:"
+        find node_modules/@prisma/client/runtime/ -name "*.wasm*" -o -name "*.js" | head -5
+        
+        # Verify the specific file exists
+        if [ -f "node_modules/@prisma/client/runtime/query_engine_bg.postgresql.wasm-base64.js" ]; then
+          echo "✅ Runtime file found successfully"
+        else
+          echo "❌ Runtime file still missing"
+          ls -la node_modules/@prisma/client/runtime/ || echo "Runtime directory missing"
+          exit 1
+        fi
 
     - name: Run tests
       run: npm run test:run
