@@ -9,10 +9,11 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      DATABASE_URL: "prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqd3RfaWQiOjEsInNlY3VyZV9rZXkiOiJza19JYlVaSlFlTkx4QS1IXzdWRlBIangiLCJhcGlfa2V5IjoiMDFLR1lZMlNaOUdaOU1HM1JIRUpWMDM5VlgiLCJ0ZW5hbnRfaWQiOiJiNzNiYjU5OGM3ZTZmYzdjZTIyYWFjNDgwNjljNDBhMTg4ODg3ZjMyMDMyMTcxMTlmM2VmM2ZhZjViNjdiMTJlIiwiaW50ZXJuYWxfc2VjcmV0IjoiMmZjYzMwYzEtNjY4Zi00Zjg1LWEwZTYtNDc5OTdmZDZmOTg4In0.oB5vFVuOcFEjsIzVuIIICnDE6JxwJVstv4wzMPGwYCw"
-      NEXT_PUBLIC_SUPABASE_URL: "https://mcmqzwgaojgmrcmdsygh.supabase.co"
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jbXF6d2dhb2pnbXJjbWRzeWdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MzM3MTYsImV4cCI6MjA4NDIwOTcxNn0.ISxCuAwqkBaVsfHxsAckLY_n1gxUQLbgpWTR_oy6pPM"
-      SUPABASE_SERVICE_ROLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jbXF6d2dhb2pnbXJjbWRzeWdoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODYzMzcxNiwiZXhwIjoyMDg0MjA5NzE2fQ.sQlAPHnY7jQsdaq8r3aKm-QYEwxqjxbYhBh62u7TIkU"
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}  # GitHub Actions syntax - ignore IDE warnings
+      DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}  # GitHub Actions syntax - ignore IDE warnings
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}  # GitHub Actions syntax - ignore IDE warnings
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}  # GitHub Actions syntax - ignore IDE warnings
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}  # GitHub Actions syntax - ignore IDE warnings
 
     steps:
     - uses: actions/checkout@v4
