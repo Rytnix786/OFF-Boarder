@@ -31,6 +31,17 @@ jobs:
     - name: Clear Prisma cache to avoid version conflicts
       run: rm -rf node_modules/.prisma node_modules/@prisma
 
+    - name: Ensure Prisma client alignment
+      run: |
+        # Ensure @prisma/client is properly installed
+        npm install @prisma/client@latest prisma@latest
+        
+        # Verify versions match
+        echo "Prisma CLI version:"
+        npx prisma --version | head -1
+        echo "Prisma Client version:"
+        npm list @prisma/client | grep @prisma/client
+
     - name: Add DATABASE_URL to schema for CI/CD
       run: |
         # Show current schema for debugging
@@ -53,7 +64,19 @@ jobs:
       run: npm audit fix || npm audit fix --force || true
 
     - name: Generate Prisma Client
-      run: npx prisma generate
+      run: |
+        # Ensure proper client generation
+        npx prisma generate
+        
+        # Verify client was generated
+        ls -la node_modules/@prisma/client/runtime/ || echo "Client runtime not found"
+        
+        # Re-generate if needed
+        if [ ! -f "node_modules/@prisma/client/runtime/query_engine_bg.postgresql.wasm-base64.js" ]; then
+          echo "Client runtime missing, regenerating..."
+          rm -rf node_modules/@prisma/client
+          npx prisma generate
+        fi
 
     - name: Lint
       run: npm run lint
