@@ -32,6 +32,11 @@ jobs:
     - name: Fix vulnerabilities for successful testing
       run: npm audit fix || npm audit fix --force || true
 
+    - name: Ensure Prisma client alignment
+      run: |
+        npm install @prisma/client@latest prisma@latest
+        npx prisma --version | head -1
+
     - name: Generate Prisma Client
       run: npx prisma generate
 
