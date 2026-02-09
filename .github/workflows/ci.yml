@@ -55,6 +55,9 @@ jobs:
       run: |
         # Force clean client generation
         rm -rf node_modules/@prisma/client
+
+        # Reinstall client after cleanup
+        npm install @prisma/client@latest prisma@latest
         
         # Use direct database URL for client generation (compatible with driver adapter)
         export DATABASE_URL="$DIRECT_DATABASE_URL"
