@@ -73,8 +73,9 @@ jobs:
         echo "Checking for runtime files:"
         find node_modules/@prisma/client/runtime/ -name "*.wasm*" -o -name "*.js" | head -5
         
-        # Verify the specific file exists
-        if [ -f "node_modules/@prisma/client/runtime/query_engine_bg.postgresql.wasm-base64.js" ]; then
+        # Verify the runtime files exist (Prisma 7 uses query_compiler)
+        if [ -f "node_modules/@prisma/client/runtime/query_compiler_fast_bg.postgresql.wasm-base64.js" ] || \
+           [ -f "node_modules/@prisma/client/runtime/query_compiler_fast_bg.postgresql.wasm-base64.mjs" ]; then
           echo "✅ Runtime file found successfully"
         else
           echo "❌ Runtime file still missing"
