@@ -31,7 +31,6 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files
-.env*
 !.env.example
 
 # vercel
@@ -49,3 +48,11 @@ bun.lock
 cookies.txt
 *.sql.gz
 *.sql.gz
+
+# Project docs and tooling (local only)
+.orchids/
+AGENTS.md
+PERFORMANCE_ANALYSIS.md
+ROLE_MODEL_VALIDATION.md
+UI_UX_IMPLEMENTATION_PLAN.md
+config.bat
