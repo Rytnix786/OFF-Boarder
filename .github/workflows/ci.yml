@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      DATABASE_URL: "postgresql://postgres.mcmqzwgaojgmrcmdsygh:spLavB1IJzRrybp9R0AsQT0xpSKYsxMCaV8bmlUVvHSVAhRwOKc2A1yjNpo3oyyM@aws-0-us-west-2.pooler.supabase.com:6543/postgres?pgbouncer=true"
-      DIRECT_DATABASE_URL: "postgresql://postgres.mcmqzwgaojgmrcmdsygh:spLavB1IJzRrybp9R0AsQT0xpSKYsxMCaV8bmlUVvHSVAhRwOKc2A1yjNpo3oyyM@aws-0-us-west-2.pooler.supabase.com:6543/postgres?pgbouncer=true"
-      NEXT_PUBLIC_SUPABASE_URL: "https://mcmqzwgaojgmrcmdsygh.supabase.co"
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jbXF6d2dhb2pnbXJjbWRzeWdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MzM3MTYsImV4cCI6MjA4NDIwOTcxNn0.ISxCuAwqkBaVsfHxsAckLY_n1gxUQLbgpWTR_oy6pPM"
-      SUPABASE_SERVICE_ROLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jbXF6d2dhb2pnbXJjbWRzeWdoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODYzMzcxNiwiZXhwIjoyMDg0MjA5NzE2fQ.sQlAPHnY7jQsdaq8r3aKm-QYEwxqjxbYhBh62u7TIkU"
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
     steps:
     - uses: actions/checkout@v4
@@ -29,73 +29,19 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Clear Prisma cache to avoid version conflicts
-      run: rm -rf node_modules/.prisma node_modules/@prisma
-
-    - name: Ensure Prisma client alignment
-      run: |
-        # Ensure @prisma/client is properly installed
-        npm install @prisma/client@latest prisma@latest
-        
-        # Verify versions match
-        echo "Prisma CLI version:"
-        npx prisma --version | head -1
-        echo "Prisma Client version:"
-        npm list @prisma/client | grep @prisma/client
-
-    - name: Fix vulnerabilities for successful build
-      run: npm audit fix || npm audit fix --force || true
-
-    - name: Re-align Prisma after audit fix
-      run: |
-        npm install @prisma/client@latest prisma@latest
-        npx prisma --version | head -1
-
     - name: Generate Prisma Client
-      run: |
-        # Force clean client generation
-        rm -rf node_modules/@prisma/client
-
-        # Reinstall client after cleanup
-        npm install @prisma/client@latest prisma@latest
-        
-        # Use direct database URL for client generation (compatible with driver adapter)
-        export DATABASE_URL="$DIRECT_DATABASE_URL"
-        echo "Using direct DB URL for client generation: $DATABASE_URL"
-        
-        # Generate client with direct connection
-        npx prisma generate --schema=./prisma/schema.prisma
-        
-        # Wait for file system sync
-        sleep 2
-        
-        # Check runtime files
-        echo "Checking for runtime files:"
-        find node_modules/@prisma/client/runtime/ -name "*.wasm*" -o -name "*.js" | head -5
-        
-        # Verify the runtime files exist (Prisma 7 uses query_compiler)
-        if [ -f "node_modules/@prisma/client/runtime/query_compiler_fast_bg.postgresql.wasm-base64.js" ] || \
-           [ -f "node_modules/@prisma/client/runtime/query_compiler_fast_bg.postgresql.wasm-base64.mjs" ]; then
-          echo "✅ Runtime file found successfully"
-        else
-          echo "❌ Runtime file still missing"
-          ls -la node_modules/@prisma/client/runtime/ || echo "Runtime directory missing"
-          exit 1
-        fi
+      run: npx prisma generate --schema=./prisma/schema.prisma
 
     - name: Lint
       run: npm run lint
 
     - name: Build
       run: |
-        # Clear all caches to avoid middleware/proxy conflicts
+        # Clear caches to avoid middleware/proxy conflicts
         rm -rf .next node_modules/.cache
-        
-        # Also clear any potential IDE cache files
-        find . -name "*.log" -delete 2>/dev/null || true
-        
-        # Make script executable and run it
+
+        # Ensure proxy.ts check script is executable
         chmod +x ./scripts/check-middleware.sh
         ./scripts/check-middleware.sh
-        
+
         npm run build

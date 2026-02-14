@@ -11,10 +11,11 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      DATABASE_URL: "postgresql://postgres.mcmqzwgaojgmrcmdsygh:spLavB1IJzRrybp9R0AsQT0xpSKYsxMCaV8bmlUVvHSVAhRwOKc2A1yjNpo3oyyM@aws-0-us-west-2.pooler.supabase.com:6543/postgres?pgbouncer=true"
-      NEXT_PUBLIC_SUPABASE_URL: "https://mcmqzwgaojgmrcmdsygh.supabase.co"
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jbXF6d2dhb2pnbXJjbWRzeWdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MzM3MTYsImV4cCI6MjA4NDIwOTcxNn0.ISxCuAwqkBaVsfHxsAckLY_n1gxUQLbgpWTR_oy6pPM"
-      SUPABASE_SERVICE_ROLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jbXF6d2dhb2pnbXJjbWRzeWdoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODYzMzcxNiwiZXhwIjoyMDg0MjA5NzE2fQ.sQlAPHnY7jQsdaq8r3aKm-QYEwxqjxbYhBh62u7TIkU"
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
     steps:
     - name: Checkout code
@@ -29,16 +30,8 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Fix vulnerabilities for successful testing
-      run: npm audit fix || npm audit fix --force || true
-
-    - name: Ensure Prisma client alignment
-      run: |
-        npm install @prisma/client@latest prisma@latest
-        npx prisma --version | head -1
-
     - name: Generate Prisma Client
-      run: npx prisma generate
+      run: npx prisma generate --schema=./prisma/schema.prisma
 
     - name: Run linting
       run: npm run lint
