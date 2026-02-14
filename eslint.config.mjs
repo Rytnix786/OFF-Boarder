@@ -24,6 +24,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // The frontend/ subdirectory is a separate project with its own config
+    "frontend/**",
     // Project-specific generated/dev utility files not part of app lint scope
     "node_modules/**",
     "dist/**",
