@@ -264,4 +264,4 @@ MIT
 ## Author
 
 - GitHub: [@Rytnix786](https://github.com/Rytnix786)
-- LinkedIn: [Mehedi Hasan](https://www.linkedin.com/in/mehedi-hasan-rytnix786/)
+- LinkedIn: [Mehedi Hasan](https://www.linkedin.com/in/mehedi-hasan-llm/)
